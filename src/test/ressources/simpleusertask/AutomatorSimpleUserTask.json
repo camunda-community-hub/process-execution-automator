@@ -1,0 +1,39 @@
+{
+  "name": "Simple User Task",
+  "processId": "SimpleUserTask",
+  "modeVerification": "STRICT",
+  "executions": [
+    {
+      "name": "HappyPath",
+      "numberProcessInstances" : 30,
+      "numberOfThreads" : 10,
+      "steps": [
+        {
+          "type": "STARTEVENT",
+          "activityId": "Start Review",
+          "variables": {}
+        },
+        {
+          "type": "USERTASK",
+          "delay": "PT0.1S",
+          "activityId": "Activity_Review_1",
+          "variables": {}
+        },
+        {
+          "type": "USERTASK",
+          "activityId": "Activity_Review_2",
+          "variables": {}
+        },
+        {
+          "type": "USERTASK",
+          "activityId": "Activity_Review_3",
+          "variables": {}
+        },
+        {
+          "type": "ENDEVENT",
+          "activityId": "EndEvent_Review"
+        }
+      ]
+    }
+    ]
+}

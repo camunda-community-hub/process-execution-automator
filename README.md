@@ -142,3 +142,8 @@ Via the UI (or the API), the user gives the process instance. Automator queries 
 # Connect to a server
 Automator does not contain any Camunda server. It connects to an existing Camunda Engine.
 Two communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a Camunda 7 or a Camunda 8 server.
+
+
+# Comments
+* embeded a Camunda 7
+* start after an activity
