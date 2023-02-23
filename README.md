@@ -133,6 +133,20 @@ The process instance can execute other tasks: Automator does not verify that, ex
 }
 `````
 
+## STARTEVENT step
+
+## USERTASK step
+
+The step wait for a user task, and execute it.
+
+| Parameter          | Explanation                                                                                                                              | Example                                                               |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| type               | Specify the type                                                                                                                         | type: "USERTASK"                                                      |
+| delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                  | delay="PT0.1S" waits 100 ms                                           |
+| waitingTime        | Wait maximum this time, before returning an error. Automator query the engine every 500 ms, until this delay. Default value is 5 minutes | waitingTime="PT10S"                                                   |
+| activityId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
+| variables          | List of variable (JSON file) to update                                                                                                   | {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
+| numberOfExecutions | Number of execution, the task may be multi instance. Default is 1                                                                        | numberOfExecutions = 3                                                |
 
 # Build a Scenario
 Automator can generate a scenario from a real execution.
@@ -145,5 +159,5 @@ Two communication interfaces exist, one for Camunda 7 and one for Camunda 8. A s
 
 
 # Comments
-* embeded a Camunda 7
+* embedded a Camunda 7
 * start after an activity

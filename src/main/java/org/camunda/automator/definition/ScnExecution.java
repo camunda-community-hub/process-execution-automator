@@ -14,14 +14,14 @@ public class ScnExecution {
   /**
    * Number of process instance to create
    */
-  private int numberProcessInstances;
+  private Integer numberProcessInstances;
 
   /**
-   * Number of thread in parallelle to execute all process instances
+   * Number of thread in parallel to execute all process instances
    */
   private int numberOfThreads;
   /**
-   * Note: when the object is unserialized from JSON, scnHead is null
+   * Note: when the object is un-serialized from JSON, scnHead is null
    *
    * @param scnHead
    */
@@ -87,7 +87,7 @@ public class ScnExecution {
   }
 
   public int getNumberProcessInstances() {
-    return numberProcessInstances;
+    return numberProcessInstances==null? 1 : numberProcessInstances;
   }
 
   public ScnHead getScnHead() {
@@ -104,6 +104,6 @@ public class ScnExecution {
   }
 
   public int getNumberOfThreads() {
-    return numberOfThreads;
+    return (numberOfThreads<=0? 1 : numberOfThreads);
   }
 }

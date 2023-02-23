@@ -17,10 +17,18 @@ public class ScnStep {
   private String activityId;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
+
   /**
    * ISO 8601: PT10S
    */
   private String delay;
+
+  /**
+   * ISO 8601: PT10S
+   */
+  private String waitingTime;
+
+  private int numberOfExecutions=1;
 
   public ScnStep(ScnExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -97,8 +105,28 @@ public class ScnStep {
     return this;
   }
 
+  public void setScnExecution(ScnExecution scnExecution) {
+    this.scnExecution = scnExecution;
+  }
+
+  public String getWaitingTime() {
+    return waitingTime;
+  }
+
+  public void setWaitingTime(String waitingTime) {
+    this.waitingTime = waitingTime;
+  }
+
   public ScnExecution getScnExecution() {
     return scnExecution;
+  }
+
+  public int getNumberOfExecutions() {
+    return numberOfExecutions;
+  }
+
+  public void setNumberOfExecutions(int numberOfExecutions) {
+    this.numberOfExecutions = numberOfExecutions;
   }
 
   protected void afterUnSerialize(ScnExecution scnExecution) {

@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -44,25 +46,25 @@ public class ScnRunHead {
     ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
 
     List<Future<?>> listFutures = new ArrayList<>();
-    List<ScnExecutionCallable> listCallables = new ArrayList<>();
+
     for (int i = 0; i < scenario.getExecutions().size(); i++) {
       ScnExecution scnExecution = scenario.getExecutions().get(i);
       ScnExecutionCallable scnExecutionCallable = new ScnExecutionCallable("Agent-" + i, scnExecution, bpmnEngine,
           runParameters);
-      listCallables.add(scnExecutionCallable);
+
       listFutures.add(executor.submit(scnExecutionCallable));
     }
 
     // wait the end of all executions
     try {
       for (Future<?> f : listFutures) {
-        f.get();
+        Object scnRunResult = f.get();
+        result.add((ScnRunResult)scnRunResult);
       }
 
-      // collect the result
-      for (ScnExecutionCallable scnExecutionCallable : listCallables) {
-        result.add(scnExecutionCallable.scnRunResult);
-      }
+    } catch (ExecutionException ee) {
+      result.addError(null, "Error during executing in parallel " + ee.getMessage());
+
     } catch (Exception e) {
       result.addError(null, "Error during executing in parallel " + e.getMessage());
     }
@@ -70,7 +72,7 @@ public class ScnRunHead {
     return result;
   }
 
-  private class ScnExecutionCallable implements Runnable {
+  private static class ScnExecutionCallable implements Callable {
     private final String agentName;
     private final ScnExecution scnExecution;
     private final BpmnEngine bpmnEngine;
@@ -89,10 +91,11 @@ public class ScnRunHead {
     }
 
     @Override
-    public void run() {
+    public Object call() {
       ScnRunExecution scnRunExecution = new ScnRunExecution();
       scnRunExecution.setAgentName(agentName);
       scnRunResult = scnRunExecution.runExecution(scnExecution, bpmnEngine, runParameters);
+      return scnRunResult;
     }
 
     public ScnRunResult getScnRunResult() {

@@ -20,4 +20,11 @@ public class AutomatorException extends Exception {
     this.message = message + " : " + exception.getMessage();
   }
 
+  public String getMessage() {
+    return message;
+  }
+
+  public int getCode() {
+    return code;
+  }
 }

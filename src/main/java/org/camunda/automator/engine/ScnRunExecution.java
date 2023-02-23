@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -33,38 +34,36 @@ public class ScnRunExecution {
   public ScnRunResult runExecution(ScnExecution scnExecution, BpmnEngine bpmnEngine, RunParameters runParameters) {
     ScnRunResult resultExecution = new ScnRunResult(scnExecution.getScnHead(), runParameters);
 
-    logger.info("ScnRunExecution." + agentName + ": Start Execution [" + scnExecution.getName() + "] ");
-
+    if (runParameters.isLevelMonitoring()) {
+      logger.info("ScnRunExecution." + agentName + ": Start Execution [" + scnExecution.getName() + "] ");
+    }
     ExecutorService executor = Executors.newFixedThreadPool(scnExecution.getNumberOfThreads());
 
     List<Future<?>> listFutures = new ArrayList<>();
-    List<ScnRunExecution.ScnThreadCallable> listCallables = new ArrayList<>();
 
     for (int i = 0; i < scnExecution.getNumberProcessInstances(); i++) {
-      ScnRunExecution.ScnThreadCallable scnExecutionCallable = new ScnRunExecution.ScnThreadCallable("AutomatorThread-" + i,
-          scnExecution, this, bpmnEngine, runParameters);
+      ScnRunExecution.ScnThreadCallable scnExecutionCallable = new ScnRunExecution.ScnThreadCallable(
+          "AutomatorThread-" + i, scnExecution, this, bpmnEngine, runParameters);
 
-      listCallables.add(scnExecutionCallable);
       listFutures.add(executor.submit(scnExecutionCallable));
     }
 
     // wait the end of all executions
     try {
       for (Future<?> f : listFutures) {
-        f.get();
+        Object scnRunResult = f.get();
+        resultExecution.add((ScnRunResult) scnRunResult);
+
       }
 
-      // collect the result
-      for (ScnRunExecution.ScnThreadCallable scnExecutionCallable : listCallables) {
-        resultExecution.add(scnExecutionCallable.scnRunResult);
-      }
     } catch (Exception e) {
       resultExecution.addError(null, "Error during executing in parallel " + e.getMessage());
     }
 
-    logger.info("ScnRunExecution." + agentName + ": End Execution [" + scnExecution.getName() + "] success? "
-        + resultExecution.isSuccess());
-
+    if (runParameters.isLevelMonitoring()) {
+      logger.info("ScnRunExecution." + agentName + ": End Execution [" + scnExecution.getName() + "] success? "
+          + resultExecution.isSuccess());
+    }
     return resultExecution;
   }
 
@@ -81,8 +80,8 @@ public class ScnRunExecution {
       result.addProcessInstanceId(
           bpmnEngine.createProcessInstance(step.getScnExecution().getScnHead().getProcessId(), step.getActivityId(),
               step.getVariables()));
-    } catch (Exception e) {
-      result.addError(step, "Can't create a process instance " + e.getMessage());
+    } catch (AutomatorException e) {
+      result.addError(step, "Error at creation " + e.getMessage());
     }
     return result;
   }
@@ -96,7 +95,6 @@ public class ScnRunExecution {
    * @return result completed
    */
   public ScnRunResult executeUserTask(ScnRunResult result, ScnStep step, BpmnEngine bpmnEngine) {
-    int countLoop = 0;
     if (step.getDelay() != null) {
       Duration duration = Duration.parse(step.getDelay());
       try {
@@ -104,30 +102,40 @@ public class ScnRunExecution {
       } catch (InterruptedException e) {
       }
     }
-    try {
-      List<String> listActivities;
-      do {
-        countLoop++;
+    Long waitingTimeInMs = null;
+    if (step.getWaitingTime() != null) {
+      Duration duration = Duration.parse(step.getWaitingTime());
+      waitingTimeInMs = duration.toMillis();
+    }
+    if (waitingTimeInMs == null)
+      waitingTimeInMs = Long.valueOf(5 * 60 * 1000);
 
-        listActivities = bpmnEngine.searchForActivity(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+
+    for (int index=0;index<step.getNumberOfExecutions();index++) {
+      long beginTimeWait = System.currentTimeMillis();
+      try {
+        List<String> listActivities;
+        do {
+
+          listActivities = bpmnEngine.searchForActivity(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+
+          if (listActivities.isEmpty()) {
+            try {
+              Thread.sleep(500);
+            } catch (InterruptedException e) {
+            }
+          }
+        } while (listActivities.isEmpty() && System.currentTimeMillis() - beginTimeWait < waitingTimeInMs);
 
         if (listActivities.isEmpty()) {
-          try {
-            Thread.sleep(500);
-          } catch (InterruptedException e) {
-          }
+          result.addError(step, "No user task show up task[" + step.getActivityId() + "] processInstance[" + result.getFirstProcessInstanceId() + "]");
+          return result;
         }
-      } while (listActivities.isEmpty() && countLoop < 100);
-
-      if (listActivities.isEmpty()) {
-        result.addError(step, "No user task show up task[" + step.getActivityId() + "] processInstance["
-            + result.getFirstProcessInstanceId() + "]");
+        bpmnEngine.executeUserTask(listActivities.get(0), step.getUserId(), step.getVariables());
+      } catch (AutomatorException e) {
+        result.addError(step, e.getMessage());
         return result;
       }
-      bpmnEngine.executeUserTask(listActivities.get(0), step.getUserId(), step.getVariables());
-    } catch (AutomatorException e) {
-      result.addError(step, e.getMessage());
-      return result;
     }
 
     return result;
@@ -139,7 +147,7 @@ public class ScnRunExecution {
   /*                                                                      */
   /* ******************************************************************** */
 
-  private class ScnThreadCallable implements Runnable {
+  private class ScnThreadCallable implements Callable {
     private final String agentName;
     private final ScnExecution scnExecution;
     private final ScnRunExecution scnRunExecution;
@@ -161,12 +169,11 @@ public class ScnRunExecution {
       this.runParameters = runParameters;
     }
 
-    @Override
-    public void run() {
+    public Object call() throws Exception {
       scnRunResult = new ScnRunResult(scnExecution.getScnHead(), runParameters);
 
       if (runParameters.isLevelMonitoring())
-        logger.info("ScnRunExecution.StartExecution [" + scnExecution.getName() + "] agent[" + agentName+"]" );
+        logger.info("ScnRunExecution.StartExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
 
       for (ScnStep step : scnExecution.getSteps()) {
         long timeBegin = System.currentTimeMillis();
@@ -192,12 +199,13 @@ public class ScnRunExecution {
         scnRunResult.addStepExecution(step, timeEnd - timeBegin);
       }
       if (runParameters.isLevelMonitoring())
-        logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName+"]" );
-
+        logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
+      return scnRunResult;
     }
 
     public ScnRunResult getScnRunResult() {
       return scnRunResult;
     }
+
   }
 }
