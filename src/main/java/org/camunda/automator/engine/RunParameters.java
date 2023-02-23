@@ -6,7 +6,7 @@ public class RunParameters {
   public int numberOfThreadsPerScenario = 10;
 
   public int getNumberOfThreadsPerScenario() {
-    return numberOfThreadsPerScenario;
+    return (numberOfThreadsPerScenario<=0? 1 : numberOfThreadsPerScenario);
   }
 
   public boolean isLevelMonitoring() {

@@ -4,8 +4,11 @@ import org.camunda.automator.bpmnengine.AutomatorException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.community.rest.client.api.ProcessDefinitionApi;
+import org.camunda.community.rest.client.api.ProcessInstanceApi;
 import org.camunda.community.rest.client.api.TaskApi;
 import org.camunda.community.rest.client.dto.CompleteTaskDto;
+import org.camunda.community.rest.client.dto.ProcessInstanceDto;
+import org.camunda.community.rest.client.dto.ProcessInstanceQueryDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceWithVariablesDto;
 import org.camunda.community.rest.client.dto.StartProcessInstanceDto;
 import org.camunda.community.rest.client.dto.TaskDto;
@@ -20,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BpmnEngineCamunda7 implements BpmnEngine {
 
@@ -30,6 +34,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   ApiClient client = null;
   ProcessDefinitionApi processDefinitionApi;
   TaskApi taskApi;
+  ProcessInstanceApi processInstanceApi;
 
   public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration) {
     this.engineConfiguration = engineConfiguration;
@@ -41,6 +46,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     client.setBasePath(engineConfiguration.serverUrl);
     processDefinitionApi = new ProcessDefinitionApi();
     taskApi = new TaskApi();
+    processInstanceApi = new ProcessInstanceApi();
   }
 
   @Override
@@ -58,7 +64,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
           new StartProcessInstanceDto().variables(variablesApi));
       return processInstanceDto.getId();
     } catch (ApiException e) {
-      throw new AutomatorException("Can't create process instance ", e);
+      throw new AutomatorException("Can't create process instance in ["+processId+"] StartEvent[" + starterEventId +"]", e);
     }
   }
 
@@ -68,8 +74,17 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     if (engineConfiguration.logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
     }
+
+    // get the list of all sub process instance
+    List<String> listProcessInstance = getListSubProcessInstance(processInstanceId);
+
+
     TaskQueryDto taskQueryDto = new TaskQueryDto();
     taskQueryDto.addProcessInstanceIdInItem(processInstanceId);
+    for (String subProcessInstance : listProcessInstance) {
+      taskQueryDto.addProcessInstanceIdInItem(subProcessInstance);
+
+    }
     taskQueryDto.addTaskDefinitionKeyInItem(taskName);
     List<TaskDto> taskDtos = null;
     try {
@@ -77,7 +92,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     } catch (ApiException e) {
       throw new AutomatorException("Can't searchTask", e);
     }
-    return taskDtos.stream().map(t -> t.getId()).toList();
+    return taskDtos.stream().map(TaskDto::getId).toList();
   }
 
   @Override
@@ -98,8 +113,25 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       taskApi.complete(taskId, new CompleteTaskDto().variables(variablesApi));
       return null;
     } catch (ApiException e) {
-      throw new AutomatorException("Can't execute task", e);
+      throw new AutomatorException("Can't execute taskId["+taskId+"] with userId["+userId+"]", e);
     }
   }
 
+  /**
+   * Collect all subprocess for a process instance
+   * @param rootProcessInstance
+   * @return
+   * @throws AutomatorException
+   */
+  private List<String> getListSubProcessInstance( String rootProcessInstance) throws  AutomatorException{
+    ProcessInstanceQueryDto processInstanceQueryDto = new ProcessInstanceQueryDto();
+    processInstanceQueryDto.superProcessInstance(rootProcessInstance);
+    List<ProcessInstanceDto> processInstanceDtos = null;
+    try {
+      processInstanceDtos = processInstanceApi.queryProcessInstances(0, 100000, processInstanceQueryDto);
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't searchSubProcess", e);
+    }
+    return processInstanceDtos.stream().map(ProcessInstanceDto::getId).collect(Collectors.toList());
+  }
 }

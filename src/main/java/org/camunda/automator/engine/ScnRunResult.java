@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ScnRunResult {
+  Logger logger = LoggerFactory.getLogger(ScnRunResult.class);
 
   /**
    * Scenario attached to this execution
@@ -27,11 +28,13 @@ public class ScnRunResult {
    */
   private final List<ErrorDescription> listErrors = new ArrayList<>();
   private final List<StepExecution> listDetailsSteps = new ArrayList<>();
-  Logger logger = LoggerFactory.getLogger(ScnRunResult.class);
   /**
    * process instance started for this execution. The executionResult stand for only one process instance
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
+
+  private int numberOfProcessInstances = 0;
+  private int numberOfSteps = 0;
   /**
    * Time to execute it
    */
@@ -51,8 +54,14 @@ public class ScnRunResult {
   /*                                                                      */
   /* ******************************************************************** */
 
+  /**
+   * Add the process instance - this is mandatory to
+   *
+   * @param processInstanceId
+   */
   public void addProcessInstanceId(String processInstanceId) {
     this.listProcessInstancesId.add(processInstanceId);
+    numberOfProcessInstances++;
   }
 
   public void addTimeExecution(long timeToAdd) {
@@ -61,6 +70,7 @@ public class ScnRunResult {
 
   public void addStepExecution(ScnStep step, long timeExecution) {
     addTimeExecution(timeExecution);
+    numberOfSteps++;
     if (runParameters.isLevelStoreDetails()) {
       StepExecution scenarioExecution = new StepExecution(this);
       scenarioExecution.step = step;
@@ -90,8 +100,13 @@ public class ScnRunResult {
   public void add(ScnRunResult result) {
     addTimeExecution(result.getTimeExecution());
     listErrors.addAll(result.listErrors);
-    listDetailsSteps.addAll(result.listDetailsSteps);
-    listProcessInstancesId.addAll(result.listProcessInstancesId);
+    numberOfProcessInstances += result.numberOfProcessInstances;
+    numberOfSteps += result.numberOfSteps;
+    // we collect the list only if the level is low
+    if (runParameters.isLevelStoreDetails()) {
+      listDetailsSteps.addAll(result.listDetailsSteps);
+      listProcessInstancesId.addAll(result.listProcessInstancesId);
+    }
   }
 
   public boolean isSuccess() {
@@ -125,14 +140,19 @@ public class ScnRunResult {
    */
   public String getSynthesis(boolean fullDetail) {
     StringBuilder synthesis = new StringBuilder();
-    synthesis.append(listErrors.isEmpty() ? "Success " : "Fail ");
-    synthesis.append(" in ");
+    synthesis.append(listErrors.isEmpty() ? "SUCCESS " : "FAIL    ");
+    synthesis.append(scenario.getName());
+    synthesis.append("(");
+    synthesis.append(scenario.getProcessId());
+    synthesis.append("): ");
+
     synthesis.append(timeExecution);
-    synthesis.append(" ms, ");
-    if (runParameters.isLevelStoreDetails()) {
-      synthesis.append(listDetailsSteps.size());
-      synthesis.append(" steps executed,");
-    }
+    synthesis.append(" timeExecution(ms), ");
+    synthesis.append(numberOfProcessInstances);
+    synthesis.append(" processInstancesCreated, ");
+    synthesis.append(numberOfSteps);
+    synthesis.append(" stepsExecuted, ");
+
     // add errors
     synthesis.append(listErrors.stream() // stream
         .map(t -> {
@@ -140,7 +160,12 @@ public class ScnRunResult {
         }).collect(Collectors.joining(",")));
 
     // add full details
+    if (fullDetail && numberOfProcessInstances==listProcessInstancesId.size()) {
+      synthesis.append(" ListOfProcessInstancesCreated: ");
 
+      synthesis.append(listProcessInstancesId.stream() // stream
+          .collect(Collectors.joining(",")));
+    }
     return synthesis.toString();
 
   }
