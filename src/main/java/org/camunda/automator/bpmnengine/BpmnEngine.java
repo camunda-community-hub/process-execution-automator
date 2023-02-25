@@ -1,5 +1,7 @@
 package org.camunda.automator.bpmnengine;
 
+import org.camunda.automator.engine.AutomatorException;
+
 import java.util.List;
 import java.util.Map;
 

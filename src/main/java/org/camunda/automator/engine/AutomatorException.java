@@ -1,4 +1,4 @@
-package org.camunda.automator.bpmnengine;
+package org.camunda.automator.engine;
 
 import org.camunda.community.rest.client.invoker.ApiException;
 
@@ -17,7 +17,7 @@ public class AutomatorException extends Exception {
 
   public AutomatorException(String message, ApiException exception) {
     this.code = exception.getCode();
-    this.message = message + " : " + exception.getMessage();
+    this.message = message + " : " + exception.getMessage()+" "+exception.getResponseBody();
   }
 
   public String getMessage() {

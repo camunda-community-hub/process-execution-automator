@@ -9,6 +9,7 @@ package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.camunda.automator.engine.AutomatorException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -41,18 +42,23 @@ public class ScnHead {
   /**
    * Load the scenario from a File
    *
-   * @param scenarioFile
+   * @param scenarioFile file to read
    * @return the scenario
    * @throws Exception
    */
-  public static ScnHead createFromFile(File scenarioFile) throws Exception {
-    BufferedReader br = new BufferedReader(new FileReader(scenarioFile));
-    StringBuilder jsonContent = new StringBuilder();
-    String st;
-    while ((st = br.readLine()) != null)
-      jsonContent.append(st);
+  public static ScnHead createFromFile(File scenarioFile) throws AutomatorException {
+    try {
+      BufferedReader br = new BufferedReader(new FileReader(scenarioFile));
+      StringBuilder jsonContent = new StringBuilder();
+      String st;
+      while ((st = br.readLine()) != null)
+        jsonContent.append(st);
 
-    return createFromJson(jsonContent.toString());
+      return createFromJson(jsonContent.toString());
+    } catch (Exception e) {
+      throw new AutomatorException("Can't read ["+scenarioFile.getAbsolutePath()+"] "+ e.getMessage());
+    }
+
   }
 
   /**

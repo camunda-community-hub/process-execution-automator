@@ -28,7 +28,10 @@ public class ScnStep {
    */
   private String waitingTime;
 
-  private int numberOfExecutions=1;
+  /**
+   * Optional, may not b
+   */
+  private Integer numberOfExecutions;
 
   public ScnStep(ScnExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -122,7 +125,7 @@ public class ScnStep {
   }
 
   public int getNumberOfExecutions() {
-    return numberOfExecutions;
+    return numberOfExecutions==null? 1 : numberOfExecutions;
   }
 
   public void setNumberOfExecutions(int numberOfExecutions) {

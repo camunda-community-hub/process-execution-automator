@@ -3,7 +3,6 @@ package org.camunda.automator;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.definition.ScnHead;
 import org.camunda.automator.engine.RunParameters;
-import org.camunda.automator.engine.SchedulerExecution;
 import org.camunda.automator.engine.ScnRunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,8 +114,7 @@ public class AutomatorCLI {
 
       AutomatorAPI automatorAPI = new AutomatorAPI();
 
-      // File scenarioFile = new File(
-      //     "D:\\dev\\intellij\\community\\process-execution-automator\\src\\test\\ressources\\simpleusertask\\AutomatorSimpleUserTask.json");
+      long beginTime = System.currentTimeMillis();
       switch (action) {
       case RUN -> {
         ScnHead scenario = automatorAPI.loadFromFile(scenarioFile);
@@ -134,12 +132,12 @@ public class AutomatorCLI {
 
           logger.info(scenarioExecutionResult.getSynthesis(false));
         }
+      }
+      }
+      logger.info("That's all folks! "+(System.currentTimeMillis()-beginTime)+" ms.");
 
-      }
-      }
     } catch (Exception e) {
       logger.error("Error during execution " + e);
-
     }
 
   }
