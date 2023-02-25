@@ -1,6 +1,5 @@
 package org.camunda.automator.engine;
 
-import org.camunda.automator.bpmnengine.AutomatorException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScnExecution;
 import org.camunda.automator.definition.ScnStep;
@@ -197,6 +196,9 @@ public class ScnRunExecution {
         }
         long timeEnd = System.currentTimeMillis();
         scnRunResult.addStepExecution(step, timeEnd - timeBegin);
+
+        if (! scnRunResult.isSuccess() && ScnExecution.Policy.STOPATFIRSTERROR.equals(scnExecution.getPolicy()))
+          return scnRunResult;
       }
       if (runParameters.isLevelMonitoring())
         logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");

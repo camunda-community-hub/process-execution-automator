@@ -17,9 +17,17 @@ public class ScnExecution {
   private Integer numberProcessInstances;
 
   /**
-   * Number of thread in parallel to execute all process instances
+   * Number of thread in parallel to execute all process instances. Default is 1
    */
-  private int numberOfThreads;
+  private Integer numberOfThreads;
+
+  /**
+   * Decide what to do when an error is find: stop or continue?
+   * default is STOPATFIRSTERROR
+   */
+  public enum Policy { STOPATFIRSTERROR, CONTINUE}
+  private Policy policy;
+
   /**
    * Note: when the object is un-serialized from JSON, scnHead is null
    *
@@ -104,6 +112,11 @@ public class ScnExecution {
   }
 
   public int getNumberOfThreads() {
-    return (numberOfThreads<=0? 1 : numberOfThreads);
+    return (numberOfThreads ==null ? 1: numberOfThreads<=0? 1 : numberOfThreads);
+  }
+
+
+  public Policy getPolicy() {
+    return (policy==null? Policy.STOPATFIRSTERROR : policy);
   }
 }

@@ -1,6 +1,6 @@
 package org.camunda.automator.bpmnengine.camunda7;
 
-import org.camunda.automator.bpmnengine.AutomatorException;
+import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.community.rest.client.api.ProcessDefinitionApi;

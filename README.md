@@ -101,14 +101,14 @@ The process instance can execute other tasks: Automator does not verify that, ex
 {
   "name" : "execution Round 14",
   "version": "1.2",
-  "scenario": [
+  "processId": "MergingInclusive",
+  "executions": [
     {
       "name": "multinstance",
-      "process": "multiinstanceprocess",
-      "creation" : { "subscription": "gold", "customerId": 4444},
-      "modeverification" : "STRICT",
-      "creationdelayms" : 400,
-      "steps" : [
+      "policy" : "STOPATFIRSTERROR",
+      "numberProcessInstances": 100,
+      "numberOfThreads": 5,
+      "steps": [
         {
           "type" : "servicetask",
           "activityname": "Get context",
@@ -132,6 +132,18 @@ The process instance can execute other tasks: Automator does not verify that, ex
   ]
 }
 `````
+
+## Execution parameters
+
+| Parameter | Explanation                                                                                            | Example                         |
+|-----------|--------------------------------------------------------------------------------------------------------|---------------------------------|
+| Name      | Name of execution                                                                                      | "name": "This is the first run" |
+| policy    | "STOPATFIRSTERROR" or "CONTINUE": in case of error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
+| numberProcessInstances    | Number of process instance to create. Each process instance follows steps                              | "numberProcessInstances": 45    |
+| numberOfThreads    | Number of thread to execute in parallel. Default is 1.                                                 | "numberOfThreads": 5            |
+
+Then the execution contains a list of steps 
+
 
 ## STARTEVENT step
 

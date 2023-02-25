@@ -1,6 +1,6 @@
 package org.camunda.automator.bpmnengine.dummy;
 
-import org.camunda.automator.bpmnengine.AutomatorException;
+import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.slf4j.Logger;

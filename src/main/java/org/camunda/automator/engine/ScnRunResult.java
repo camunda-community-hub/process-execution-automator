@@ -6,7 +6,6 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine;
 
-import org.camunda.automator.bpmnengine.AutomatorException;
 import org.camunda.automator.definition.ScnHead;
 import org.camunda.automator.definition.ScnStep;
 import org.slf4j.Logger;
