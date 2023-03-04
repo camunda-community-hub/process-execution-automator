@@ -1,5 +1,6 @@
 package org.camunda.automator.engine;
 
+
 public class RunParameters {
   public LOGLEVEL logLevel = LOGLEVEL.MONITORING;
 
@@ -17,4 +18,10 @@ public class RunParameters {
     return logLevel.equals(LOGLEVEL.DEBUG) || logLevel.equals(LOGLEVEL.COMPLETE);
   }
   public enum LOGLEVEL {DEBUG, COMPLETE, MONITORING, MAIN, NOTHING}
+
+  /**
+   * Load the scenario path here. Some functions may be relative to this path
+   */
+  public String scenarioPath;
+
 }

@@ -14,6 +14,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
     <zeebe.version>8.1.4</zeebe.version>
+    <camunda7.version>7.18.0</camunda7.version>
 
     <junit.jupiter.version>5.9.1</junit.jupiter.version>
     <opensagres.version>2.0.3</opensagres.version>
@@ -55,6 +56,13 @@
       <artifactId>zeebe-client-java</artifactId>
       <version>${zeebe.version}</version>
     </dependency>
+
+    <dependency>
+      <groupId>org.camunda.bpm</groupId>
+      <artifactId>camunda-external-task-client</artifactId>
+      <version>${camunda7.version}</version>
+    </dependency>
+
     <!-- Web -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

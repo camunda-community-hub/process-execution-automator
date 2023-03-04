@@ -10,12 +10,20 @@ package org.camunda.automator.definition;
 import java.util.Collections;
 import java.util.Map;
 
-public class ScnStep {
+public class ScenarioStep {
 
-  private ScnExecution scnExecution;
+  private ScenarioExecution scnExecution;
   private Step type;
   private String activityId;
   private Map<String, Object> variables = Collections.emptyMap();
+
+
+  /**
+   * each component contains an operations, to fulfill variables
+   * operations; stringtodate()
+   */
+  private Map<String, String> variablesoperation = Collections.emptyMap();
+
   private String userId;
 
   /**
@@ -33,7 +41,7 @@ public class ScnStep {
    */
   private Integer numberOfExecutions;
 
-  public ScnStep(ScnExecution scnExecution) {
+  public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
 
@@ -43,15 +51,15 @@ public class ScnStep {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public static ScnStep createStepCreate(ScnExecution scnExecution, String starterId) {
-    ScnStep scenarioStep = new ScnStep(scnExecution);
+  public static ScenarioStep createStepCreate(ScenarioExecution scnExecution, String starterId) {
+    ScenarioStep scenarioStep = new ScenarioStep(scnExecution);
     scenarioStep.type = Step.STARTEVENT;
     scenarioStep.activityId = starterId;
     return scenarioStep;
   }
 
-  public static ScnStep createStepUserTask(ScnExecution scnExecution, String activityId) {
-    ScnStep scenarioStep = new ScnStep(scnExecution);
+  public static ScenarioStep createStepUserTask(ScenarioExecution scnExecution, String activityId) {
+    ScenarioStep scenarioStep = new ScenarioStep(scnExecution);
     scenarioStep.type = Step.USERTASK;
     scenarioStep.activityId = activityId;
     return scenarioStep;
@@ -61,7 +69,7 @@ public class ScnStep {
     return type;
   }
 
-  public ScnStep setType(Step type) {
+  public ScenarioStep setType(Step type) {
     this.type = type;
     return this;
   }
@@ -70,7 +78,7 @@ public class ScnStep {
     return activityId;
   }
 
-  public ScnStep setActivityId(String activityId) {
+  public ScenarioStep setActivityId(String activityId) {
     this.activityId = activityId;
     return this;
   }
@@ -85,16 +93,20 @@ public class ScnStep {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public ScnStep setUserId(String userId) {
+  public ScenarioStep setUserId(String userId) {
     this.userId = userId;
     return this;
   }
 
-  public Map<String, Object> getVariables() {
-    return variables;
+  public Map<String, String> getVariablesOperations()  {
+    return variablesoperation ==null? Collections.emptyMap():variablesoperation;
   }
 
-  public ScnStep setVariables(Map<String, Object> variables) {
+  public Map<String, Object> getVariables() {
+    return variables==null? Collections.emptyMap():variables;
+  }
+
+  public ScenarioStep setVariables(Map<String, Object> variables) {
     this.variables = variables;
     return this;
   }
@@ -103,12 +115,12 @@ public class ScnStep {
     return delay;
   }
 
-  public ScnStep setDelay(String delay) {
+  public ScenarioStep setDelay(String delay) {
     this.delay = delay;
     return this;
   }
 
-  public void setScnExecution(ScnExecution scnExecution) {
+  public void setScnExecution(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
 
@@ -120,7 +132,7 @@ public class ScnStep {
     this.waitingTime = waitingTime;
   }
 
-  public ScnExecution getScnExecution() {
+  public ScenarioExecution getScnExecution() {
     return scnExecution;
   }
 
@@ -132,10 +144,10 @@ public class ScnStep {
     this.numberOfExecutions = numberOfExecutions;
   }
 
-  protected void afterUnSerialize(ScnExecution scnExecution) {
+  protected void afterUnSerialize(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
 
-  public enum Step {STARTEVENT, USERTASK, MESSAGE, ENDEVENT}
+  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT}
 
 }

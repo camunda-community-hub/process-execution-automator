@@ -3,10 +3,13 @@ package org.camunda.automator.definition;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScnExecution {
+/**
+ * A scenario execution pilot one execution of a scenarioHead
+ */
+public class ScenarioExecution {
 
-  private ScnHead scnHead;
-  private final List<ScnStep> steps = new ArrayList<>();
+  private Scenario scnHead;
+  private final List<ScenarioStep> steps = new ArrayList<>();
   /**
    * Name of this execution
    */
@@ -29,12 +32,17 @@ public class ScnExecution {
   private Policy policy;
 
   /**
+   * if set to false, this execution is skipped
+   */
+  private Boolean execution;
+
+  /**
    * Note: when the object is un-serialized from JSON, scnHead is null
    *
-   * @param scnHead
+   * @param scenario
    */
-  protected ScnExecution(ScnHead scnHead) {
-    this.scnHead = scnHead;
+  protected ScenarioExecution(Scenario scenario) {
+    this.scnHead = scenario;
   }
 
 
@@ -45,8 +53,8 @@ public class ScnExecution {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public static ScnExecution createExecution(ScnHead scnHead) {
-    return new ScnExecution(scnHead);
+  public static ScenarioExecution createExecution(Scenario scnHead) {
+    return new ScenarioExecution(scnHead);
   }
 
   /**
@@ -54,9 +62,9 @@ public class ScnExecution {
    *
    * @param scnHead head of scenario
    */
-  public void afterUnSerialize(ScnHead scnHead) {
+  public void afterUnSerialize(Scenario scnHead) {
     this.scnHead = scnHead;
-    for (ScnStep scnStep : steps) {
+    for (ScenarioStep scnStep : steps) {
       scnStep.afterUnSerialize(this);
     }
   }
@@ -67,7 +75,7 @@ public class ScnExecution {
    * @param step
    * @return
    */
-  public ScnExecution addStep(ScnStep step) {
+  public ScenarioExecution addStep(ScenarioStep step) {
     steps.add(step);
     return this;
   }
@@ -77,7 +85,7 @@ public class ScnExecution {
    * @param numberProcessInstances
    * @return
    */
-  public ScnExecution setNumberProcessInstances(int numberProcessInstances) {
+  public ScenarioExecution setNumberProcessInstances(int numberProcessInstances) {
     this.numberProcessInstances = numberProcessInstances;
     return this;
   }
@@ -90,7 +98,7 @@ public class ScnExecution {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public List<ScnStep> getSteps() {
+  public List<ScenarioStep> getSteps() {
     return steps;
   }
 
@@ -98,7 +106,7 @@ public class ScnExecution {
     return numberProcessInstances==null? 1 : numberProcessInstances;
   }
 
-  public ScnHead getScnHead() {
+  public Scenario getScnHead() {
     return scnHead;
   }
 
@@ -106,7 +114,7 @@ public class ScnExecution {
     return name;
   }
 
-  public ScnExecution setName(String name) {
+  public ScenarioExecution setName(String name) {
     this.name = name;
     return this;
   }
@@ -118,5 +126,9 @@ public class ScnExecution {
 
   public Policy getPolicy() {
     return (policy==null? Policy.STOPATFIRSTERROR : policy);
+  }
+
+  public boolean isExecution() {
+    return execution==null || Boolean.TRUE.equals(execution);
   }
 }

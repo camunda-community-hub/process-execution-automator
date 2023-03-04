@@ -6,8 +6,8 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine;
 
-import org.camunda.automator.definition.ScnHead;
-import org.camunda.automator.definition.ScnStep;
+import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.definition.ScenarioStep;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ScnRunResult {
-  Logger logger = LoggerFactory.getLogger(ScnRunResult.class);
+public class RunResult {
+  Logger logger = LoggerFactory.getLogger(RunResult.class);
 
   /**
    * Scenario attached to this execution
    */
-  private final ScnHead scenario;
+  private final RunScenario runScenario;
   /**
    * List of error. If empty, the scenario was executed with success
    */
@@ -39,11 +39,10 @@ public class ScnRunResult {
    */
   private long timeExecution;
 
-  private RunParameters runParameters;
 
-  public ScnRunResult(ScnHead scenario, RunParameters runParameters) {
-    this.scenario = scenario;
-    this.runParameters = runParameters;
+  public RunResult(RunScenario runScenario) {
+    this.runScenario = runScenario;
+
   }
 
 
@@ -67,10 +66,10 @@ public class ScnRunResult {
     this.timeExecution += timeToAdd;
   }
 
-  public void addStepExecution(ScnStep step, long timeExecution) {
+  public void addStepExecution(ScenarioStep step, long timeExecution) {
     addTimeExecution(timeExecution);
     numberOfSteps++;
-    if (runParameters.isLevelStoreDetails()) {
+    if (runScenario.getRunParameters().isLevelStoreDetails()) {
       StepExecution scenarioExecution = new StepExecution(this);
       scenarioExecution.step = step;
       listDetailsSteps.add(scenarioExecution);
@@ -81,13 +80,13 @@ public class ScnRunResult {
     return listErrors;
   }
 
-  public void addError(ScnStep step, String explanation) {
+  public void addError(ScenarioStep step, String explanation) {
     this.listErrors.add(new ErrorDescription(step, explanation));
     logger.error("scnResult: " + (step == null ? "" : step.getType().toString()) + " error " + explanation);
 
   }
 
-  public void addError(ScnStep step, AutomatorException e) {
+  public void addError(ScenarioStep step, AutomatorException e) {
     this.listErrors.add(new ErrorDescription(step, e.getMessage()));
   }
 
@@ -96,13 +95,13 @@ public class ScnRunResult {
    *
    * @param result
    */
-  public void add(ScnRunResult result) {
+  public void add(RunResult result) {
     addTimeExecution(result.getTimeExecution());
     listErrors.addAll(result.listErrors);
     numberOfProcessInstances += result.numberOfProcessInstances;
     numberOfSteps += result.numberOfSteps;
     // we collect the list only if the level is low
-    if (runParameters.isLevelStoreDetails()) {
+    if (runScenario.getRunParameters().isLevelStoreDetails()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }
@@ -140,9 +139,9 @@ public class ScnRunResult {
   public String getSynthesis(boolean fullDetail) {
     StringBuilder synthesis = new StringBuilder();
     synthesis.append(listErrors.isEmpty() ? "SUCCESS " : "FAIL    ");
-    synthesis.append(scenario.getName());
+    synthesis.append(runScenario.getScenario().getName());
     synthesis.append("(");
-    synthesis.append(scenario.getProcessId());
+    synthesis.append(runScenario.getScenario().getProcessId());
     synthesis.append("): ");
 
     synthesis.append(timeExecution);
@@ -177,11 +176,11 @@ public class ScnRunResult {
 
   public static class StepExecution {
     public final List<ErrorDescription> listErrors = new ArrayList<>();
-    public ScnStep step;
+    public ScenarioStep step;
     public long timeExecution;
-    private final ScnRunResult scenarioExecutionResult;
+    private final RunResult scenarioExecutionResult;
 
-    public StepExecution(ScnRunResult scenarioExecutionResult) {
+    public StepExecution(RunResult scenarioExecutionResult) {
       this.scenarioExecutionResult = scenarioExecutionResult;
     }
 
@@ -191,10 +190,10 @@ public class ScnRunResult {
   }
 
   public static class ErrorDescription {
-    ScnStep step;
+    ScenarioStep step;
     String explanation;
 
-    public ErrorDescription(ScnStep step, String explanation) {
+    public ErrorDescription(ScenarioStep step, String explanation) {
       this.step = step;
       this.explanation = explanation;
     }

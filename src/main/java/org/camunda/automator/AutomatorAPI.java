@@ -9,18 +9,21 @@ package org.camunda.automator;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.bpmnengine.BpmnEngineFactory;
-import org.camunda.automator.definition.ScnHead;
+import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.RunParameters;
-import org.camunda.automator.engine.ScnRunHead;
-import org.camunda.automator.engine.ScnRunResult;
+import org.camunda.automator.engine.RunResult;
+import org.camunda.automator.engine.RunScenario;
+import org.camunda.automator.services.ServiceAccess;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 
+@Component
 public class AutomatorAPI {
 
-  public static AutomatorAPI getInstance() {
-    return new AutomatorAPI();
-  }
+  @Autowired
+  ServiceAccess serviceAccess;
 
   /**
    * Create an empty scenario.
@@ -29,8 +32,8 @@ public class AutomatorAPI {
    * @return the scenario
    * @See scenario class to create from scratch a scenario
    */
-  public ScnHead createScenario() {
-    return new ScnHead();
+  public Scenario createScenario() {
+    return new Scenario();
   }
 
   /**
@@ -40,8 +43,8 @@ public class AutomatorAPI {
    * @return the scenario
    * @throws Exception
    */
-  public ScnHead loadFromFile(File scenarioFile) throws Exception {
-    return ScnHead.createFromFile(scenarioFile);
+  public Scenario loadFromFile(File scenarioFile) throws Exception {
+    return Scenario.createFromFile(scenarioFile);
   }
 
   /**
@@ -50,19 +53,21 @@ public class AutomatorAPI {
    * @param engineConfiguration the configuration to connect the Camunda engine
    * @param scenario            the scenario to execute
    */
-  public ScnRunResult executeScenario(BpmnEngineConfiguration engineConfiguration,
-                                      RunParameters runParameters,
-                                      ScnHead scenario) {
-    ScnRunHead scenarioExecution = new ScnRunHead(scenario);
-
+  public RunResult executeScenario(BpmnEngineConfiguration engineConfiguration,
+                                   RunParameters runParameters,
+                                   Scenario scenario) {
+    RunScenario runScenario = null;
     try {
       BpmnEngine bpmnEngine = BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration);
-      engineConfiguration.logDebug = runParameters.logLevel == RunParameters.LOGLEVEL.DEBUG;
-      return scenarioExecution.runScenario(bpmnEngine, runParameters);
+      runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
     } catch (Exception e) {
-      ScnRunResult result = new ScnRunResult(scenario, runParameters);
+      RunResult result = new RunResult(runScenario);
       result.addError(null, "Initialization error");
       return result;
     }
+
+    engineConfiguration.logDebug = runParameters.logLevel == RunParameters.LOGLEVEL.DEBUG;
+    return runScenario.runScenario();
+
   }
 }
