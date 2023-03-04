@@ -11,9 +11,13 @@ It can connect to a Camunda 7 or a Camunda 8 server.
 From a scenario, Automator calls the Camunda Engine server (C7 or C8) and executes the different steps in the scenario.
 Let's take an example with this scenario:
 
-A scenario is
+
+````
 create a new process instance with variable "subscriptionLevel: "GOLD", "customerId": 14422
-The process is created and processed by the Camunda Engine. The GetContext operation is executed by the Camunda Engine, and, according to the information, the process instance moves to the task "Review Level 1"
+````
+
+The process is created and processed by the Camunda Engine. The GetContext operation is executed by the Camunda Engine, 
+and, according to the information, the process instance moves to the task "Review Level 1"
 in the scenario, Automator waits for this user task. It will execute it and set "ReviewLevel2Needed" to True.
 The Camunda Engine move the process instance to Review Level 2.
 In the scenario, Automator waits for this user task. It will execute it.
@@ -25,9 +29,10 @@ What Automator do:
 * it creates a process instance with some specific value
 * it executes user tasks with some specific value
 * it can throw a BPMN Message
+
 Automator do not
 * execute service task
-* It is not expected to throw BMPN Message in the flow: a real system is piloted by the Automator.
+* It is not expected to throw BPMN Message in the flow: a real system is piloted by the Automator.
 
 * The goal of the Automator is not to simulate the execution, it is to pilot an execution on a real system, and to verify that the process reacts as expected.
 
@@ -139,8 +144,9 @@ The process instance can execute other tasks: Automator does not verify that, ex
 |-----------|--------------------------------------------------------------------------------------------------------|---------------------------------|
 | Name      | Name of execution                                                                                      | "name": "This is the first run" |
 | policy    | "STOPATFIRSTERROR" or "CONTINUE": in case of error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
-| numberProcessInstances    | Number of process instance to create. Each process instance follows steps                              | "numberProcessInstances": 45    |
-| numberOfThreads    | Number of thread to execute in parallel. Default is 1.                                                 | "numberOfThreads": 5            |
+| numberProcessInstances    | Number of process instance to create. Each process instance follows steps.             | "numberProcessInstances": 45    |
+| numberOfThreads    | Number of thread to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
+| execution | if false, the execution does not start. Unot present, the default value is TRUE.                       | "execution" : false             | 
 
 Then the execution contains a list of steps 
 
