@@ -23,7 +23,6 @@ import java.util.List;
 public class Scenario {
 
   private final List<ScenarioExecution> executions = new ArrayList<>();
-  private final List<ScenarioVerification> verifications = new ArrayList<>();
   private String name;
   private String version;
   private String processName;
@@ -51,11 +50,10 @@ public class Scenario {
    *
    * @param scenarioFile file to read
    * @return the scenario
-   * @throws Exception
+   * @throws Exception if file cannot be read or it's not a Json file
    */
   public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
-    try {
-      BufferedReader br = new BufferedReader(new FileReader(scenarioFile));
+    try (BufferedReader br = new BufferedReader(new FileReader(scenarioFile));){
       StringBuilder jsonContent = new StringBuilder();
       String st;
       while ((st = br.readLine()) != null)
@@ -73,7 +71,7 @@ public class Scenario {
   /**
    * Add a new execution
    *
-   * @return
+   * @return the scenario itself
    */
   public Scenario addExecution(ScenarioExecution scnExecution) {
     executions.add(scnExecution);

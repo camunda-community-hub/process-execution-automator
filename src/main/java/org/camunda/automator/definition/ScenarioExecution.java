@@ -10,6 +10,9 @@ public class ScenarioExecution {
 
   private Scenario scnHead;
   private final List<ScenarioStep> steps = new ArrayList<>();
+
+  private final List<ScenarioVerification> verifications = new ArrayList<>();
+
   /**
    * Name of this execution
    */
@@ -39,7 +42,7 @@ public class ScenarioExecution {
   /**
    * Note: when the object is un-serialized from JSON, scnHead is null
    *
-   * @param scenario
+   * @param scenario root information
    */
   protected ScenarioExecution(Scenario scenario) {
     this.scnHead = scenario;
@@ -72,8 +75,8 @@ public class ScenarioExecution {
   /**
    * Add a step in the scenario
    *
-   * @param step
-   * @return
+   * @param step step part of the scenario
+   * @return this object
    */
   public ScenarioExecution addStep(ScenarioStep step) {
     steps.add(step);
@@ -82,8 +85,8 @@ public class ScenarioExecution {
   /**
    * Ask this execution to execute a number of process instance.
    *
-   * @param numberProcessInstances
-   * @return
+   * @param numberProcessInstances number of process instance to execute
+   * @return this object
    */
   public ScenarioExecution setNumberProcessInstances(int numberProcessInstances) {
     this.numberProcessInstances = numberProcessInstances;

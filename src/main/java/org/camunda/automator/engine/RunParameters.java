@@ -6,6 +6,15 @@ public class RunParameters {
 
   public int numberOfThreadsPerScenario = 10;
 
+  /**
+   * Execute the scenario (execution part): create process instance, execute user & service task
+   */
+  public boolean execute=true;
+  /**
+   * Verify the scenario (verification part) : check that tasks exist
+   */
+  public boolean verification=false;
+
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario<=0? 1 : numberOfThreadsPerScenario);
   }
