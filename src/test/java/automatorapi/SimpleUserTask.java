@@ -2,46 +2,48 @@ package automatorapi;
 
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
-import org.camunda.automator.definition.ScnExecution;
-import org.camunda.automator.definition.ScnHead;
-import org.camunda.automator.definition.ScnStep;
+import org.camunda.automator.definition.ScenarioExecution;
+import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunParameters;
-import org.camunda.automator.engine.ScnRunResult;
+import org.camunda.automator.engine.RunResult;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
 
 public class SimpleUserTask {
 
+  @Autowired
+  AutomatorAPI automatorApi;
+
   @Test
   public void SimpleUserTaskAPI() {
-    AutomatorAPI automatorApi = AutomatorAPI.getInstance();
 
-    ScnHead scenario = automatorApi.createScenario()
+    Scenario scenario = automatorApi.createScenario()
         .setProcessId("SimpleUserTask")
         .setName("Simple User Task");
 
-    ScnExecution execution = ScnExecution.createExecution(scenario) //
+    ScenarioExecution execution = ScenarioExecution.createExecution(scenario) //
         .setName("dummy") // name
         .setNumberProcessInstances(2); // number of process instance to generate
 
 
 
-    execution.addStep(ScnStep.createStepCreate(execution, "StartEvent_Review"));
+    execution.addStep(ScenarioStep.createStepCreate(execution, "StartEvent_Review"));
     RunParameters runParameters = new RunParameters();
     runParameters.logLevel = RunParameters.LOGLEVEL.DEBUG;
 
     BpmnEngineConfiguration engineConfiguration = BpmnEngineConfiguration.getDummy();
-    ScnRunResult scenarioExecutionResult = automatorApi.executeScenario(engineConfiguration, runParameters, scenario);
+    RunResult scenarioExecutionResult = automatorApi.executeScenario(engineConfiguration, runParameters, scenario);
     assert (scenarioExecutionResult.isSuccess());
   }
 
   @Test
   public void SimpleUserTaskScenario() {
     try {
-      AutomatorAPI automatorApi = AutomatorAPI.getInstance();
       File userTaskFile = new File("./test/resources/simpleusertask/AutomatorSimpleUserTask.json");
-      ScnHead scenario = automatorApi.loadFromFile(userTaskFile);
+      Scenario scenario = automatorApi.loadFromFile(userTaskFile);
     } catch (Exception e) {
       assert (false);
     }

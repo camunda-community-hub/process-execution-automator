@@ -1,11 +1,14 @@
 package org.camunda.automator.engine;
 
+import org.camunda.automator.AutomatorCLI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.bpmnengine.BpmnEngineFactory;
-import org.camunda.automator.definition.ScnHead;
+import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -31,8 +34,14 @@ public class SchedulerExecution {
   public String serverUrl;
   Logger logger = LoggerFactory.getLogger(SchedulerExecution.class);
 
+  @Autowired
+  ServiceAccess serviceAccess;
+
   @PostConstruct
   public void init() {
+    // We run the CLI, do nothing
+    if (AutomatorCLI.isRunningCLI)
+      return;
     // read the configuration, and start the execution
     if (scenarioPath != null && serverType != null && runAtStartup) {
       // execute all test now
@@ -55,9 +64,9 @@ public class SchedulerExecution {
       List<File> listScenarioFile = collectScenario(new File(scenarioPath));
       for (File fileScenario : listScenarioFile) {
         try {
-          ScnHead scenario = ScnHead.createFromFile(fileScenario);
-          ScnRunHead scenarioExecution = new ScnRunHead(scenario);
-          ScnRunResult scenarioExecutionResult = scenarioExecution.runScenario(bpmnEngine, runParameters);
+          Scenario scenario = Scenario.createFromFile(fileScenario);
+          RunScenario scenarioExecution = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
+          RunResult scenarioExecutionResult = scenarioExecution.runScenario();
         } catch (Exception e) {
           logger.error("Error processing [" + fileScenario.getAbsolutePath() + "] " + e.getMessage());
         }

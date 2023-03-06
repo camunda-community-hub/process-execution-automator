@@ -18,23 +18,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * the Scenario Head group a scenario definition
  */
-public class ScnHead {
+public class Scenario {
 
-  private final List<ScnExecution> executions = new ArrayList<>();
+  private final List<ScenarioExecution> executions = new ArrayList<>();
   private String name;
   private String version;
   private String processName;
   private String processId;
   private String modeVerification;
 
-  public static ScnHead createFromJson(String jsonFile) {
+  /**
+   * This value is fulfill only if the scenario was read from a file
+   */
+  private transient File scenarioFile=null;
+
+
+  public static Scenario createFromJson(String jsonFile) {
     GsonBuilder builder = new GsonBuilder();
     builder.setPrettyPrinting();
 
     Gson gson = builder.create();
-    ScnHead scnHead = gson.fromJson(jsonFile, ScnHead.class);
+    Scenario scnHead = gson.fromJson(jsonFile, Scenario.class);
     scnHead.afterUnSerialize();
     return scnHead;
   }
@@ -44,17 +50,18 @@ public class ScnHead {
    *
    * @param scenarioFile file to read
    * @return the scenario
-   * @throws Exception
+   * @throws Exception if file cannot be read or it's not a Json file
    */
-  public static ScnHead createFromFile(File scenarioFile) throws AutomatorException {
-    try {
-      BufferedReader br = new BufferedReader(new FileReader(scenarioFile));
+  public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
+    try (BufferedReader br = new BufferedReader(new FileReader(scenarioFile));){
       StringBuilder jsonContent = new StringBuilder();
       String st;
       while ((st = br.readLine()) != null)
         jsonContent.append(st);
 
-      return createFromJson(jsonContent.toString());
+      Scenario scnHead= createFromJson(jsonContent.toString());
+      scnHead.scenarioFile = scenarioFile;
+      return scnHead;
     } catch (Exception e) {
       throw new AutomatorException("Can't read ["+scenarioFile.getAbsolutePath()+"] "+ e.getMessage());
     }
@@ -64,14 +71,14 @@ public class ScnHead {
   /**
    * Add a new execution
    *
-   * @return
+   * @return the scenario itself
    */
-  public ScnHead addExecution(ScnExecution scnExecution) {
+  public Scenario addExecution(ScenarioExecution scnExecution) {
     executions.add(scnExecution);
     return this;
   }
 
-  public List<ScnExecution> getExecutions() {
+  public List<ScenarioExecution> getExecutions() {
     return executions;
   }
 
@@ -79,7 +86,7 @@ public class ScnHead {
     return name;
   }
 
-  public ScnHead setName(String name) {
+  public Scenario setName(String name) {
     this.name = name;
     return this;
   }
@@ -96,7 +103,10 @@ public class ScnHead {
     return processId;
   }
 
-  public ScnHead setProcessId(String processId) {
+  public File getScenarioFile() {
+    return scenarioFile;
+  }
+  public Scenario setProcessId(String processId) {
     this.processId = processId;
     return this;
   }
@@ -107,7 +117,7 @@ public class ScnHead {
 
   private void afterUnSerialize() {
     // Attention, now we have to manually set the tree relation
-    for (ScnExecution scnExecution : getExecutions()) {
+    for (ScenarioExecution scnExecution : getExecutions()) {
       scnExecution.afterUnSerialize(this);
     }
   }

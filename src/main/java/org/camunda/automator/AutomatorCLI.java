@@ -1,20 +1,39 @@
 package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
-import org.camunda.automator.definition.ScnHead;
+import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.RunParameters;
-import org.camunda.automator.engine.ScnRunResult;
+import org.camunda.automator.engine.RunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.Banner;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AutomatorCLI {
+@SpringBootApplication
+
+@Component
+public class AutomatorCLI implements CommandLineRunner {
   static Logger logger = LoggerFactory.getLogger(AutomatorCLI.class);
 
+  @Autowired
+  AutomatorAPI automatorAPI;
 
+  public static boolean isRunningCLI = false;
+
+  public static void main(String[] args) {
+    isRunningCLI = true;
+    SpringApplication app = new SpringApplication(AutomatorCLI.class);
+    app.setBannerMode(Banner.Mode.OFF);
+    System.exit(SpringApplication.exit(app.run(args)));
+  }
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -38,7 +57,7 @@ public class AutomatorCLI {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public static void main(String[] args) {
+  public void run(String[] args) {
     File scenarioFile = null;
     File folderRecursive = null;
     BpmnEngineConfiguration engineConfiguration = BpmnEngineConfiguration.getCamunda7(
@@ -48,27 +67,13 @@ public class AutomatorCLI {
     Integer overrideNumberOfExecution = null;
     int i = 0;
     ACTION action = null;
+    boolean execute = false;
+    boolean verify = false;
     try {
       while (i < args.length) {
         if ("-h".equals(args[i]) || "--help".equals(args[i])) {
-          System.out.println("Usage: <option> <action> <parameter>");
-          System.out.println("  -c, --conf <file>");
-          System.out.println("    configuration file contains connection to engine");
-          System.out.println("  -e, --engine ConnectionUrlString");
-          System.out.println("    CAMUNDA7;<URL>");
-          System.out.println("    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>");
-          System.out.println("      CAMUNDA8;LOCAL;<gateway>;<plaintext>");
-          System.out.println("  -l, --level <DEBUG|COMPLETE|MONITORING|MAIN|NOTHING>");
-          System.out.println("       Define the level of log (MONITORING is the default)");
-          System.out.println("  -n, --numberofexecution <number>");
-          System.out.println("     override the number of execution for the scenario");
-          System.out.println();
-          System.out.println("ACTIONS: ");
-          System.out.println("   run <scenarioFile>");
-          System.out.println("       execute one scenario");
-          System.out.println("   recursive <folder>");
-          System.out.println("      all *.json in the folder and sub-folder are monitored and executed");
-          return;
+          printUsage();
+         return;
         } else if ("-c".equals(args[i]) || "--conf".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : -c <ConfigurationFile>");
@@ -90,6 +95,12 @@ public class AutomatorCLI {
             throw new Exception("Bad usage : n <numberofexecution>");
           overrideNumberOfExecution = Integer.parseInt(args[i + 1]);
           i++;
+        } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
+          execute = true;
+          i++;
+        } else if ("-v".equals(args[i]) || "--verification".equals(args[i])) {
+          verify = true;
+          i++;
         } else if ("run".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : run <scenarioFile>");
@@ -99,42 +110,39 @@ public class AutomatorCLI {
         } else if ("recursive".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : recursive <folder>");
-          action = ACTION.RECURSIV;
+          action = ACTION.RECURSIVE;
           folderRecursive = new File(args[i + 1]);
           i++;
-
         }
-        i++;
-
       }
 
       if (action == null) {
         throw new Exception("Bad usage : missing action (" + ACTION.RUN + ")");
       }
-
-      AutomatorAPI automatorAPI = new AutomatorAPI();
+      if ( !execute && !verify) {
+        throw new Exception("Bad usage : use execute (-x) or verification (-v)) or both");
+      }
 
       long beginTime = System.currentTimeMillis();
       switch (action) {
       case RUN -> {
-        ScnHead scenario = automatorAPI.loadFromFile(scenarioFile);
-        ScnRunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters,
-            scenario);
+        Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
+        RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters, scenario);
 
         logger.info(scenarioExecutionResult.getSynthesis(true));
       }
-      case RECURSIV -> {
+      case RECURSIVE -> {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);
         for (File scenarioFileIndex : listScenario) {
-          ScnHead scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          ScnRunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters,
+          Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
+          RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters,
               scenario);
 
           logger.info(scenarioExecutionResult.getSynthesis(false));
         }
       }
       }
-      logger.info("That's all folks! "+(System.currentTimeMillis()-beginTime)+" ms.");
+      logger.info("That's all folks! " + (System.currentTimeMillis() - beginTime) + " ms.");
 
     } catch (Exception e) {
       logger.error("Error during execution " + e);
@@ -142,6 +150,31 @@ public class AutomatorCLI {
 
   }
 
+
+  private static void printUsage() {
+    System.out.println("Usage: <option> <action> <parameter>");
+    System.out.println("  -c, --conf <file>");
+    System.out.println("    configuration file contains connection to engine");
+    System.out.println("  -e, --engine ConnectionUrlString");
+    System.out.println("    CAMUNDA7;<URL>");
+    System.out.println("    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>");
+    System.out.println("      CAMUNDA8;LOCAL;<gateway>;<plaintext>");
+    System.out.println("  -l, --level <DEBUG|COMPLETE|MONITORING|MAIN|NOTHING>");
+    System.out.println("       Define the level of log (MONITORING is the default)");
+    System.out.println("  -n, --numberofexecution <number>");
+    System.out.println("     override the number of execution for the scenario");
+    System.out.println("  -x, --execute");
+    System.out.println("     execute the scenario");
+    System.out.println("  -v, --verification");
+    System.out.println("     verify the scenarion");
+    System.out.println();
+    System.out.println("ACTIONS: ");
+    System.out.println("   run <scenarioFile>");
+    System.out.println("       execute one scenario");
+    System.out.println("   recursive <folder>");
+    System.out.println("      all *.json in the folder and sub-folder are monitored and executed");
+
+  }
   private static BpmnEngineConfiguration readConfiguration(String propertiesFileName) throws Exception {
     throw new Exception("Not yet implemented");
   }
@@ -162,5 +195,5 @@ public class AutomatorCLI {
     return listFiles;
   }
 
-  public enum ACTION {RUN, RECURSIV}
+  public enum ACTION {RUN, RECURSIVE, VERIFY, RUNVERIFY, RECURSIVVERIFY}
 }

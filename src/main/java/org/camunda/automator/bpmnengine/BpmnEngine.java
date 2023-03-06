@@ -12,8 +12,12 @@ public interface BpmnEngine {
   String createProcessInstance(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException;
 
-  List<String> searchForActivity(String processId, String userTaskName, Integer maxResult) throws AutomatorException;
+  List<String> SearchForUserTasks(String processId, String userTaskName, Integer maxResult) throws AutomatorException;
 
   String executeUserTask(String activityId, String userId, Map<String, Object> variables) throws AutomatorException;
+
+  List<String> SearchForServiceTasks(String processId, String userTaskName, Integer maxResult) throws AutomatorException;
+
+  String executeServiceTask(String activityId, String userId, Map<String, Object> variables) throws AutomatorException;
 
 }
