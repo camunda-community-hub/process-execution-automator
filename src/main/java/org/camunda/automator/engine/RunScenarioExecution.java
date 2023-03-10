@@ -125,7 +125,7 @@ public class RunScenarioExecution {
         List<String> listActivities;
         do {
 
-          listActivities = runScenario.getBpmnEngine().SearchForUserTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+          listActivities = runScenario.getBpmnEngine().searchUserTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
 
           if (listActivities.isEmpty()) {
             try {
@@ -181,7 +181,7 @@ public class RunScenarioExecution {
         List<String> listActivities;
         do {
 
-          listActivities = runScenario.getBpmnEngine().SearchForServiceTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+          listActivities = runScenario.getBpmnEngine().searchServiceTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
 
           if (listActivities.isEmpty()) {
             try {

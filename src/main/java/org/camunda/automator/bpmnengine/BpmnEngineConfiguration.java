@@ -7,41 +7,122 @@
  */
 package org.camunda.automator.bpmnengine;
 
+import org.camunda.automator.engine.AutomatorException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.stream.Collectors;
+
+@Configuration
+@PropertySource("classpath:application.yaml")
 public class BpmnEngineConfiguration {
 
-  public String zeebeGatewayAddress;
-  public String zeebeSecurityPlainText;
-  public String zeebeCloudRegister;
-  public String zeebeCloudRegion;
-  public String zeebeCloudClusterId;
-  public String zeebeCloudClientId;
-  public String clientSecret;
-  public String serverUrl;
-  public CamundaEngine camundaEngine;
+  public static class BpmnServerDefinition {
+    public String name;
+    public CamundaEngine camundaEngine;
 
+    /**
+     * My Zeebe Address
+     */
+    public String zeebeGatewayAddress;
+    public String zeebeSecurityPlainText;
+
+    /**
+     * SaaS Zeebe
+     */
+    public String zeebeCloudRegister;
+    public String zeebeCloudRegion;
+    public String zeebeCloudClusterId;
+    public String zeebeCloudClientId;
+    public String clientSecret;
+
+    /**
+     * Connection to Operate
+     */
+    public String operateUserName;
+    public String operateUserPassword;
+    public String operateUrl;
+
+    /**
+     * Camunda 7
+     */
+    public String serverUrl;
+  }
+
+  @Value("${automator.logDebug:false}")
   public boolean logDebug = false;
 
-  public static BpmnEngineConfiguration getZeebeSaas(String zeebeGatewayAddress, String zeebeSecurityPlainText) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
-    bpmEngineConfiguration.camundaEngine = CamundaEngine.CAMUNDA_8;
-    bpmEngineConfiguration.zeebeGatewayAddress = zeebeGatewayAddress;
-    bpmEngineConfiguration.zeebeSecurityPlainText = zeebeSecurityPlainText;
-    return bpmEngineConfiguration;
+  @Value("#{'${automator.serversconnection}'.split(';')}")
+  public List<String> serversConnection;
+  public List<BpmnServerDefinition> servers;
+
+  public List<Map<String, Object>> serversMap;
+
+  public enum CamundaEngine {CAMUNDA_7, CAMUNDA_8, CAMUNDA_8_SAAS, DUMMY}
+
+  public BpmnEngineConfiguration.BpmnServerDefinition getByServerName(String serverName) throws AutomatorException  {
+    // decode the serverConnections
+    List<BpmnServerDefinition> listFromConnection = decodeListServersConnection();
+    List<BpmnServerDefinition> allServers = new ArrayList<>();
+    if (listFromConnection != null)
+      allServers.addAll(listFromConnection);
+    if (servers != null)
+      allServers.addAll(servers);
+
+    for (BpmnEngineConfiguration.BpmnServerDefinition serverIndex : allServers) {
+      if (serverName.equals(serverIndex.name))
+        return serverIndex;
+    }
+    return null;
   }
 
-  public static BpmnEngineConfiguration getCamunda7(String serverUrl) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
-    bpmEngineConfiguration.camundaEngine = CamundaEngine.CAMUNDA_7;
-    bpmEngineConfiguration.serverUrl = serverUrl;
-    return bpmEngineConfiguration;
+  public List<BpmnServerDefinition> decodeListServersConnection() throws AutomatorException  {
+    if (serversConnection == null)
+      return null;
+
+    // not possible to use a Stream: decode throw an exception
+    List<BpmnServerDefinition> list = new ArrayList<>();
+    for (String s : serversConnection) {
+      BpmnServerDefinition bpmnServerDefinition = decodeServerConnection(s);
+      list.add(bpmnServerDefinition);
+    }
+    return list;
   }
 
-  public static BpmnEngineConfiguration getDummy() {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
-    bpmEngineConfiguration.camundaEngine = CamundaEngine.DUMMY;
-    return bpmEngineConfiguration;
-  }
+  public BpmnServerDefinition decodeServerConnection(String connectionString) throws AutomatorException {
+    StringTokenizer st = new StringTokenizer(connectionString, ",");
+    BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
+    bpmnServerDefinition.name = (st.hasMoreTokens() ? st.nextToken() : null);
+    try {
+      bpmnServerDefinition.camundaEngine = (st.hasMoreTokens() ? CamundaEngine.valueOf(st.nextToken()) : null);
+      if (CamundaEngine.CAMUNDA_7.equals(bpmnServerDefinition.camundaEngine)) {
+        bpmnServerDefinition.serverUrl = (st.hasMoreTokens() ? st.nextToken() : null);
 
-  public enum CamundaEngine {CAMUNDA_7, CAMUNDA_8, DUMMY}
+      } else if (CamundaEngine.CAMUNDA_8.equals(bpmnServerDefinition.camundaEngine)) {
+        bpmnServerDefinition.zeebeGatewayAddress = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUserName = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUserPassword = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
+
+      } else if (CamundaEngine.CAMUNDA_8_SAAS.equals(bpmnServerDefinition.camundaEngine)) {
+        bpmnServerDefinition.zeebeCloudRegister = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.zeebeCloudRegion = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.zeebeCloudClusterId = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.zeebeCloudClientId = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.clientSecret = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUserName = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUserPassword = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
+      }
+      return bpmnServerDefinition;
+    } catch( Exception e){
+      throw new AutomatorException("Can't decode string ["+connectionString+"] "+e.getMessage());
+    }
+  }
 
 }

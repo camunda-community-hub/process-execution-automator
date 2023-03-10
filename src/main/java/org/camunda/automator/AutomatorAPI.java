@@ -10,6 +10,7 @@ import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.bpmnengine.BpmnEngineFactory;
 import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
@@ -30,7 +31,7 @@ public class AutomatorAPI {
    * The scenario can be created from scratch by the caller
    *
    * @return the scenario
-   * @See scenario class to create from scratch a scenario
+   * @see scenario class to create from scratch a scenario
    */
   public Scenario createScenario() {
     return new Scenario();
@@ -41,9 +42,9 @@ public class AutomatorAPI {
    *
    * @param scenarioFile file to read the scenario
    * @return the scenario
-   * @throws Exception
+   * @throws Exception if scenarion can't be read
    */
-  public Scenario loadFromFile(File scenarioFile) throws Exception {
+  public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
     return Scenario.createFromFile(scenarioFile);
   }
 
@@ -54,11 +55,12 @@ public class AutomatorAPI {
    * @param scenario            the scenario to execute
    */
   public RunResult executeScenario(BpmnEngineConfiguration engineConfiguration,
+                                   BpmnEngineConfiguration.BpmnServerDefinition serverDefinition,
                                    RunParameters runParameters,
                                    Scenario scenario) {
     RunScenario runScenario = null;
     try {
-      BpmnEngine bpmnEngine = BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration);
+      BpmnEngine bpmnEngine = BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration, serverDefinition);
       runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
     } catch (Exception e) {
       RunResult result = new RunResult(runScenario);

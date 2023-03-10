@@ -6,9 +6,10 @@ import java.util.List;
 public class ScenarioVerification {
   List<ScenarioVerificationActivity> activities = new ArrayList<>();
 
-  private final Scenario scenario;
-  protected ScenarioVerification(Scenario scenario) {
-    this.scenario = scenario;
+  private final ScenarioExecution scenarioExecution;
+
+  protected ScenarioVerification(ScenarioExecution scenarioExecution) {
+    this.scenarioExecution = scenarioExecution;
   }
 
   public List<ScenarioVerificationActivity> getActivities() {
@@ -19,8 +20,8 @@ public class ScenarioVerification {
     this.activities = activities;
   }
 
-  public Scenario getScenario() {
-    return scenario;
+  public ScenarioExecution getScenarioExecution() {
+    return scenarioExecution;
   }
 
 }

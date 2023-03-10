@@ -11,7 +11,7 @@ public class ScenarioExecution {
   private Scenario scnHead;
   private final List<ScenarioStep> steps = new ArrayList<>();
 
-  private final List<ScenarioVerification> verifications = new ArrayList<>();
+  private ScenarioVerification verifications;
 
   /**
    * Name of this execution

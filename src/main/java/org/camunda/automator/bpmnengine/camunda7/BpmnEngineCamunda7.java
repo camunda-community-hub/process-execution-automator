@@ -31,11 +31,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * connection to a Camunda 7 server. This is one object created by the engine, and then one "init() " call.
+ * After, all methods are call in a multi-threads environment
+ */
 public class BpmnEngineCamunda7 implements BpmnEngine {
 
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda7.class);
 
   private final BpmnEngineConfiguration engineConfiguration;
+  private final BpmnEngineConfiguration.BpmnServerDefinition serverDefinition;
 
   ApiClient client = null;
   ProcessDefinitionApi processDefinitionApi;
@@ -43,14 +48,15 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   ExternalTaskApi externalTaskApi;
   ProcessInstanceApi processInstanceApi;
 
-  public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration) {
+  public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration,BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
     this.engineConfiguration = engineConfiguration;
+    this.serverDefinition = serverDefinition;
   }
 
   @Override
   public void init() {
     client = new ApiClient();
-    client.setBasePath(engineConfiguration.serverUrl);
+    client.setBasePath(serverDefinition.serverUrl);
     processDefinitionApi = new ProcessDefinitionApi();
     taskApi = new TaskApi();
     externalTaskApi = new ExternalTaskApi();
@@ -78,7 +84,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
-  public List<String> SearchForUserTasks(String processInstanceId, String taskName, Integer maxResult)
+  public List<String> searchUserTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
     if (engineConfiguration.logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
@@ -126,7 +132,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
-  public List<String> SearchForServiceTasks(String processInstanceId, String taskName, Integer maxResult)
+  public List<String> searchServiceTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
     if (engineConfiguration.logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
@@ -178,6 +184,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         try {
           Thread.sleep(200);
         } catch (InterruptedException e) {
+          // we don't care
         }
       }
       if (!ExternalCallBack.STATUS.SUCCESS.equals(externalCallBack.status)) {
@@ -190,7 +197,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   /**
-   * Call back asynchrone
+   * Call back asynchronous
    */
   public class ExternalCallBack implements ApiCallback {
 
@@ -228,19 +235,19 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /**
    * Collect all subprocess for a process instance
    *
-   * @param rootProcessInstance
-   * @return
-   * @throws AutomatorException
+   * @param rootProcessInstance root process instance
+   * @return list of SubProcess ID
+   * @throws AutomatorException if any errors arrive
    */
   private List<String> getListSubProcessInstance(String rootProcessInstance) throws AutomatorException {
     ProcessInstanceQueryDto processInstanceQueryDto = new ProcessInstanceQueryDto();
     processInstanceQueryDto.superProcessInstance(rootProcessInstance);
-    List<ProcessInstanceDto> processInstanceDtos = null;
+    List<ProcessInstanceDto> processInstanceDtos;
     try {
       processInstanceDtos = processInstanceApi.queryProcessInstances(0, 100000, processInstanceQueryDto);
     } catch (ApiException e) {
       throw new AutomatorException("Can't searchSubProcess", e);
     }
-    return processInstanceDtos.stream().map(ProcessInstanceDto::getId).collect(Collectors.toList());
+    return processInstanceDtos.stream().map(ProcessInstanceDto::getId).toList();
   }
 }

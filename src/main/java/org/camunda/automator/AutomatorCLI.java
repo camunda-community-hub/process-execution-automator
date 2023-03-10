@@ -26,6 +26,9 @@ public class AutomatorCLI implements CommandLineRunner {
   @Autowired
   AutomatorAPI automatorAPI;
 
+  @Autowired
+  BpmnEngineConfiguration engineConfiguration;
+
   public static boolean isRunningCLI = false;
 
   public static void main(String[] args) {
@@ -60,8 +63,6 @@ public class AutomatorCLI implements CommandLineRunner {
   public void run(String[] args) {
     File scenarioFile = null;
     File folderRecursive = null;
-    BpmnEngineConfiguration engineConfiguration = BpmnEngineConfiguration.getCamunda7(
-        "http://localhost:8080/engine-rest");
 
     RunParameters runParameters = new RunParameters();
     Integer overrideNumberOfExecution = null;
@@ -69,15 +70,16 @@ public class AutomatorCLI implements CommandLineRunner {
     ACTION action = null;
     boolean execute = false;
     boolean verify = false;
+    String serverName = null;
     try {
       while (i < args.length) {
         if ("-h".equals(args[i]) || "--help".equals(args[i])) {
           printUsage();
-         return;
-        } else if ("-c".equals(args[i]) || "--conf".equals(args[i])) {
+          return;
+        } else if ("-s".equals(args[i]) || "--server".equals(args[i])) {
           if (args.length < i + 1)
-            throw new Exception("Bad usage : -c <ConfigurationFile>");
-          engineConfiguration = readConfiguration(args[i + 1]);
+            throw new Exception("Bad usage : -c <ServerName>");
+          serverName = args[i + 1];
           i++;
         } else if ("-e".equals(args[i]) || "--engine".equals(args[i])) {
           if (args.length < i + 1)
@@ -113,21 +115,44 @@ public class AutomatorCLI implements CommandLineRunner {
           action = ACTION.RECURSIVE;
           folderRecursive = new File(args[i + 1]);
           i++;
-        }
+        } else
+          throw new Exception("Bad usage : unknown parameters [" + args[i] + "]");
+
+        i++;
       }
 
       if (action == null) {
         throw new Exception("Bad usage : missing action (" + ACTION.RUN + ")");
       }
-      if ( !execute && !verify) {
-        throw new Exception("Bad usage : use execute (-x) or verification (-v)) or both");
+      if (!execute && !verify) {
+        execute = true; // default
+      }
+
+      // get the correct server configuration
+      BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = null;
+      if (serverName != null) {
+        serverDefinition = engineConfiguration.getByServerName(serverName);
+
+        if (serverDefinition == null) {
+          throw new Exception("Check configuration: name[" + serverName
+              + "] does not exist in the list of servers in application.yaml file");
+        }
+      } else {
+        List<BpmnEngineConfiguration.BpmnServerDefinition> listServers = engineConfiguration.decodeListServersConnection();
+
+        serverDefinition = listServers.isEmpty() ? null : listServers.get(0);
+      }
+      if (serverDefinition == null) {
+        throw new Exception(
+            "Check configuration: configuration to access a Camunda server is missing in application.yaml");
       }
 
       long beginTime = System.currentTimeMillis();
       switch (action) {
       case RUN -> {
         Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-        RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters, scenario);
+        RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, serverDefinition,
+            runParameters, scenario);
 
         logger.info(scenarioExecutionResult.getSynthesis(true));
       }
@@ -135,8 +160,8 @@ public class AutomatorCLI implements CommandLineRunner {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);
         for (File scenarioFileIndex : listScenario) {
           Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, runParameters,
-              scenario);
+          RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, serverDefinition,
+              runParameters, scenario);
 
           logger.info(scenarioExecutionResult.getSynthesis(false));
         }
@@ -150,11 +175,10 @@ public class AutomatorCLI implements CommandLineRunner {
 
   }
 
-
   private static void printUsage() {
     System.out.println("Usage: <option> <action> <parameter>");
-    System.out.println("  -c, --conf <file>");
-    System.out.println("    configuration file contains connection to engine");
+    System.out.println("  -s, --server <serverName>");
+    System.out.println("    Which server to use in the configuration");
     System.out.println("  -e, --engine ConnectionUrlString");
     System.out.println("    CAMUNDA7;<URL>");
     System.out.println("    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>");
@@ -174,9 +198,6 @@ public class AutomatorCLI implements CommandLineRunner {
     System.out.println("   recursive <folder>");
     System.out.println("      all *.json in the folder and sub-folder are monitored and executed");
 
-  }
-  private static BpmnEngineConfiguration readConfiguration(String propertiesFileName) throws Exception {
-    throw new Exception("Not yet implemented");
   }
 
   private static BpmnEngineConfiguration decodeConfiguration(String propertiesFileName) throws Exception {
