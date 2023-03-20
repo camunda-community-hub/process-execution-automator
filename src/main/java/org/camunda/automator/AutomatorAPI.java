@@ -31,7 +31,7 @@ public class AutomatorAPI {
    * The scenario can be created from scratch by the caller
    *
    * @return the scenario
-   * @see scenario class to create from scratch a scenario
+   * see scenario class to create from scratch a scenario
    */
   public Scenario createScenario() {
     return new Scenario();
@@ -51,16 +51,15 @@ public class AutomatorAPI {
   /**
    * Execute a scenario
    *
-   * @param engineConfiguration the configuration to connect the Camunda engine
+   * @param bpmnEngine Access the Camunda engine
+   * @param runParameters       parameters use to run the scenario
    * @param scenario            the scenario to execute
    */
-  public RunResult executeScenario(BpmnEngineConfiguration engineConfiguration,
-                                   BpmnEngineConfiguration.BpmnServerDefinition serverDefinition,
+  public RunResult executeScenario(BpmnEngine  bpmnEngine,
                                    RunParameters runParameters,
                                    Scenario scenario) {
     RunScenario runScenario = null;
     try {
-      BpmnEngine bpmnEngine = BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration, serverDefinition);
       runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
     } catch (Exception e) {
       RunResult result = new RunResult(runScenario);
@@ -68,8 +67,50 @@ public class AutomatorAPI {
       return result;
     }
 
-    engineConfiguration.logDebug = runParameters.logLevel == RunParameters.LOGLEVEL.DEBUG;
     return runScenario.runScenario();
+  }
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Additional tool                                                    */
+  /*                                                                      */
+  /*  Deploy Process                                                      */
+  /*  Deploy a process in the server                                      */
+  /* ******************************************************************** */
+
+  public BpmnEngine getBpmnEngine(BpmnEngineConfiguration engineConfiguration,
+                                 BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
+    try {
+      return BpmnEngineFactory.getInstance()
+          .getEngineFromConfiguration(engineConfiguration, serverDefinition);
+
+    } catch (Exception e) {
+      return null;
+    }
+  }
+
+  /**
+   * Deploy a process, bpmEngine is given by the caller
+   * @param bpmnEngine Engine to deploy
+   * @param scenario scenario
+   * @return
+   */
+  public RunResult deployProcess(BpmnEngine bpmnEngine,
+                                 Scenario scenario) {
+    RunScenario runScenario = null;
+    try {
+      long begin = System.currentTimeMillis();
+      runScenario = new RunScenario(scenario, bpmnEngine, null, serviceAccess);
+      RunResult runResult = new RunResult(runScenario);
+      runResult.add(runScenario.runDeployment());
+      runResult.addTimeExecution(System.currentTimeMillis() - begin);
+      return runResult;
+    } catch (Exception e) {
+      RunResult result = new RunResult(runScenario);
+      result.addError(null, "Process deployment error error "+e.getMessage());
+      return result;
+    }
 
   }
 }

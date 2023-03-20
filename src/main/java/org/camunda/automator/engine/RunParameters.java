@@ -15,6 +15,11 @@ public class RunParameters {
    */
   public boolean verification=false;
 
+  /**
+   * Allow any deployment
+   */
+  public boolean allowDeployment = true;
+
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario<=0? 1 : numberOfThreadsPerScenario);
   }

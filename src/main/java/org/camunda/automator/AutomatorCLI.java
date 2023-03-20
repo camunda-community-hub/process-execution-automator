@@ -1,5 +1,6 @@
 package org.camunda.automator;
 
+import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.RunParameters;
@@ -148,10 +149,11 @@ public class AutomatorCLI implements CommandLineRunner {
       }
 
       long beginTime = System.currentTimeMillis();
+      BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(engineConfiguration,serverDefinition);
       switch (action) {
       case RUN -> {
         Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-        RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, serverDefinition,
+        RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine,
             runParameters, scenario);
 
         logger.info(scenarioExecutionResult.getSynthesis(true));
@@ -160,7 +162,7 @@ public class AutomatorCLI implements CommandLineRunner {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);
         for (File scenarioFileIndex : listScenario) {
           Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          RunResult scenarioExecutionResult = automatorAPI.executeScenario(engineConfiguration, serverDefinition,
+          RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine,
               runParameters, scenario);
 
           logger.info(scenarioExecutionResult.getSynthesis(false));

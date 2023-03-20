@@ -2,13 +2,16 @@ package org.camunda.automator.bpmnengine.camunda7;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.community.rest.client.api.DeploymentApi;
 import org.camunda.community.rest.client.api.ExternalTaskApi;
 import org.camunda.community.rest.client.api.ProcessDefinitionApi;
 import org.camunda.community.rest.client.api.ProcessInstanceApi;
 import org.camunda.community.rest.client.api.TaskApi;
 import org.camunda.community.rest.client.dto.CompleteExternalTaskDto;
 import org.camunda.community.rest.client.dto.CompleteTaskDto;
+import org.camunda.community.rest.client.dto.DeploymentWithDefinitionsDto;
 import org.camunda.community.rest.client.dto.ExternalTaskDto;
 import org.camunda.community.rest.client.dto.ExternalTaskQueryDto;
 import org.camunda.community.rest.client.dto.LockExternalTaskDto;
@@ -26,10 +29,11 @@ import org.camunda.community.rest.client.invoker.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * connection to a Camunda 7 server. This is one object created by the engine, and then one "init() " call.
@@ -39,34 +43,49 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda7.class);
 
-  private final BpmnEngineConfiguration engineConfiguration;
-  private final BpmnEngineConfiguration.BpmnServerDefinition serverDefinition;
+  private String serverUrl;
+  private boolean logDebug;
 
   ApiClient client = null;
   ProcessDefinitionApi processDefinitionApi;
   TaskApi taskApi;
   ExternalTaskApi externalTaskApi;
   ProcessInstanceApi processInstanceApi;
+  DeploymentApi deploymentApi;
 
-  public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration,BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
-    this.engineConfiguration = engineConfiguration;
-    this.serverDefinition = serverDefinition;
+  public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration,
+                            BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
+    this.serverUrl = serverDefinition.serverUrl;
+    this.logDebug = engineConfiguration.logDebug;
+    init();
   }
 
   @Override
   public void init() {
     client = new ApiClient();
-    client.setBasePath(serverDefinition.serverUrl);
+    client.setBasePath(serverUrl);
     processDefinitionApi = new ProcessDefinitionApi();
     taskApi = new TaskApi();
     externalTaskApi = new ExternalTaskApi();
     processInstanceApi = new ProcessInstanceApi();
+    deploymentApi = new DeploymentApi();
   }
 
-  @Override
+  /**
+   * P
+   * @param serverUrl is  "http://localhost:8080/engine-rest"
+   */
+  public BpmnEngineCamunda7( String serverUrl, boolean logDebug) {
+    this.serverUrl = serverUrl;
+    this.logDebug = logDebug;
+    init();
+  }
+
+
+                                     @Override
   public String createProcessInstance(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException {
-    if (engineConfiguration.logDebug) {
+    if (logDebug) {
       logger.info("BpmnEngine7.CreateProcessInstance: Process[" + processId + "] StartEvent[" + starterEventId + "]");
     }
     Map<String, VariableValueDto> variablesApi = new HashMap<>();
@@ -86,7 +105,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public List<String> searchUserTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
-    if (engineConfiguration.logDebug) {
+    if (logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
     }
 
@@ -112,7 +131,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public String executeUserTask(String taskId, String userId, Map<String, Object> variables) throws AutomatorException {
 
-    if (engineConfiguration.logDebug) {
+    if (logDebug) {
       logger.info("BpmnEngine7.executeUserTask: activityId[" + taskId + "]");
     }
     try {
@@ -134,7 +153,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public List<String> searchServiceTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
-    if (engineConfiguration.logDebug) {
+    if (logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
     }
 
@@ -162,7 +181,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   public String executeServiceTask(String taskId, String userId, Map<String, Object> variables)
       throws AutomatorException {
 
-    if (engineConfiguration.logDebug) {
+    if (logDebug) {
       logger.info("BpmnEngine7.executeUserTask: activityId[" + taskId + "]");
     }
     try {
@@ -194,6 +213,34 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     } catch (ApiException e) {
       throw new AutomatorException("Can't execute taskId[" + taskId + "] with userId[" + userId + "]", e);
     }
+  }
+
+  @Override
+  public String deployProcess(File processFile, ScenarioDeployment.Policy policy)  throws AutomatorException {
+    try {
+          DeploymentWithDefinitionsDto deploymentSource = deploymentApi.createDeployment(null, // tenantId
+          null, // deploymentSource
+            ScenarioDeployment.Policy.ONLYNOTEXIST.equals(policy), // deployChangedOnly,
+          Boolean.TRUE, // enableDuplicateFiltering,
+          processFile.getName(), // String deploymentName,
+          new Date(), //deploymentActivationTime,
+          processFile);
+      return deploymentSource.getId();
+    } catch(ApiException e) {
+      throw new AutomatorException("Can't deploy process ",e);
+    }
+
+    /*
+    repositoryService.createDeployment()
+        .addInputStream("process.bpmn", this.getClass().getClassLoader().getResourceAsStream("bpmn/process.bpmn"))
+        .deploy();
+
+     */
+  }
+
+  @Override
+  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+    return BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7;
   }
 
   /**

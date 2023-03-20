@@ -1,12 +1,16 @@
 package org.camunda.automator.engine;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
+import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioExecution;
+import org.camunda.automator.definition.ScenarioTool;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -46,15 +50,55 @@ public class RunScenario {
     this.serviceAccess = serviceAccess;
   }
 
+  public RunResult runScenario() {
+    RunResult result = new RunResult(this);
+    result.add(runDeployment());
+    // verification is inside execution
+    result.add(runExecutions());
+    return result;
+  }
+
+  /**
+   * run only the deployments on the process - test to verify the engine is performed
+   * @return
+   */
+  public RunResult runDeployment() {
+    RunResult result = new RunResult(this);
+
+    // first, do we have to deploy something?
+    if (scenario.getDeployments() != null && runParameters.allowDeployment) {
+      for (ScenarioDeployment deployment : scenario.getDeployments()) {
+        boolean sameTypeServer = false;
+        if (deployment.server.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7)) {
+          sameTypeServer = bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7);
+        } else if (deployment.server.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8)) {
+          sameTypeServer = bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8)
+              || bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS);
+        }
+        if (sameTypeServer) {
+          try {
+            long begin = System.currentTimeMillis();
+            File processFile = ScenarioTool.loadFile(deployment.processFile, this);
+            result.addDeploymentProcessId(bpmnEngine.deployProcess(processFile, deployment.policy));
+            result.addTimeExecution(System.currentTimeMillis() - begin);
+          } catch (AutomatorException e) {
+            result.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
+          }
+        }
+      }
+    }
+    return result;
+  }
+
   /**
    * Execute the scenario.
    * Note: this method is multi thread safe.
+   * Note: if the execution has verification AND runParameters.execution == true, then the verification is started
    *
    * @return the execution
    */
-  public RunResult runScenario() {
+  public RunResult runExecutions() {
     RunResult result = new RunResult(this);
-
     // each execution is run in a different thread
     ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
 
@@ -65,7 +109,8 @@ public class RunScenario {
       // the execution does not want to be executed
       if (!scnExecution.isExecution())
         continue;
-      ScnExecutionCallable scnExecutionCallable = new ScnExecutionCallable("Agent-" + i, this, scnExecution);
+      ScnExecutionCallable scnExecutionCallable = new ScnExecutionCallable("Agent-" + i, this, scnExecution,
+          runParameters);
 
       listFutures.add(executor.submit(scnExecutionCallable));
     }
@@ -84,7 +129,21 @@ public class RunScenario {
       result.addError(null, "Error during executing in parallel " + e.getMessage());
     }
 
+    // ---- Check verification now
+
     return result;
+  }
+
+  /**
+   * for one execution, run verifications
+   *
+   * @param scnExecution
+   * @return
+   */
+  public RunResult runVerifications(ScenarioExecution scnExecution) {
+    RunResult result = new RunResult(this);
+    return result;
+
   }
 
   public Scenario getScenario() {
@@ -117,22 +176,28 @@ public class RunScenario {
     private final String agentName;
     private final ScenarioExecution scnExecution;
     private final RunScenario runScenario;
+    private final RunParameters runParameters;
 
     private RunResult scnRunResult;
 
     ScnExecutionCallable(String agentName,
                          RunScenario runScenario,
-                         ScenarioExecution scnExecution) {
+                         ScenarioExecution scnExecution,
+                         RunParameters runParameters) {
       this.agentName = agentName;
       this.runScenario = runScenario;
       this.scnExecution = scnExecution;
+      this.runParameters = runParameters;
     }
 
     @Override
     public Object call() {
-      RunScenarioExecution scnRunExecution = new RunScenarioExecution(runScenario,scnExecution);
+      RunScenarioExecution scnRunExecution = new RunScenarioExecution(runScenario, scnExecution);
       scnRunExecution.setAgentName(agentName);
       scnRunResult = scnRunExecution.runExecution();
+      if (runParameters.verification) {
+        scnRunResult.add(runScenario.runVerifications(scnExecution));
+      }
       return scnRunResult;
     }
 

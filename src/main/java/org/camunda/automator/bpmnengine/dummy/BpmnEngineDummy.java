@@ -1,11 +1,13 @@
 package org.camunda.automator.bpmnengine.dummy;
 
+import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -56,4 +58,15 @@ public class BpmnEngineDummy implements BpmnEngine {
       throws AutomatorException {
     return null;
   }
+
+  @Override
+  public String deployProcess(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
+    return null;
+  }
+
+  @Override
+  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+    return BpmnEngineConfiguration.CamundaEngine.DUMMY;
+  }
+
 }

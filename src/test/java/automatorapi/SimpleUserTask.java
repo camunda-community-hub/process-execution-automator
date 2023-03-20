@@ -36,7 +36,7 @@ public class SimpleUserTask {
     runParameters.logLevel = RunParameters.LOGLEVEL.DEBUG;
 
     BpmnEngineConfiguration engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
-    RunResult scenarioExecutionResult = automatorApi.executeScenario(engineConfiguration, engineConfiguration.servers.get(0), runParameters, scenario);
+    RunResult scenarioExecutionResult = automatorApi.executeScenario(automatorApi.getBpmnEngine(engineConfiguration, engineConfiguration.servers.get(0)), runParameters, scenario);
     assert (scenarioExecutionResult.isSuccess());
   }
 

@@ -32,6 +32,8 @@ public class RunResult {
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
 
+  private List<String> listProcessIdDeployed = new ArrayList<>();
+
   private int numberOfProcessInstances = 0;
   private int numberOfSteps = 0;
   /**
@@ -131,6 +133,14 @@ public class RunResult {
 
   public void setTimeExecution(long timeExecution) {
     this.timeExecution = timeExecution;
+  }
+
+  public List<String> getProcessIdDeployed() {
+    return listProcessIdDeployed;
+  }
+
+  public void addDeploymentProcessId(String processId) {
+    this.listProcessIdDeployed.add( processId);
   }
 
   /**

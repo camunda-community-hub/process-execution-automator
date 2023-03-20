@@ -13,10 +13,12 @@ import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,8 +30,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   private final BpmnEngineConfiguration engineConfiguration;
   private final BpmnEngineConfiguration.BpmnServerDefinition serverDefinition;
 
+
   private ZeebeClient zeebeClient;
   private CamundaOperateClient operateClient;
+
+  private BpmnEngineConfiguration.CamundaEngine typeCamundaEngine;
+
 
   public BpmnEngineCamunda8(BpmnEngineConfiguration engineConfiguration, BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
     this.engineConfiguration = engineConfiguration;
@@ -37,7 +43,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   }
 
   @Override
-  public void init() throws Exception {
+  public void init() throws AutomatorException {
     final String defaultAddress = "localhost:26500";
     final String envVarAddress = System.getenv("ZEEBE_ADDRESS");
 
@@ -49,7 +55,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
        */
       clientBuilder = ZeebeClient.newClientBuilder();
       sa = new SaasAuthentication(serverDefinition.zeebeCloudClientId, serverDefinition.clientSecret);
-
+      typeCamundaEngine= BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS;
     } else if (serverDefinition.zeebeGatewayAddress != null) {
       // connect to local deployment; assumes that authentication is disabled
       clientBuilder = ZeebeClient.newClientBuilder()
@@ -57,6 +63,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
           .usePlaintext();
       sa = new SimpleAuthentication(serverDefinition.operateUserName, serverDefinition.operateUserPassword,
           serverDefinition.operateUrl);
+      typeCamundaEngine= BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8;
     } else
       throw new AutomatorException("Invalid configuration");
 
@@ -128,5 +135,15 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       throws AutomatorException {
     zeebeClient.newCompleteCommand(Long.valueOf(activityId)).variables(variables).send();
     return null;
+  }
+
+  @Override
+  public String deployProcess(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
+    return null;
+  }
+
+  @Override
+  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+    return typeCamundaEngine;
   }
 }
