@@ -43,8 +43,8 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda7.class);
 
-  private String serverUrl;
-  private boolean logDebug;
+  private final String serverUrl;
+  private final boolean logDebug;
 
   ApiClient client = null;
   ProcessDefinitionApi processDefinitionApi;
@@ -103,6 +103,11 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
+  public void endProcessInstance(String processInstanceid, boolean cleanAll) throws AutomatorException {
+    // To nothing at this moment
+  }
+
+  @Override
   public List<String> searchUserTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
     if (logDebug) {
@@ -150,6 +155,14 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
   }
 
+  /**
+   * Search service task
+   * @param processInstanceId processInstance
+   * @param taskName task name
+   * @param maxResult number of result
+   * @return the list of TaskId found according the criteria
+   * @throws AutomatorException any error during search
+   */
   @Override
   public List<String> searchServiceTasks(String processInstanceId, String taskName, Integer maxResult)
       throws AutomatorException {
@@ -168,7 +181,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
 
     externalTaskQueryDto.activityId(taskName);
-    List<ExternalTaskDto> taskDtos = null;
+    List<ExternalTaskDto> taskDtos;
     try {
       taskDtos = externalTaskApi.queryExternalTasks(0, 100, externalTaskQueryDto);
     } catch (ApiException e) {
@@ -198,8 +211,10 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       ExternalCallBack externalCallBack = new ExternalCallBack();
       externalTaskApi.completeExternalTaskResourceAsync(taskId,
           new CompleteExternalTaskDto().variables(variablesApi).workerId(workerId), externalCallBack);
+
       int counter = 0;
       while (ExternalCallBack.STATUS.WAIT.equals(externalCallBack.status) && counter < 200) {
+        counter++;
         try {
           Thread.sleep(200);
         } catch (InterruptedException e) {
@@ -230,12 +245,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       throw new AutomatorException("Can't deploy process ",e);
     }
 
-    /*
-    repositoryService.createDeployment()
-        .addInputStream("process.bpmn", this.getClass().getClassLoader().getResourceAsStream("bpmn/process.bpmn"))
-        .deploy();
 
-     */
   }
 
   @Override

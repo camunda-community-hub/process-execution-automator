@@ -68,6 +68,8 @@ in a CD/CI, you want to verify that a process follows the same behavior in the s
 Running every day (or hours) or asking via an API call to replay a scenario is useful to verify there is no difference. If the customer is 4555, do we still move the process instance to Review Level 1"?
 The second verification is the performance. The scenario can record an expected duration target (for example, 4 seconds to execute the Get Context service task. Does the execution still at this time?
 
+
+
 ## Coverage report
 
 Execute multiple scenarios to be sure that all the process is covered correctly.
@@ -115,23 +117,52 @@ The process instance can execute other tasks: Automator does not verify that, ex
       "numberOfThreads": 5,
       "steps": [
         {
-          "type" : "servicetask",
-          "activityname": "Get context",
+          "type": "STARTEVENT",
+          "activityId": "StartEvent_1"
+        },
+        {
+          "type" : "SERVICETASK",
+          "activityId": "Get context",
           "executiontargetms": 10000
         },
         {
-          "type" : "usertask",
-          "activityname": "Review level 1",
-          "executiondelayms": 5000,
+          "type" : "USERTASK",
+          "activityId": "Review level 1",
+          "waitingTime": "PT5S",
           "numberofexecution": 10,
           "taskvariable": {
             "statusreview": "YES"
           }
+        }
+      ],
+      "verifications" : [
+        { 
+          "type" :  "TASK",
+          "activityId": "Review level 1",
+          "state":  "ACTIVE"
         },
         {
-          "type" : "endevent",
-          "activityname": "End application"
+          "type" : "ENDEVENT",
+          "activityId": "Application Done"
+        },
+        {
+          "type" :  "VARIABLE",
+          "variableName":  "Score",
+          "variableValue": 120
+        },
+        {
+          "type" :  "PERFORMANCE",
+          "activityIdBegin":  "getScore",
+          "activityIdEND":  "getScore",
+          "performanceTarget": "PT0.5S"
+        },
+        {
+          "type" :  "PERFORMANCE",
+          "activityIdBegin":  "getScore",
+          "activityIdEND":  "riskLevel",
+          "performanceTarget": "PT4S"
         }
+
       ]
     }
   ]
@@ -140,18 +171,25 @@ The process instance can execute other tasks: Automator does not verify that, ex
 
 ## Execution parameters
 
-| Parameter | Explanation                                                                                            | Example                         |
-|-----------|--------------------------------------------------------------------------------------------------------|---------------------------------|
-| Name      | Name of execution                                                                                      | "name": "This is the first run" |
-| policy    | "STOPATFIRSTERROR" or "CONTINUE": in case of error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
-| numberProcessInstances    | Number of process instance to create. Each process instance follows steps.             | "numberProcessInstances": 45    |
-| numberOfThreads    | Number of thread to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
-| execution | if false, the execution does not start. Unot present, the default value is TRUE.                       | "execution" : false             | 
+| Parameter              | Explanation                                                                                            | Example                         |
+|------------------------|--------------------------------------------------------------------------------------------------------|---------------------------------|
+| Name                   | Name of execution                                                                                      | "name": "This is the first run" |
+| policy                 | "STOPATFIRSTERROR" or "CONTINUE": in case of error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
+| numberProcessInstances | Number of process instance to create. Each process instance follows steps.             | "numberProcessInstances": 45    |
+| numberOfThreads        | Number of thread to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
+| execution              | if false, the execution does not start. Unot present, the default value is TRUE.                       | "execution" : false             | 
 
 Then the execution contains a list of steps 
 
 
 ## STARTEVENT step
+Start a new process instance
+
+
+| Parameter          | Explanation                   | Example                   |
+|--------------------|-------------------------------|---------------------------|
+| type               | Specify the type (STARTEVENT) | type: "STARTEVENT"        |
+| activityId         | Activity ID of start event    | actiityId= "StartEvent_1" |
 
 ## USERTASK step
 
@@ -159,12 +197,39 @@ The step wait for a user task, and execute it.
 
 | Parameter          | Explanation                                                                                                                              | Example                                                               |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| type               | Specify the type                                                                                                                         | type: "USERTASK"                                                      |
+| type               | Specify the type (USERTASK)                                                                                                              | type: "USERTASK"                                                      |
 | delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                  | delay="PT0.1S" waits 100 ms                                           |
 | waitingTime        | Wait maximum this time, before returning an error. Automator query the engine every 500 ms, until this delay. Default value is 5 minutes | waitingTime="PT10S"                                                   |
 | activityId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
 | variables          | List of variable (JSON file) to update                                                                                                   | {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
 | numberOfExecutions | Number of execution, the task may be multi instance. Default is 1                                                                        | numberOfExecutions = 3                                                |
+
+## SERVICETASK step
+
+The step wait for a service task, and execute it.
+
+It's depends on the usage of the scenario: if a CD/CI, the service task should be executed by the real workers, not by the automator
+But in some environment, or to advance quickly the task to a certain position, you may want to simulate the worker. Then, the automator can execute a service task.
+The real worker should be deactivate then. If the service task is not found, then the scenario will have an error.
+
+| Parameter          | Explanation                                                                                                                              | Example                                                               |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
+| type               | Specify the type (SERVICETASK)                                                                                                           | type: "USERTASK"                                                      |
+| delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                  | delay="PT0.1S" waits 100 ms                                           |
+| waitingTime        | Wait maximum this time, before returning an error. Automator query the engine every 500 ms, until this delay. Default value is 5 minutes | waitingTime="PT10S"                                                   |
+| activityId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
+| variables          | List of variable (JSON file) to update                                                                                                   | {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
+| numberOfExecutions | Number of execution, the task may be multi instance. Default is 1                                                                        | numberOfExecutions = 3                                                |
+
+## Verification
+Each execution can declare verifications. Verification are executed after the execution.
+
+It's possible to check:
+* active activity: does the process instance is correctly waiting on the task "Final Review" after the execution?
+* any completed activity : does the process instance executed the task "GetScore"? Does the process instance ended on the end event "Application Done" ?
+* any variable value : does the process variable "ApplicantScore" is 150?
+* any performance: does the execution of the activity "getScore" stay under 500 milliseconds? Does the execution from the activity "getScore" to "GetRiskLevel" stay under 4 seconds?
+
 
 # Build a Scenario
 Automator can generate a scenario from a real execution.

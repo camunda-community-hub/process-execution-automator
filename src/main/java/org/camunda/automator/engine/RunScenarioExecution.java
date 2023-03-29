@@ -23,8 +23,8 @@ public class RunScenarioExecution {
 
   private String agentName = "";
 
-  private RunScenario runScenario;
-  private ScenarioExecution scnExecution;
+  private final RunScenario runScenario;
+  private final ScenarioExecution scnExecution;
 
   public RunScenarioExecution(RunScenario runScenario, ScenarioExecution scnExecution) {
     this.runScenario = runScenario;
@@ -53,7 +53,7 @@ public class RunScenarioExecution {
 
     for (int i = 0; i < scnExecution.getNumberProcessInstances(); i++) {
       RunScenarioExecution.ScnThreadCallable scnExecutionCallable = new RunScenarioExecution.ScnThreadCallable(
-          "AutomatorThread-" + i, this);
+          "AutomatorThread-" + i, this, runScenario.getRunParameters());
 
       listFutures.add(executor.submit(scnExecutionCallable));
     }
@@ -109,6 +109,7 @@ public class RunScenarioExecution {
       try {
         Thread.sleep(duration.toMillis());
       } catch (InterruptedException e) {
+        // don't need to do anything here
       }
     }
     Long waitingTimeInMs = null;
@@ -117,7 +118,7 @@ public class RunScenarioExecution {
       waitingTimeInMs = duration.toMillis();
     }
     if (waitingTimeInMs == null)
-      waitingTimeInMs = Long.valueOf(5 * 60 * 1000);
+      waitingTimeInMs = 5L * 60 * 1000;
 
     for (int index = 0; index < step.getNumberOfExecutions(); index++) {
       long beginTimeWait = System.currentTimeMillis();
@@ -131,6 +132,7 @@ public class RunScenarioExecution {
             try {
               Thread.sleep(500);
             } catch (InterruptedException e) {
+              // nothing to do here
             }
           }
         } while (listActivities.isEmpty() && System.currentTimeMillis() - beginTimeWait < waitingTimeInMs);
@@ -232,19 +234,38 @@ public class RunScenarioExecution {
   private class ScnThreadCallable implements Callable {
     private final String agentName;
     private final RunScenarioExecution scnRunExecution;
+    private final RunParameters runParameters;
 
 
     private RunResult scnRunResult;
 
     ScnThreadCallable(String agentName,
-                      RunScenarioExecution scnRunExecution) {
+                      RunScenarioExecution scnRunExecution,
+                      RunParameters runParameters) {
       this.agentName = agentName;
       this.scnRunExecution = scnRunExecution;
+      this.runParameters = runParameters;
     }
 
+    /** run one execution.
+     *
+     * @return
+     * @throws Exception
+     */
     public Object call() throws Exception {
       scnRunResult = new RunResult(scnRunExecution.runScenario);
+      if (runParameters.execution)
+        runExecution();
+      if (runParameters.verification) {
+        runScenario.runVerifications(scnExecution);
+      }
+      // we finish with this process instance
+      if (scnRunResult.getFirstProcessInstanceId()!=null)
+        runScenario.getBpmnEngine().endProcessInstance(scnRunResult.getFirstProcessInstanceId(), runParameters.clearAllAfter);
+      return scnRunResult;
+    }
 
+    public void runExecution(){
       if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
         logger.info("ScnRunExecution.StartExecution [" + scnRunExecution.runScenario.getScenario().getName() + "] agent[" + agentName + "]");
 
@@ -277,13 +298,17 @@ public class RunScenarioExecution {
         scnRunResult.addStepExecution(step, timeEnd - timeBegin);
 
         if (!scnRunResult.isSuccess() && ScenarioExecution.Policy.STOPATFIRSTERROR.equals(scnExecution.getPolicy()))
-          return scnRunResult;
+          return ;
       }
       if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
         logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
-      return scnRunResult;
+      return ;
     }
 
+
+    public void runVerification(){
+
+    }
     public RunResult getScnRunResult() {
       return scnRunResult;
     }

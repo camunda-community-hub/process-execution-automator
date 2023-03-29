@@ -1,0 +1,50 @@
+{
+  "name": "Conditional event",
+  "processId": "ComplexProcess",
+  "executions": [
+    {
+      "name": "Manual acceptation",
+      "steps": [
+        {
+          "type": "STARTEVENT",
+          "activityId": "StartEvent_1"
+        },
+        {
+          "type": "USERTASK",
+          "waitingTime": "PT60S",
+          "activityId": "Activity_Review"
+        },
+        {
+          "type": "USERTASK",
+          "waitingTime": "PT60S",
+          "activityId": "Activity_Validate",
+          "variables": {
+            "automaticPayment": true
+          }
+        },
+        {
+          "type": "SERVICETASK",
+          "waitingTime": "PT60S",
+          "activityId": "Activity_AutomaticPayment"
+        }
+      ],
+      "verifications": [
+        {
+          "type": "TASK",
+          "activityId": "Review",
+          "state": "COMPLETED"
+        },
+        {
+          "type": "TASK",
+          "activityId": "Activity_FinalReview",
+          "state": "ACTIVE"
+        },
+        {
+          "type": "VARIABLE",
+          "variableName": "automaticPayment",
+          "variableValue": true
+        }
+      ]
+    }
+  ]
+}

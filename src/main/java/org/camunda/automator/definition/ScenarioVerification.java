@@ -5,6 +5,7 @@ import java.util.List;
 
 public class ScenarioVerification {
   List<ScenarioVerificationActivity> activities = new ArrayList<>();
+  List<ScenarioVerificationVariable> variables = new ArrayList<>();
 
   private final ScenarioExecution scenarioExecution;
 
@@ -18,6 +19,14 @@ public class ScenarioVerification {
 
   public void setActivities(List<ScenarioVerificationActivity> activities) {
     this.activities = activities;
+  }
+
+  public List<ScenarioVerificationVariable> getVariables() {
+    return variables;
+  }
+
+  public void setVariables(List<ScenarioVerificationVariable> variables) {
+    this.variables = variables;
   }
 
   public ScenarioExecution getScenarioExecution() {

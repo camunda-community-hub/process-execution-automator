@@ -93,7 +93,7 @@ public class AutomatorCLI implements CommandLineRunner {
           runParameters.logLevel = RunParameters.LOGLEVEL.valueOf(args[i + 1]);
           i++;
         }
-        if ("-n".equals(args[i]) || "--numberofexecution".equals(args[i])) {
+        else if ("-n".equals(args[i]) || "--numberofexecution".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : n <numberofexecution>");
           overrideNumberOfExecution = Integer.parseInt(args[i + 1]);

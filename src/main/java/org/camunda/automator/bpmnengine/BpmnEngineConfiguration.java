@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.stream.Collectors;
 
 @Configuration
 @PropertySource("classpath:application.yaml")
@@ -47,6 +46,7 @@ public class BpmnEngineConfiguration {
     public String operateUserName;
     public String operateUserPassword;
     public String operateUrl;
+    public String tasklistUrl;
 
     /**
      * Camunda 7
@@ -105,9 +105,10 @@ public class BpmnEngineConfiguration {
 
       } else if (CamundaEngine.CAMUNDA_8.equals(bpmnServerDefinition.camundaEngine)) {
         bpmnServerDefinition.zeebeGatewayAddress = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.operateUserName = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.operateUserPassword = (st.hasMoreTokens() ? st.nextToken() : null);
-        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.tasklistUrl = (st.hasMoreTokens() ? st.nextToken() : null);
 
       } else if (CamundaEngine.CAMUNDA_8_SAAS.equals(bpmnServerDefinition.camundaEngine)) {
         bpmnServerDefinition.zeebeCloudRegister = (st.hasMoreTokens() ? st.nextToken() : null);
@@ -115,9 +116,10 @@ public class BpmnEngineConfiguration {
         bpmnServerDefinition.zeebeCloudClusterId = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.zeebeCloudClientId = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.clientSecret = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.operateUserName = (st.hasMoreTokens() ? st.nextToken() : null);
         bpmnServerDefinition.operateUserPassword = (st.hasMoreTokens() ? st.nextToken() : null);
-        bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
+        bpmnServerDefinition.tasklistUrl = (st.hasMoreTokens() ? st.nextToken() : null);
       }
       return bpmnServerDefinition;
     } catch( Exception e){

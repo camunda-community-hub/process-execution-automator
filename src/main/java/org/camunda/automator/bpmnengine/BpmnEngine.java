@@ -11,12 +11,20 @@ public interface BpmnEngine {
 
   /**
    * init or reinit the connection
-   * @throws Exception
+   * @throws Exception in case of error
    */
   void init() throws AutomatorException;
 
   String createProcessInstance(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException;
+
+  /**
+   * we finish with this processinstanceid, engine can clean it
+   * @param processInstanceid Process instance Id to clean
+   * @param cleanAll if true, the process instance must be clean.
+   * @throws AutomatorException in case of error
+   */
+ void endProcessInstance(String processInstanceid, boolean cleanAll) throws AutomatorException;
 
   List<String> searchUserTasks(String processInstanceId, String userTaskName, Integer maxResult) throws AutomatorException;
 
@@ -29,7 +37,7 @@ public interface BpmnEngine {
   /**
    * Deploy a process on the server
    * @param processFile process to deploy
-   * @param policy
+   * @param policy policy to deploy the process
    * @return the processID
    * @Exception error error during the deployement
    */

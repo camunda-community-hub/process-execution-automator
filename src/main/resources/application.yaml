@@ -20,7 +20,7 @@ automator:
   # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl
   # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,clientSecret,OperateUserName,OperateUserPassword,OperateUrl
 
-  serversconnection: camunda7Local,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Local,CAMUNDA_8,http://127.0.0.1:26500,demo,demo,http://localhost:8081/
+  serversconnection: camunda7Local,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Local,CAMUNDA_8,127.0.0.1:26500,http://localhost:8081,demo,demo,http://localhost:8082
 
   # other way to provide the list of server connection
   servers:
@@ -35,4 +35,4 @@ automator:
       operateUrl: http://localhost:8081/
 
 
-server.port: 8088
+server.port: 8089

@@ -52,7 +52,8 @@ public class RunScenario {
 
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
-    result.add(runDeployment());
+    if (runParameters.allowDeployment)
+      result.add(runDeployment());
     // verification is inside execution
     result.add(runExecutions());
     return result;
@@ -60,13 +61,14 @@ public class RunScenario {
 
   /**
    * run only the deployments on the process - test to verify the engine is performed
-   * @return
+   *
+   * @return result of deployment
    */
   public RunResult runDeployment() {
     RunResult result = new RunResult(this);
 
     // first, do we have to deploy something?
-    if (scenario.getDeployments() != null && runParameters.allowDeployment) {
+    if (scenario.getDeployments() != null) {
       for (ScenarioDeployment deployment : scenario.getDeployments()) {
         boolean sameTypeServer = false;
         if (deployment.server.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7)) {
@@ -129,7 +131,6 @@ public class RunScenario {
       result.addError(null, "Error during executing in parallel " + e.getMessage());
     }
 
-    // ---- Check verification now
 
     return result;
   }
@@ -137,8 +138,8 @@ public class RunScenario {
   /**
    * for one execution, run verifications
    *
-   * @param scnExecution
-   * @return
+   * @param scnExecution execution to check
+   * @return result of execution
    */
   public RunResult runVerifications(ScenarioExecution scnExecution) {
     RunResult result = new RunResult(this);
@@ -194,10 +195,13 @@ public class RunScenario {
     public Object call() {
       RunScenarioExecution scnRunExecution = new RunScenarioExecution(runScenario, scnExecution);
       scnRunExecution.setAgentName(agentName);
+
+      /**
+       * Execution AND verifications are processed
+       * An execution may be MULTIPLE process instance, and each must be verified
+       */
       scnRunResult = scnRunExecution.runExecution();
-      if (runParameters.verification) {
-        scnRunResult.add(runScenario.runVerifications(scnExecution));
-      }
+
       return scnRunResult;
     }
 

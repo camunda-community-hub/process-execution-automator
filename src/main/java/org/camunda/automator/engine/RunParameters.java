@@ -9,11 +9,16 @@ public class RunParameters {
   /**
    * Execute the scenario (execution part): create process instance, execute user & service task
    */
-  public boolean execute=true;
+  public boolean execution =true;
   /**
    * Verify the scenario (verification part) : check that tasks exist
    */
   public boolean verification=false;
+
+  /**
+   * After the execution, clean the processInstance
+   */
+  public boolean clearAllAfter=false;
 
   /**
    * Allow any deployment
