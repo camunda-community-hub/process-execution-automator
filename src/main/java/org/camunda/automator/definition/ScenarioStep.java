@@ -7,6 +7,8 @@
 /* ******************************************************************** */
 package org.camunda.automator.definition;
 
+import org.camunda.automator.engine.AutomatorException;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -14,15 +16,18 @@ public class ScenarioStep {
 
   private ScenarioExecution scnExecution;
   private Step type;
-  private String activityId;
+  private String taskId;
+  /**
+   * to execute a service task in C8, topic is mandatory
+   */
+  private String topic;
   private Map<String, Object> variables = Collections.emptyMap();
-
 
   /**
    * each component contains an operations, to fulfill variables
    * operations; stringtodate()
    */
-  private Map<String, String> variablesoperation = Collections.emptyMap();
+  private final Map<String, String> variablesOperation = Collections.emptyMap();
 
   private String userId;
 
@@ -54,14 +59,14 @@ public class ScenarioStep {
   public static ScenarioStep createStepCreate(ScenarioExecution scnExecution, String starterId) {
     ScenarioStep scenarioStep = new ScenarioStep(scnExecution);
     scenarioStep.type = Step.STARTEVENT;
-    scenarioStep.activityId = starterId;
+    scenarioStep.taskId = starterId;
     return scenarioStep;
   }
 
   public static ScenarioStep createStepUserTask(ScenarioExecution scnExecution, String activityId) {
     ScenarioStep scenarioStep = new ScenarioStep(scnExecution);
     scenarioStep.type = Step.USERTASK;
-    scenarioStep.activityId = activityId;
+    scenarioStep.taskId = activityId;
     return scenarioStep;
   }
 
@@ -74,17 +79,21 @@ public class ScenarioStep {
     return this;
   }
 
-  public String getActivityId() {
-    return activityId;
+  public String getTaskId() {
+    return taskId;
   }
 
-  public ScenarioStep setActivityId(String activityId) {
-    this.activityId = activityId;
+  public ScenarioStep setTaskId(String taskId) {
+    this.taskId = taskId;
     return this;
   }
 
   public String getUserId() {
     return userId;
+  }
+
+  public String getTopic() {
+    return topic;
   }
 
   /* ******************************************************************** */
@@ -98,12 +107,12 @@ public class ScenarioStep {
     return this;
   }
 
-  public Map<String, String> getVariablesOperations()  {
-    return variablesoperation ==null? Collections.emptyMap():variablesoperation;
+  public Map<String, String> getVariablesOperations() {
+    return variablesOperation == null ? Collections.emptyMap() : variablesOperation;
   }
 
   public Map<String, Object> getVariables() {
-    return variables==null? Collections.emptyMap():variables;
+    return variables == null ? Collections.emptyMap() : variables;
   }
 
   public ScenarioStep setVariables(Map<String, Object> variables) {
@@ -137,7 +146,7 @@ public class ScenarioStep {
   }
 
   public int getNumberOfExecutions() {
-    return numberOfExecutions==null? 1 : numberOfExecutions;
+    return numberOfExecutions == null ? 1 : numberOfExecutions;
   }
 
   public void setNumberOfExecutions(int numberOfExecutions) {
@@ -148,6 +157,23 @@ public class ScenarioStep {
     this.scnExecution = scnExecution;
   }
 
-  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT}
+  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY}
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Check consistence                                                              */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  public void checkConsistence() throws AutomatorException {
+    if (getTaskId() == null || getTaskId().trim().isEmpty())
+      throw new AutomatorException("Step taskId is mandatory");
+    switch (type) {
+    case SERVICETASK -> {
+      if (getTopic() == null || getTopic().trim().isEmpty())
+        throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " topic is mandatory");
+    }
+    }
+  }
 
 }

@@ -2,6 +2,7 @@ package automatorapi;
 
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.bpmnengine.BpmnEngineConfigurationInstance;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioStep;
@@ -34,8 +35,8 @@ public class SimpleUserTask {
     RunParameters runParameters = new RunParameters();
     runParameters.logLevel = RunParameters.LOGLEVEL.DEBUG;
 
-    BpmnEngineConfiguration engineConfiguration = BpmnEngineConfiguration.getDummy();
-    RunResult scenarioExecutionResult = automatorApi.executeScenario(engineConfiguration, runParameters, scenario);
+    BpmnEngineConfiguration engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
+    RunResult scenarioExecutionResult = automatorApi.executeScenario(automatorApi.getBpmnEngine(engineConfiguration, engineConfiguration.servers.get(0)), runParameters, scenario);
     assert (scenarioExecutionResult.isSuccess());
   }
 

@@ -1,9 +1,8 @@
 package org.camunda.automator.services;
 
-import org.camunda.automator.engine.RunParameters;
+import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunScenario;
 import org.camunda.automator.services.dataoperation.DataOperation;
-import org.camunda.automator.engine.AutomatorException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -23,6 +23,7 @@ import java.util.List;
 public class Scenario {
 
   private final List<ScenarioExecution> executions = new ArrayList<>();
+  private final List<ScenarioDeployment> deployments = new ArrayList<>();
   private String name;
   private String version;
   private String processName;
@@ -81,6 +82,11 @@ public class Scenario {
   public List<ScenarioExecution> getExecutions() {
     return executions;
   }
+
+  public List<ScenarioDeployment> getDeployments() {
+    return deployments;
+  }
+
 
   public String getName() {
     return name;

@@ -1,13 +1,38 @@
-
-
-
 automator:
-  execution:
+
+  scheduler:
     runAtStartup: true
+    server: camunda7LocalBlue
     scenarioPath: D:\dev\intellij\community\process-execution-automator\src\test\ressources\simpleusertask
-    server:
+    exam: a,b,c,d
+
+    colors:
+      - blue
+      - green
+      - red
+
+
+  logdebug: true
+
+  # servers connection is a list of connection separate by ;
+  # each connection contains a name and a type. then, other parameters depends on the type
+  # <name>,CAMUNDA_7,<url>
+  # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl
+  # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,clientSecret,OperateUserName,OperateUserPassword,OperateUrl
+
+  serversconnection: camunda7Local,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Local,CAMUNDA_8,127.0.0.1:26500,http://localhost:8081,demo,demo,http://localhost:8082
+
+  # other way to provide the list of server connection
+  servers:
+    - name: camunda7Local
       type: Camunda_7
       url: "http://localhost:8080/engine-rest"
+    - name: Camunda8Local
+      type: Camunda_8
+      zeebeGatewayAddress: "http://127.0.0.1:26500"
+      operateUserName: demo
+      operateUserPassword: demo
+      operateUrl: http://localhost:8081/
 
 
-server.port: 8088
+server.port: 8089

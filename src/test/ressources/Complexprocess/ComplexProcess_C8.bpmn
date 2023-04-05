@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1c11fw3" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.9.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="1.1.0">
+  <bpmn:process id="ComplexProcess" name="ComplexProcess" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Start request">
+      <bpmn:outgoing>Flow_0clro87</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_0clro87" sourceRef="StartEvent_1" targetRef="Gateway_1h36379" />
+    <bpmn:endEvent id="Event_0bpgroy" name="End manual">
+      <bpmn:incoming>Flow_0lpzkb3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0xmjrmo" sourceRef="Activity_Review" targetRef="Activity_Validate" />
+    <bpmn:userTask id="Activity_Review" name="Review">
+      <bpmn:incoming>Flow_1p4rwku</bpmn:incoming>
+      <bpmn:outgoing>Flow_0xmjrmo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0kirbdl" sourceRef="Activity_Validate" targetRef="Gateway_10rf2jn" />
+    <bpmn:sequenceFlow id="Flow_0lpzkb3" sourceRef="Activity_Accept" targetRef="Event_0bpgroy" />
+    <bpmn:userTask id="Activity_Validate" name="Validate">
+      <bpmn:incoming>Flow_0xmjrmo</bpmn:incoming>
+      <bpmn:outgoing>Flow_0kirbdl</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="Activity_Accept" name="Accept">
+      <bpmn:incoming>Flow_1o3jvod</bpmn:incoming>
+      <bpmn:outgoing>Flow_0lpzkb3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_10rf2jn" name="Validate?" default="Flow_1o3jvod">
+      <bpmn:incoming>Flow_0kirbdl</bpmn:incoming>
+      <bpmn:outgoing>Flow_1o3jvod</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1c3dam5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1o3jvod" sourceRef="Gateway_10rf2jn" targetRef="Activity_Accept" />
+    <bpmn:sequenceFlow id="Flow_1c3dam5" sourceRef="Gateway_10rf2jn" targetRef="Activity_AutomaticPayment">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=automaticPayment</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:serviceTask id="Activity_AutomaticPayment" name="Automatic payment" camunda:type="external" camunda:topic="complex-automaticpayment-ID785">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="complex-automaticpayment-ID785" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1c3dam5</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rw74vj</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="Event_1a80mh9" name="End automatic">
+      <bpmn:incoming>Flow_0hnlobo</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1rw74vj" sourceRef="Activity_AutomaticPayment" targetRef="Activity_FinalReview" />
+    <bpmn:sequenceFlow id="Flow_0hnlobo" sourceRef="Activity_FinalReview" targetRef="Event_1a80mh9" />
+    <bpmn:userTask id="Activity_FinalReview" name="Final review">
+      <bpmn:incoming>Flow_1rw74vj</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hnlobo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_1p4rwku" sourceRef="Gateway_1h36379" targetRef="Activity_Review" />
+    <bpmn:parallelGateway id="Gateway_1h36379">
+      <bpmn:incoming>Flow_0clro87</bpmn:incoming>
+      <bpmn:outgoing>Flow_1p4rwku</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0ky2ph5</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12p51be</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:endEvent id="EndDirectEvent" name="end direct">
+      <bpmn:incoming>Flow_0ky2ph5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0ky2ph5" sourceRef="Gateway_1h36379" targetRef="EndDirectEvent" />
+    <bpmn:sequenceFlow id="Flow_12p51be" sourceRef="Gateway_1h36379" targetRef="ActivityNotification" />
+    <bpmn:serviceTask id="ActivityNotification" name="Notification">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="complex-notification" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_12p51be</bpmn:incoming>
+      <bpmn:outgoing>Flow_1as7cvr</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndNotification">
+      <bpmn:incoming>Flow_1as7cvr</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1as7cvr" sourceRef="ActivityNotification" targetRef="EndNotification" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ComplexProcess">
+      <bpmndi:BPMNShape id="Event_0bpgroy_di" bpmnElement="Event_0bpgroy">
+        <dc:Bounds x="982" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="971" y="285" width="60" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0cpol4f_di" bpmnElement="Activity_Review">
+        <dc:Bounds x="300" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1o9yuql_di" bpmnElement="Activity_Validate">
+        <dc:Bounds x="470" y="220" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1f7asuh_di" bpmnElement="Activity_Accept">
+        <dc:Bounds x="790" y="220" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_10rf2jn_di" bpmnElement="Gateway_10rf2jn" isMarkerVisible="true">
+        <dc:Bounds x="635" y="235" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="638" y="205" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_09l8rk5_di" bpmnElement="Activity_AutomaticPayment">
+        <dc:Bounds x="770" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1a80mh9_di" bpmnElement="Event_1a80mh9">
+        <dc:Bounds x="1052" y="412" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1035" y="455" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0k1w7lh_di" bpmnElement="Activity_FinalReview">
+        <dc:Bounds x="910" y="390" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="152" y="242" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="138" y="285" width="64" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_14di094_di" bpmnElement="Gateway_1h36379">
+        <dc:Bounds x="225" y="235" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_07f01eq_di" bpmnElement="EndDirectEvent">
+        <dc:Bounds x="312" y="412" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="306" y="455" width="50" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_04z2abx_di" bpmnElement="ActivityNotification">
+        <dc:Bounds x="280" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14fgd31_di" bpmnElement="EndNotification">
+        <dc:Bounds x="422" y="102" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0clro87_di" bpmnElement="Flow_0clro87">
+        <di:waypoint x="188" y="260" />
+        <di:waypoint x="225" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0xmjrmo_di" bpmnElement="Flow_0xmjrmo">
+        <di:waypoint x="400" y="260" />
+        <di:waypoint x="470" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0kirbdl_di" bpmnElement="Flow_0kirbdl">
+        <di:waypoint x="570" y="260" />
+        <di:waypoint x="635" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lpzkb3_di" bpmnElement="Flow_0lpzkb3">
+        <di:waypoint x="890" y="260" />
+        <di:waypoint x="982" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1o3jvod_di" bpmnElement="Flow_1o3jvod">
+        <di:waypoint x="685" y="260" />
+        <di:waypoint x="790" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1c3dam5_di" bpmnElement="Flow_1c3dam5">
+        <di:waypoint x="660" y="285" />
+        <di:waypoint x="660" y="430" />
+        <di:waypoint x="770" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1rw74vj_di" bpmnElement="Flow_1rw74vj">
+        <di:waypoint x="870" y="430" />
+        <di:waypoint x="910" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hnlobo_di" bpmnElement="Flow_0hnlobo">
+        <di:waypoint x="1010" y="430" />
+        <di:waypoint x="1052" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p4rwku_di" bpmnElement="Flow_1p4rwku">
+        <di:waypoint x="275" y="260" />
+        <di:waypoint x="300" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0ky2ph5_di" bpmnElement="Flow_0ky2ph5">
+        <di:waypoint x="250" y="285" />
+        <di:waypoint x="250" y="430" />
+        <di:waypoint x="312" y="430" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_12p51be_di" bpmnElement="Flow_12p51be">
+        <di:waypoint x="250" y="235" />
+        <di:waypoint x="250" y="120" />
+        <di:waypoint x="280" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1as7cvr_di" bpmnElement="Flow_1as7cvr">
+        <di:waypoint x="380" y="120" />
+        <di:waypoint x="422" y="120" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -2,25 +2,39 @@ package org.camunda.automator.definition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ScenarioVerification {
-  List<ScenarioVerificationActivity> activities = new ArrayList<>();
+  List<ScenarioVerificationTask> activities = new ArrayList<>();
+  List<ScenarioVerificationVariable> variables = new ArrayList<>();
 
-  private final Scenario scenario;
-  protected ScenarioVerification(Scenario scenario) {
-    this.scenario = scenario;
+  private final ScenarioExecution scenarioExecution;
+
+  public Map<String,Object> searchProcessInstanceByVariable;
+
+
+  protected ScenarioVerification(ScenarioExecution scenarioExecution) {
+    this.scenarioExecution = scenarioExecution;
   }
 
-  public List<ScenarioVerificationActivity> getActivities() {
+  public List<ScenarioVerificationTask> getActivities() {
     return activities;
   }
 
-  public void setActivities(List<ScenarioVerificationActivity> activities) {
+  public void setActivities(List<ScenarioVerificationTask> activities) {
     this.activities = activities;
   }
 
-  public Scenario getScenario() {
-    return scenario;
+  public List<ScenarioVerificationVariable> getVariables() {
+    return variables;
+  }
+
+  public void setVariables(List<ScenarioVerificationVariable> variables) {
+    this.variables = variables;
+  }
+
+  public ScenarioExecution getScenarioExecution() {
+    return scenarioExecution;
   }
 
 }

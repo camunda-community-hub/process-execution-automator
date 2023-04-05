@@ -11,7 +11,7 @@ public class ScenarioExecution {
   private Scenario scnHead;
   private final List<ScenarioStep> steps = new ArrayList<>();
 
-  private final List<ScenarioVerification> verifications = new ArrayList<>();
+  private ScenarioVerification verifications;
 
   /**
    * Name of this execution
@@ -103,6 +103,10 @@ public class ScenarioExecution {
 
   public List<ScenarioStep> getSteps() {
     return steps;
+  }
+
+  public ScenarioVerification getVerifications() {
+    return verifications;
   }
 
   public int getNumberProcessInstances() {

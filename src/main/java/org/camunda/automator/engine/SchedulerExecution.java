@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -20,18 +19,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-@Configuration
-@ConfigurationProperties(prefix = "automator.execution")
+@ConfigurationProperties(prefix = "automator.scheduler")
 public class SchedulerExecution {
 
-  @Value("${automator.execution.run-at-startup}")
+  @Value("${automator.scheduler.run-at-startup}")
   public boolean runAtStartup;
-  @Value("${automator.execution.scenario-path}")
+  @Value("${automator.scheduler.scenario-path}")
   public String scenarioPath;
-  @Value("${automator.execution.server.type}")
-  public String serverType;
-  @Value("${automator.execution.server.url}")
-  public String serverUrl;
+  @Value("${automator.scheduler.server}")
+  public String serverScheduler;
+
+  // https://www.baeldung.com/spring-boot-yaml-list
+  // @Value("${automator.scheduler.colors}")
+
+  private List<String> colors;
+
+  @Autowired
+  BpmnEngineConfiguration bpmnEngineConfiguration;
+
   Logger logger = LoggerFactory.getLogger(SchedulerExecution.class);
 
   @Autowired
@@ -43,16 +48,16 @@ public class SchedulerExecution {
     if (AutomatorCLI.isRunningCLI)
       return;
     // read the configuration, and start the execution
-    if (scenarioPath != null && serverType != null && runAtStartup) {
+    if (scenarioPath != null && runAtStartup) {
       // execute all test now
-      BpmnEngineConfiguration bpmnEngineConfiguration = getEngineConfiguration();
       if (bpmnEngineConfiguration == null) {
         logger.error("Unknown configuration");
         return;
       }
       BpmnEngine bpmnEngine;
       try {
-        bpmnEngine = BpmnEngineFactory.getInstance().getEngineFromConfiguration(bpmnEngineConfiguration);
+        bpmnEngine = BpmnEngineFactory.getInstance()
+            .getEngineFromConfiguration(bpmnEngineConfiguration, getSchedulerServer());
       } catch (Exception e) {
         logger.error("SchedulerExecution.init: Server connection Initialization error");
         return;
@@ -74,14 +79,10 @@ public class SchedulerExecution {
     }
   }
 
-  private BpmnEngineConfiguration getEngineConfiguration() {
+  private BpmnEngineConfiguration.BpmnServerDefinition getSchedulerServer() throws AutomatorException {
+    // explode the scheduler.server information to get the correct server definition
+    return bpmnEngineConfiguration.getByServerName(serverScheduler);
 
-    BpmnEngineConfiguration.CamundaEngine engineType = BpmnEngineConfiguration.CamundaEngine.valueOf(
-        serverType.toUpperCase());
-    if (engineType.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7)) {
-      return BpmnEngineConfiguration.getCamunda7(serverUrl);
-    }
-    return null;
   }
 
   private List<File> collectScenario(File folder) {
