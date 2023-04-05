@@ -6,8 +6,8 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine;
 
-import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioStep;
+import org.camunda.automator.definition.ScenarioVerificationBasic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,12 +27,22 @@ public class RunResult {
    */
   private final List<ErrorDescription> listErrors = new ArrayList<>();
   private final List<StepExecution> listDetailsSteps = new ArrayList<>();
+
+  public class VerificationStatus {
+    ScenarioVerificationBasic verification;
+    boolean isSuccess;
+    String message;
+  }
+
+
+  private final List<VerificationStatus> listVerifications = new ArrayList<>();
+
   /**
    * process instance started for this execution. The executionResult stand for only one process instance
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
 
-  private List<String> listProcessIdDeployed = new ArrayList<>();
+  private final List<String> listProcessIdDeployed = new ArrayList<>();
 
   private int numberOfProcessInstances = 0;
   private int numberOfSteps = 0;
@@ -40,7 +50,6 @@ public class RunResult {
    * Time to execute it
    */
   private long timeExecution;
-
 
   public RunResult(RunScenario runScenario) {
     this.runScenario = runScenario;
@@ -57,7 +66,7 @@ public class RunResult {
   /**
    * Add the process instance - this is mandatory to
    *
-   * @param processInstanceId
+   * @param processInstanceId processInstanceId to add
    */
   public void addProcessInstanceId(String processInstanceId) {
     this.listProcessInstancesId.add(processInstanceId);
@@ -71,7 +80,7 @@ public class RunResult {
   public void addStepExecution(ScenarioStep step, long timeExecution) {
     addTimeExecution(timeExecution);
     numberOfSteps++;
-    if (runScenario.getRunParameters().isLevelStoreDetails()) {
+    if (runScenario.getRunParameters().isLevelInfo()) {
       StepExecution scenarioExecution = new StepExecution(this);
       scenarioExecution.step = step;
       listDetailsSteps.add(scenarioExecution);
@@ -92,25 +101,35 @@ public class RunResult {
     this.listErrors.add(new ErrorDescription(step, e.getMessage()));
   }
 
+  public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
+    VerificationStatus verificationStatus = new VerificationStatus();
+    verificationStatus.verification = verification;
+    verificationStatus.isSuccess = isSuccess;
+    verificationStatus.message = message;
+    this.listVerifications.add(verificationStatus);
+  }
+
   /**
    * Merge the result in this result
    *
-   * @param result
+   * @param result the result object
    */
   public void add(RunResult result) {
     addTimeExecution(result.getTimeExecution());
     listErrors.addAll(result.listErrors);
+    listVerifications.addAll(result.listVerifications);
     numberOfProcessInstances += result.numberOfProcessInstances;
     numberOfSteps += result.numberOfSteps;
     // we collect the list only if the level is low
-    if (runScenario.getRunParameters().isLevelStoreDetails()) {
+    if (runScenario.getRunParameters().isLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }
   }
 
   public boolean isSuccess() {
-    return listErrors.isEmpty();
+    long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
+    return listErrors.isEmpty() && nbVerificationErrors == 0;
   }
 
   /* ******************************************************************** */
@@ -140,15 +159,15 @@ public class RunResult {
   }
 
   public void addDeploymentProcessId(String processId) {
-    this.listProcessIdDeployed.add( processId);
+    this.listProcessIdDeployed.add(processId);
   }
 
   /**
-   * @return
+   * @return a synthesis
    */
   public String getSynthesis(boolean fullDetail) {
     StringBuilder synthesis = new StringBuilder();
-    synthesis.append(listErrors.isEmpty() ? "SUCCESS " : "FAIL    ");
+    synthesis.append(isSuccess() ? "SUCCESS " : "FAIL    ");
     synthesis.append(runScenario.getScenario().getName());
     synthesis.append("(");
     synthesis.append(runScenario.getScenario().getProcessId());
@@ -161,14 +180,25 @@ public class RunResult {
     synthesis.append(numberOfSteps);
     synthesis.append(" stepsExecuted, ");
 
+    StringBuilder errorMessage = new StringBuilder();
     // add errors
-    synthesis.append(listErrors.stream() // stream
+    errorMessage.append(listErrors.stream() // stream
         .map(t -> {
-          return (t.step != null ? t.step.toString() : "") + t.explanation;
+          return (t.step != null ? t.step.toString() : "") + t.explanation + "\n";
         }).collect(Collectors.joining(",")));
 
+    if (fullDetail) {
+      synthesis.append(errorMessage);
+    }
+    StringBuilder verificationMessage = new StringBuilder();
+    verificationMessage.append(listVerifications.stream().map(t -> {
+      return t.verification.getSynthesis() + "? " + (t.isSuccess ? "OK" : "FAIL") + " " + t.message + "\n";
+    }).collect(Collectors.joining(",")));
+    if (fullDetail) {
+      synthesis.append(verificationMessage);
+    }
     // add full details
-    if (fullDetail && numberOfProcessInstances==listProcessInstancesId.size()) {
+    if (fullDetail && numberOfProcessInstances == listProcessInstancesId.size()) {
       synthesis.append(" ListOfProcessInstancesCreated: ");
 
       synthesis.append(listProcessInstancesId.stream() // stream
@@ -201,10 +231,16 @@ public class RunResult {
 
   public static class ErrorDescription {
     ScenarioStep step;
+    ScenarioVerificationBasic verificationBasic;
     String explanation;
 
     public ErrorDescription(ScenarioStep step, String explanation) {
       this.step = step;
+      this.explanation = explanation;
+    }
+
+    public ErrorDescription(ScenarioVerificationBasic verificationBasic, String explanation) {
+      this.verificationBasic = verificationBasic;
       this.explanation = explanation;
     }
   }

@@ -3,6 +3,7 @@ package org.camunda.automator.bpmnengine.camunda7;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.definition.ScenarioDeployment;
+import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.community.rest.client.api.DeploymentApi;
 import org.camunda.community.rest.client.api.ExternalTaskApi;
@@ -73,16 +74,23 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
   /**
    * P
+   *
    * @param serverUrl is  "http://localhost:8080/engine-rest"
    */
-  public BpmnEngineCamunda7( String serverUrl, boolean logDebug) {
+  public BpmnEngineCamunda7(String serverUrl, boolean logDebug) {
     this.serverUrl = serverUrl;
     this.logDebug = logDebug;
     init();
   }
 
 
-                                     @Override
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Process Instance                                                    */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
   public String createProcessInstance(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException {
     if (logDebug) {
@@ -103,15 +111,22 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
-  public void endProcessInstance(String processInstanceid, boolean cleanAll) throws AutomatorException {
+  public void endProcessInstance(String processInstanceId, boolean cleanAll) throws AutomatorException {
     // To nothing at this moment
   }
 
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  User task                                                           */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   @Override
-  public List<String> searchUserTasks(String processInstanceId, String taskName, Integer maxResult)
+  public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     if (logDebug) {
-      logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
+      logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + userTaskId + "]");
     }
 
     // get the list of all sub process instance
@@ -123,7 +138,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       taskQueryDto.addProcessInstanceIdInItem(subProcessInstance);
 
     }
-    taskQueryDto.addTaskDefinitionKeyInItem(taskName);
+    taskQueryDto.addTaskDefinitionKeyInItem(userTaskId);
     List<TaskDto> taskDtos = null;
     try {
       taskDtos = taskApi.queryTasks(0, maxResult, taskQueryDto);
@@ -134,40 +149,49 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
-  public String executeUserTask(String taskId, String userId, Map<String, Object> variables) throws AutomatorException {
+  public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
+      throws AutomatorException {
 
     if (logDebug) {
-      logger.info("BpmnEngine7.executeUserTask: activityId[" + taskId + "]");
+      logger.info("BpmnEngine7.executeUserTask: activityId[" + userTaskId + "]");
     }
     try {
       UserIdDto userIdDto = new UserIdDto();
       userIdDto.setUserId(userId == null ? "automator" : userId);
-      taskApi.claim(taskId, userIdDto);
+      taskApi.claim(userTaskId, userIdDto);
       Map<String, VariableValueDto> variablesApi = new HashMap<>();
       for (Map.Entry<String, Object> entry : variables.entrySet()) {
         variablesApi.put(entry.getKey(), new VariableValueDto().value(entry.getValue()));
       }
 
-      taskApi.complete(taskId, new CompleteTaskDto().variables(variablesApi));
-      return null;
+      taskApi.complete(userTaskId, new CompleteTaskDto().variables(variablesApi));
     } catch (ApiException e) {
-      throw new AutomatorException("Can't execute taskId[" + taskId + "] with userId[" + userId + "]", e);
+      throw new AutomatorException("Can't execute taskId[" + userTaskId + "] with userId[" + userId + "]", e);
     }
   }
 
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Service task                                                        */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   /**
    * Search service task
+   *
    * @param processInstanceId processInstance
-   * @param taskName task name
-   * @param maxResult number of result
+   * @param serviceTaskId     task name
+   * @param topic topic to search the task
+   * @param maxResult         number of result
    * @return the list of TaskId found according the criteria
    * @throws AutomatorException any error during search
    */
   @Override
-  public List<String> searchServiceTasks(String processInstanceId, String taskName, Integer maxResult)
+  public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
     if (logDebug) {
-      logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + taskName + "]");
+      logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + serviceTaskId + "]");
     }
 
     // get the list of all sub process instance
@@ -180,7 +204,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
     }
 
-    externalTaskQueryDto.activityId(taskName);
+    externalTaskQueryDto.activityId(serviceTaskId);
     List<ExternalTaskDto> taskDtos;
     try {
       taskDtos = externalTaskApi.queryExternalTasks(0, 100, externalTaskQueryDto);
@@ -191,17 +215,17 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   @Override
-  public String executeServiceTask(String taskId, String userId, Map<String, Object> variables)
+  public void executeServiceTask(String serviceTaskId, String userId, Map<String, Object> variables)
       throws AutomatorException {
 
     if (logDebug) {
-      logger.info("BpmnEngine7.executeUserTask: activityId[" + taskId + "]");
+      logger.info("BpmnEngine7.executeUserTask: activityId[" + serviceTaskId + "]");
     }
     try {
 
       // Fetch and lock
       String workerId = getUniqWorkerId();
-      externalTaskApi.lock(taskId, new LockExternalTaskDto().workerId(workerId).lockDuration(10000L));
+      externalTaskApi.lock(serviceTaskId, new LockExternalTaskDto().workerId(workerId).lockDuration(10000L));
 
       Map<String, VariableValueDto> variablesApi = new HashMap<>();
       for (Map.Entry<String, Object> entry : variables.entrySet()) {
@@ -209,7 +233,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       }
 
       ExternalCallBack externalCallBack = new ExternalCallBack();
-      externalTaskApi.completeExternalTaskResourceAsync(taskId,
+      externalTaskApi.completeExternalTaskResourceAsync(serviceTaskId,
           new CompleteExternalTaskDto().variables(variablesApi).workerId(workerId), externalCallBack);
 
       int counter = 0;
@@ -222,31 +246,93 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         }
       }
       if (!ExternalCallBack.STATUS.SUCCESS.equals(externalCallBack.status)) {
-        throw new AutomatorException("Can't execute taskId[" + taskId + "] - answer[" + externalCallBack.status + "]");
+        throw new AutomatorException(
+            "Can't execute taskId[" + serviceTaskId + "] - answer[" + externalCallBack.status + "]");
       }
-      return null;
     } catch (ApiException e) {
-      throw new AutomatorException("Can't execute taskId[" + taskId + "] with userId[" + userId + "]", e);
+      throw new AutomatorException("Can't execute taskId[" + serviceTaskId + "] with userId[" + userId + "]", e);
     }
   }
 
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Generic task                                                        */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   @Override
-  public String deployProcess(File processFile, ScenarioDeployment.Policy policy)  throws AutomatorException {
+  public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
+      throws AutomatorException {
+    // get the list of all sub process instance
+    List<String> listProcessInstance = getListSubProcessInstance(processInstanceId);
+
+    TaskQueryDto taskQueryDto = new TaskQueryDto();
+    taskQueryDto.addProcessInstanceIdInItem(processInstanceId);
+    for (String subProcessInstance : listProcessInstance) {
+      taskQueryDto.addProcessInstanceIdInItem(subProcessInstance);
+
+    }
+    taskQueryDto.addTaskDefinitionKeyInItem(taskId);
+    List<TaskDto> taskDtos = null;
     try {
-          DeploymentWithDefinitionsDto deploymentSource = deploymentApi.createDeployment(null, // tenantId
+      taskDtos = taskApi.queryTasks(0, maxResult, taskQueryDto);
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't searchTask", e);
+    }
+    List<TaskDescription> taskList = taskDtos.stream().map(t -> {
+      TaskDescription taskDescription = new TaskDescription();
+      taskDescription.taskId = t.getName();
+      taskDescription.type = ScenarioStep.Step.USERTASK;
+      taskDescription.isCompleted = true;
+      return taskDescription;
+    }).toList();
+    return taskList;
+  }
+
+  @Override
+  public List<ProcessDescription> searchProcessInstanceByVariable(String processId,
+                                                                  Map<String, Object> filterVariables, int maxResult) throws AutomatorException {
+    return null;
+  }
+
+  @Override
+  public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
+    return null;
+  }
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Deployment                                                          */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
+    try {
+      DeploymentWithDefinitionsDto deploymentSource = deploymentApi.createDeployment(null, // tenantId
           null, // deploymentSource
-            ScenarioDeployment.Policy.ONLYNOTEXIST.equals(policy), // deployChangedOnly,
+          ScenarioDeployment.Policy.ONLYNOTEXIST.equals(policy), // deployChangedOnly,
           Boolean.TRUE, // enableDuplicateFiltering,
           processFile.getName(), // String deploymentName,
           new Date(), //deploymentActivationTime,
           processFile);
       return deploymentSource.getId();
-    } catch(ApiException e) {
-      throw new AutomatorException("Can't deploy process ",e);
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't deploy process ", e);
     }
 
-
   }
+
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  get server definition                                               */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   @Override
   public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {

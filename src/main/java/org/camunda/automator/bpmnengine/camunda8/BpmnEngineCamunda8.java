@@ -3,9 +3,12 @@ package org.camunda.automator.bpmnengine.camunda8;
 import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.dto.FlownodeInstance;
 import io.camunda.operate.dto.FlownodeInstanceState;
+import io.camunda.operate.dto.ProcessInstance;
 import io.camunda.operate.exception.OperateException;
 import io.camunda.operate.search.FlownodeInstanceFilter;
+import io.camunda.operate.search.ProcessInstanceFilter;
 import io.camunda.operate.search.SearchQuery;
+import io.camunda.operate.search.VariableFilter;
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.dto.Pagination;
 import io.camunda.tasklist.dto.Task;
@@ -16,11 +19,14 @@ import io.camunda.tasklist.dto.Variable;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
+import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
+import io.camunda.zeebe.client.api.response.ActivatedJob;
+import io.camunda.zeebe.client.api.response.DeploymentEvent;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
-import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
 import org.camunda.automator.definition.ScenarioDeployment;
+import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class BpmnEngineCamunda8 implements BpmnEngine {
 
@@ -108,6 +113,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
   Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
 
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Manage process instance                                             */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   @Override
   public String createProcessInstance(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException {
@@ -130,19 +141,26 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   }
 
   @Override
-  public void endProcessInstance(String processInstanceid, boolean cleanAll) throws AutomatorException {
+  public void endProcessInstance(String processInstanceId, boolean cleanAll) throws AutomatorException {
     // clean in the cache
     List<String> markers = cacheProcessInstanceMarker.entrySet()
         .stream()
-        .filter(t -> t.getValue().equals(Long.valueOf(processInstanceid)))
+        .filter(t -> t.getValue().equals(Long.valueOf(processInstanceId)))
         .map(Map.Entry::getKey)
         .toList();
     markers.forEach(t -> cacheProcessInstanceMarker.remove(t));
 
   }
 
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  User tasks                                                          */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   @Override
-  public List<String> searchUserTasks(String processInstanceId, String userTaskName, Integer maxResult)
+  public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     try {
       /*
@@ -168,7 +186,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       taskSearch.setState(TaskState.CREATED);
       taskSearch.setAssigned(Boolean.FALSE);
       taskSearch.setWithVariables(true);
-      taskSearch.setPagination(new Pagination().setPageSize(100));
+      taskSearch.setPagination(new Pagination().setPageSize(maxResult));
 
       TaskList tasksList = taskClient.getTasks(taskSearch);
       List<String> listTasksResult = new ArrayList<>();
@@ -197,32 +215,89 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   }
 
   @Override
-  public String executeUserTask(String activityId, String userId, Map<String, Object> variables)
+  public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
       throws AutomatorException {
     try {
-      taskClient.claim(activityId, serverDefinition.operateUserName);
-      taskClient.completeTask(activityId, variables);
+      taskClient.claim(userTaskId, serverDefinition.operateUserName);
+      taskClient.completeTask(userTaskId, variables);
     } catch (TaskListException e) {
-      throw new AutomatorException("Can't execute task [" + activityId + "]");
+      throw new AutomatorException("Can't execute task [" + userTaskId + "]");
     }
 
-    return null;
+    return;
+  }
+
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Service tasks                                                       */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
+      throws AutomatorException {
+    try {
+      long processInstanceIdLong = Long.valueOf(processInstanceId);
+      ActivateJobsResponse jobsResponse = zeebeClient.newActivateJobsCommand()
+          .jobType(topic)
+          .maxJobsToActivate(10000)
+          .workerName( Thread.currentThread().getName())
+          .send()
+          .join();
+      List<String> listJobsId = new ArrayList<>();
+
+      for (ActivatedJob job : jobsResponse.getJobs()) {
+        if (job.getProcessInstanceKey() == processInstanceIdLong)
+          listJobsId.add(String.valueOf(job.getKey()));
+        else {
+          zeebeClient.newFailCommand(job.getKey()).retries(2).send().join();
+        }
+      }
+      return listJobsId;
+
+    } catch (Exception e) {
+      throw new AutomatorException("Can't search users task " + e.getMessage());
+    }
   }
 
   @Override
-  public List<String> searchServiceTasks(String processInstanceId, String serviceTaskName, Integer maxResult)
+  public void executeServiceTask(String serviceTaskId, String workerId, Map<String, Object> variables)
       throws AutomatorException {
     try {
-      // impossible to filtre by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
-      FlownodeInstanceFilter flownodeFilter = new FlownodeInstanceFilter.Builder().processInstanceKey(
-          Long.valueOf(processInstanceId)).state(FlownodeInstanceState.ACTIVE).build();
+      zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).send().join();
+    } catch (Exception e) {
+      throw new AutomatorException("Can't execute service task " + e.getMessage());
+    }
+  }
 
-      SearchQuery flownodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(100).build();
+
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  generic search                                                       */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
+      throws AutomatorException {
+    try {
+      // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
+      FlownodeInstanceFilter flownodeFilter = new FlownodeInstanceFilter.Builder().processInstanceKey(
+          Long.valueOf(processInstanceId)).build();
+
+      SearchQuery flownodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(maxResult).build();
       List<FlownodeInstance> flownodes = operateClient.searchFlownodeInstances(flownodeQuery);
-      List<String> taskList = flownodes.stream()
-          .filter(t -> t.getType().equals("SERVICE_TASK"))
-          .map(t -> t.getKey().toString())
-          .toList();
+      List<TaskDescription> taskList = flownodes.stream().filter(t -> taskId.equals(t.getFlowNodeId())).map(t -> {
+        TaskDescription taskDescription = new TaskDescription();
+        taskDescription.taskId = t.getFlowNodeId();
+        taskDescription.type = getTaskType(t.getType()); // to implement
+        taskDescription.isCompleted = FlownodeInstanceState.COMPLETED.equals(t.getState()); // to implement
+        return taskDescription;
+      }).toList();
 
       return taskList;
 
@@ -231,26 +306,108 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     }
   }
 
-  @Override
-  public String executeServiceTask(String activityId, String userId, Map<String, Object> variables)
-      throws AutomatorException {
+  public List<ProcessDescription> searchProcessInstanceByVariable(String processId,
+                                                                  Map<String, Object> filterVariables,
+                                                                  int maxResult) throws AutomatorException {
+    try {
+      // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
+      ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().bpmnProcessId(processId)
+          .build();
 
-    throw new AutomatorException("Impossible to execute a Service task based on the acticityID in Camunda 8");
-    /*try {
-       zeebeClient.newCompleteCommand( -- we don't have the jobWorker --).variables(variables).send().join();
-    }catch(Exception e) {
-      throw new AutomatorException("Can't execute service task " + e.getMessage());
+      SearchQuery processInstanceQuery = new SearchQuery.Builder().filter(processInstanceFilter)
+          .size(maxResult)
+          .build();
+      List<ProcessInstance> listProcessInstances = operateClient.searchProcessInstances(processInstanceQuery);
 
+      List<ProcessDescription> listProcessInstanceFind = new ArrayList<>();
+      // now, we have to filter based on variableName/value
+
+      for (ProcessInstance processInstance : listProcessInstances) {
+        Map<String, Object> processVariables = getVariables(processInstance.getKey().toString());
+        List<Map.Entry<String, Object>> entriesNotFiltered = filterVariables.entrySet()
+            .stream()
+            .filter(
+                t -> processVariables.containsKey(t.getKey()) && processVariables.get(t.getKey()).equals(t.getValue()))
+            .toList();
+
+        if (entriesNotFiltered.isEmpty()) {
+
+          ProcessDescription processDescription = new ProcessDescription();
+          processDescription.processInstanceId = processInstance.getKey().toString();
+
+          listProcessInstanceFind.add(processDescription);
+        }
+      }
+      return listProcessInstanceFind;
+    } catch (OperateException e) {
+      throw new AutomatorException("Can't search users task " + e.getMessage());
     }
-    return null;
+  }
 
-     */
+  private ScenarioStep.Step getTaskType(String taskTypeC8) {
+    if (taskTypeC8.equals("SERVICE_TASK"))
+      return ScenarioStep.Step.SERVICETASK;
+    else if (taskTypeC8.equals("USER_TASK"))
+      return ScenarioStep.Step.USERTASK;
+    else if (taskTypeC8.equals("START_EVENT"))
+      return ScenarioStep.Step.STARTEVENT;
+    else if (taskTypeC8.equals("END_EVENT"))
+      return ScenarioStep.Step.ENDEVENT;
+    else if (taskTypeC8.equals("EXCLUSIVE_GATEWAY"))
+      return ScenarioStep.Step.EXCLUSIVEGATEWAY;
+    else if (taskTypeC8.equals("PARALLEL_GATEWAY"))
+      return ScenarioStep.Step.PARALLELGATEWAY;
+
+    return null;
   }
 
   @Override
-  public String deployProcess(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
-    return null;
+  public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
+    try {
+      // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
+      VariableFilter variableFilter = new VariableFilter.Builder().processInstanceKey(Long.valueOf(processInstanceId))
+          .build();
+
+      SearchQuery variableQuery = new SearchQuery.Builder().filter(variableFilter).build();
+      List<io.camunda.operate.dto.Variable> listVariables = operateClient.searchVariables(variableQuery);
+
+      Map<String, Object> variables = new HashMap<>();
+      listVariables.forEach(t -> variables.put(t.getName(), t.getValue()));
+
+      return variables;
+    } catch (OperateException e) {
+      throw new AutomatorException("Can't search variables task " + e.getMessage());
+    }
   }
+
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Deployment                                                          */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
+    try {
+      DeploymentEvent event = zeebeClient.newDeployResourceCommand()
+          .addResourceFile(processFile.getAbsolutePath())
+          .send()
+          .join();
+
+      return String.valueOf(event.getKey());
+    } catch(Exception e) {
+      throw new AutomatorException("Can't deploy "+e.getMessage());
+    }
+  }
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  get server definition                                               */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   @Override
   public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {

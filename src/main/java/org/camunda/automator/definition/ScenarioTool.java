@@ -5,7 +5,6 @@ import org.camunda.automator.engine.RunScenario;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 public class ScenarioTool {
 

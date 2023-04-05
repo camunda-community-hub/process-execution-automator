@@ -1,16 +1,13 @@
 package org.camunda.automator.services.dataoperation;
 
-import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioTool;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunScenario;
+import org.camunda.bpm.engine.variable.Variables;
+import org.camunda.bpm.engine.variable.value.FileValue;
 import org.springframework.stereotype.Component;
 
-import org.camunda.bpm.engine.variable.value.FileValue;
-import org.camunda.bpm.engine.variable.Variables;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 @Component

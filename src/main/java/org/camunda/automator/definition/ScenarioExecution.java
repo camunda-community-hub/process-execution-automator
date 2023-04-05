@@ -105,6 +105,10 @@ public class ScenarioExecution {
     return steps;
   }
 
+  public ScenarioVerification getVerifications() {
+    return verifications;
+  }
+
   public int getNumberProcessInstances() {
     return numberProcessInstances==null? 1 : numberProcessInstances;
   }

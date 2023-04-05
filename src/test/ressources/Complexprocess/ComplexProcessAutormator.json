@@ -1,23 +1,41 @@
 {
-  "name": "Conditional event",
+  "name": "Example of process with user and service task",
   "processId": "ComplexProcess",
+  "numberOfExecutions" : 1000,
+  "deployments": [
+    {
+      "server": "CAMUNDA_7",
+      "name": "Camunda7Local",
+      "type": "PROCESS",
+      "processFile": "ComplexProcess_C7.bpmn",
+      "policy": "ONLYNOTEXIST"
+    },
+    {
+      "server": "CAMUNDA_8",
+      "name": "Camunda8Local",
+      "type": "PROCESS",
+      "processFile": "ComplexProcess_C8.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
   "executions": [
     {
       "name": "Manual acceptation",
       "steps": [
         {
           "type": "STARTEVENT",
-          "activityId": "StartEvent_1"
+          "taskId": "StartEvent_1",
+          "variables": { "myMarkerMigration" : "ComplexProcess-181"}
         },
         {
           "type": "USERTASK",
           "waitingTime": "PT60S",
-          "activityId": "Activity_Review"
+          "taskId": "Activity_Review"
         },
         {
           "type": "USERTASK",
           "waitingTime": "PT60S",
-          "activityId": "Activity_Validate",
+          "taskId": "Activity_Validate",
           "variables": {
             "automaticPayment": true
           }
@@ -25,26 +43,45 @@
         {
           "type": "SERVICETASK",
           "waitingTime": "PT60S",
-          "activityId": "Activity_AutomaticPayment"
+          "taskId": "ActivityNotification",
+          "topic": "complex-notification"
         }
+
       ],
-      "verifications": [
-        {
-          "type": "TASK",
-          "activityId": "Review",
-          "state": "COMPLETED"
+      "verifications": {
+        "searchProcessInstanceByVariable" : {
+          "myMarkerMigration" : "ComplexeProcess-181"
         },
-        {
-          "type": "TASK",
-          "activityId": "Activity_FinalReview",
-          "state": "ACTIVE"
-        },
-        {
-          "type": "VARIABLE",
-          "variableName": "automaticPayment",
-          "variableValue": true
-        }
-      ]
+        "activities": [
+          {
+            "type": "USERTASK",
+            "taskId": "Activity_Review",
+            "state": "COMPLETED"
+          },
+          {
+            "type": "ENDEVENT",
+            "taskId": "EndDirectEvent",
+            "state": "COMPLETED"
+          },
+          {
+            "type": "SERVICETASK",
+            "taskId": "Activity_AutomaticPayment",
+            "state": "ACTIVE"
+          },
+          {
+            "type": "SERVICETASK",
+            "taskId": "ActivityNotification",
+            "state": "COMPLETED"
+          }
+        ],
+        "variables": [
+          {
+            "type": "VARIABLE",
+            "variableName": "automaticPayment",
+            "variableValue": true
+          }
+        ]
+      }
     }
   ]
 }

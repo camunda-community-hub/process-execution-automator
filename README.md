@@ -1,49 +1,52 @@
 # process-execution-automator
-Create scenarios to automate any execution of processes. Objectives are
-A unit test,
-load test,
-CD/CI integration
-The Automator does not start a Camunda Engine. It communicates with an external Camunda Engine and pilots the execution.
+
+Create scenarios to automate any execution of processes. Objectives are A unit test, load test,
+CD/CI integration The Automator does not start a Camunda Engine. It communicates with an external
+Camunda Engine and pilots the execution.
 
 It can connect to a Camunda 7 or a Camunda 8 server.
 
 # Execute a process
-From a scenario, Automator calls the Camunda Engine server (C7 or C8) and executes the different steps in the scenario.
-Let's take an example with this scenario:
 
+From a scenario, Automator calls the Camunda Engine server (C7 or C8) and executes the different
+steps in the scenario. Let's take an example with this scenario:
 
 ````
 create a new process instance with variable "subscriptionLevel: "GOLD", "customerId": 14422
 ````
 
-The process is created and processed by the Camunda Engine. The GetContext operation is executed by the Camunda Engine, 
-and, according to the information, the process instance moves to the task "Review Level 1"
-in the scenario, Automator waits for this user task. It will execute it and set "ReviewLevel2Needed" to True.
-The Camunda Engine move the process instance to Review Level 2.
-In the scenario, Automator waits for this user task. It will execute it.
-The Camunda engine continues the execution. It executes "Register Application", waits for the message, executes "Notify Applicant" and completes the process instance.
+The process is created and processed by the Camunda Engine. The GetContext operation is executed by
+the Camunda Engine, and, according to the information, the process instance moves to the task "
+Review Level 1"
+in the scenario, Automator waits for this user task. It will execute it and set "ReviewLevel2Needed"
+to True. The Camunda Engine move the process instance to Review Level 2. In the scenario, Automator
+waits for this user task. It will execute it. The Camunda engine continues the execution. It
+executes "Register Application", waits for the message, executes "Notify Applicant" and completes
+the process instance.
 
 Another scenario can execute only "Review Level1" or no review at all.
 
 What Automator do:
+
 * it creates a process instance with some specific value
 * it executes user tasks with some specific value
 * it can throw a BPMN Message
 
 Automator do not
+
 * execute service task
 * It is not expected to throw BPMN Message in the flow: a real system is piloted by the Automator.
 
-* The goal of the Automator is not to simulate the execution, it is to pilot an execution on a real system, and to verify that the process reacts as expected.
-
-
+* The goal of the Automator is not to simulate the execution, it is to pilot an execution on a real
+  system, and to verify that the process reacts as expected.
 
 # Requirement
-Automator needs to connect to a running platform, Camunda 7 or Camunda 8.
-Automator is not a process simulator. The running platform will execute all service tasks.
 
-A scenario can be executed on a Camunda 7 or a Camunda 8 server.
-Automator provides:
+Automator needs to connect to a running platform, Camunda 7 or Camunda 8. Automator is not a process
+simulator. The running platform will execute all service tasks.
+
+A scenario can be executed on a Camunda 7 or a Camunda 8 server. Automator provides:
+
 * a server running under Springboot
 * a docker image
 * an API to be integrated into any other tools
@@ -52,82 +55,103 @@ Automator provides:
 
 ## Load test in the situation.
 
-It is possible to start multiple instances on multiple Scenarios. For example, it is possible to say, "Start 2000 process instances with Scenario 1, 3000 instances with Scenario 2".
-The platform will be overloaded, so it is possible to study if the configuration is acceptable.
-This is not a performance test: the goal is not to generate all process instances as fast as possible but to simulate real usage.
-It is possible in the scenario:
-to specify a delay between each creation
-to specify a delay in each user task, to simulate a real user
-to determine the number of users per task, which execute the "Task refresh" action to simulate a pool of users
+It is possible to start multiple instances on multiple Scenarios. For example, it is possible to
+say, "Start 2000 process instances with Scenario 1, 3000 instances with Scenario 2". The platform
+will be overloaded, so it is possible to study if the configuration is acceptable. This is not a
+performance test: the goal is not to generate all process instances as fast as possible but to
+simulate real usage. It is possible in the scenario:
+to specify a delay between each creation to specify a delay in each user task, to simulate a real
+user to determine the number of users per task, which execute the "Task refresh" action to simulate
+a pool of users
 
 ## Verification
 
 ![Process](doc/explanationProcess.png)
 
-in a CD/CI, you want to verify that a process follows the same behavior in the same performance time.
-Running every day (or hours) or asking via an API call to replay a scenario is useful to verify there is no difference. If the customer is 4555, do we still move the process instance to Review Level 1"?
-The second verification is the performance. The scenario can record an expected duration target (for example, 4 seconds to execute the Get Context service task. Does the execution still at this time?
-
-
+in a CD/CI, you want to verify that a process follows the same behavior in the same performance
+time. Running every day (or hours) or asking via an API call to replay a scenario is useful to
+verify there is no difference. If the customer is 4555, do we still move the process instance to
+Review Level 1"? The second verification is the performance. The scenario can record an expected
+duration target (for example, 4 seconds to execute the Get Context service task. Does the execution
+still at this time?
 
 ## Coverage report
 
-Execute multiple scenarios to be sure that all the process is covered correctly.
-An "Execution round" is a set of scenarios executed at the same time. At the end of the execution, a coverage test can be performed.
-A CD/CI verification may be to check the scenario execution, the target time, and the coverage.
+Execute multiple scenarios to be sure that all the process is covered correctly. An "Execution
+round" is a set of scenarios executed at the same time. At the end of the execution, a coverage test
+can be performed. A CD/CI verification may be to check the scenario execution, the target time, and
+the coverage.
 
 ## Advance process instance for development
-During the development, you verify the task "Notify applicant". To test it in the situation, you must have a process instance in the process and pass four user tasks. Each test takes time: when you deploy a new process or want a new process instance, you need to execute again the different user task.
-Using Automator with the correct scenario solves the issue. Deploy a new process, but instead of starting from the beginning of a new process instance, start it via Automator. The scenario will advance the process instance where you want it.
+
+During the development, you verify the task "Notify applicant". To test it in the situation, you
+must have a process instance in the process and pass four user tasks. Each test takes time: when you
+deploy a new process or want a new process instance, you need to execute again the different user
+task. Using Automator with the correct scenario solves the issue. Deploy a new process, but instead
+of starting from the beginning of a new process instance, start it via Automator. The scenario will
+advance the process instance where you want it.
 
 # Different BPM
-The Automator executes a process instance. It does not care about the definition of the process: does the process instance call a sub-process? An Event sub-process? It does not matter.
+
+The Automator executes a process instance. It does not care about the definition of the process:
+does the process instance call a sub-process? An Event sub-process? It does not matter.
 
 ## Call Activity and sub-process
-Automator does not care about these artifacts. An execution is a suite of Activities. These activities are in the process, or a sub-process does not change the execution.
+
+Automator does not care about these artifacts. An execution is a suite of Activities. These
+activities are in the process, or a sub-process does not change the execution.
 
 ## User Multi-instance
-A process can have a multi-instance task. In the scenario, each task may have multiple executions. It is possible to execute a multi-instance and give different values for each execution.
+
+A process can have a multi-instance task. In the scenario, each task may have multiple executions.
+It is possible to execute a multi-instance and give different values for each execution.
 
 ## External operation
-A scenario may consist of executing some task and then sending a Cancellation message or starting a process instance in a different process to get a Cancellation message. This is possible to describe this operation in a step.
 
-
+A scenario may consist of executing some task and then sending a Cancellation message or starting a
+process instance in a different process to get a Cancellation message. This is possible to describe
+this operation in a step.
 
 # Scenario
-A scenario is a JSON file. A scenario explains one execution, from the process creation until a point. It may not be the end of the process: Automator can be used to advance process instances until a specific task.
-It contains:
-* Information on the process: which process has to start? Some information on a delay between two creations can be set
-* Service task can be registered: Automator will check the process instance executes the task (but does not execute it)
-* The end event can be registered to verify that the process goes to the end
-The process instance can execute other tasks: Automator does not verify that, except if the "mode verification" is set to "Strict."
+
+A scenario is a JSON file. A scenario explains one execution, from the process creation until a
+point. It may not be the end of the process: Automator can be used to advance process instances
+until a specific task. It contains:
+
+* Information on the process: which process has to start? Some information on a delay between two
+  creations can be set
+* Service task can be registered: Automator will check the process instance executes the task (but
+  does not execute it)
+* The end event can be registered to verify that the process goes to the end The process instance
+  can execute other tasks: Automator does not verify that, except if the "mode verification" is set
+  to "Strict."
 
 `````json
 
 
 {
-  "name" : "execution Round 14",
+  "name": "execution Round 14",
   "version": "1.2",
   "processId": "MergingInclusive",
   "executions": [
     {
       "name": "multinstance",
-      "policy" : "STOPATFIRSTERROR",
+      "policy": "STOPATFIRSTERROR",
       "numberProcessInstances": 100,
       "numberOfThreads": 5,
       "steps": [
         {
           "type": "STARTEVENT",
-          "activityId": "StartEvent_1"
+          "taskId": "StartEvent_1"
         },
         {
-          "type" : "SERVICETASK",
-          "activityId": "Get context",
+          "type": "SERVICETASK",
+          "taskId": "Get context",
           "executiontargetms": 10000
         },
         {
-          "type" : "USERTASK",
-          "activityId": "Review level 1",
+          "type": "USERTASK",
+          "taskId": "Review level 1",
           "waitingTime": "PT5S",
           "numberofexecution": 10,
           "taskvariable": {
@@ -135,35 +159,37 @@ The process instance can execute other tasks: Automator does not verify that, ex
           }
         }
       ],
-      "verifications" : [
-        { 
-          "type" :  "TASK",
-          "activityId": "Review level 1",
-          "state":  "ACTIVE"
-        },
-        {
-          "type" : "ENDEVENT",
-          "activityId": "Application Done"
-        },
-        {
-          "type" :  "VARIABLE",
-          "variableName":  "Score",
-          "variableValue": 120
-        },
-        {
-          "type" :  "PERFORMANCE",
-          "activityIdBegin":  "getScore",
-          "activityIdEND":  "getScore",
-          "performanceTarget": "PT0.5S"
-        },
-        {
-          "type" :  "PERFORMANCE",
-          "activityIdBegin":  "getScore",
-          "activityIdEND":  "riskLevel",
-          "performanceTarget": "PT4S"
-        }
-
-      ]
+      "verifications": {
+        "activities": [
+          {
+            "type": "USERTASK",
+            "taskId": "Review level 1",
+            "state": "ACTIVE"
+          },
+          {
+            "type": "ENDEVENT",
+            "taskId": "Application Done"
+          }
+        ],
+        "variables": [
+          {
+            "variableName": "Score",
+            "variableValue": 120
+          }
+        ],
+        "performances": [
+          {
+            "taskIdBegin": "getScore",
+            "taskIdEND": "getScore",
+            "performanceTarget": "PT0.5S"
+          },
+          {
+            "taskIdBegin": "getScore",
+            "taskIdEND": "riskLevel",
+            "performanceTarget": "PT4S"
+          }
+        ]
+      }
     }
   ]
 }
@@ -179,17 +205,16 @@ The process instance can execute other tasks: Automator does not verify that, ex
 | numberOfThreads        | Number of thread to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
 | execution              | if false, the execution does not start. Unot present, the default value is TRUE.                       | "execution" : false             | 
 
-Then the execution contains a list of steps 
-
+Then the execution contains a list of steps
 
 ## STARTEVENT step
-Start a new process instance
 
+Start a new process instance
 
 | Parameter          | Explanation                   | Example                   |
 |--------------------|-------------------------------|---------------------------|
 | type               | Specify the type (STARTEVENT) | type: "STARTEVENT"        |
-| activityId         | Activity ID of start event    | actiityId= "StartEvent_1" |
+| taskId         | Activity ID of start event    | actiityId= "StartEvent_1" |
 
 ## USERTASK step
 
@@ -200,7 +225,7 @@ The step wait for a user task, and execute it.
 | type               | Specify the type (USERTASK)                                                                                                              | type: "USERTASK"                                                      |
 | delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                  | delay="PT0.1S" waits 100 ms                                           |
 | waitingTime        | Wait maximum this time, before returning an error. Automator query the engine every 500 ms, until this delay. Default value is 5 minutes | waitingTime="PT10S"                                                   |
-| activityId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
+| taskId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
 | variables          | List of variable (JSON file) to update                                                                                                   | {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
 | numberOfExecutions | Number of execution, the task may be multi instance. Default is 1                                                                        | numberOfExecutions = 3                                                |
 
@@ -208,39 +233,51 @@ The step wait for a user task, and execute it.
 
 The step wait for a service task, and execute it.
 
-It's depends on the usage of the scenario: if a CD/CI, the service task should be executed by the real workers, not by the automator
-But in some environment, or to advance quickly the task to a certain position, you may want to simulate the worker. Then, the automator can execute a service task.
-The real worker should be deactivate then. If the service task is not found, then the scenario will have an error.
+It's depends on the usage of the scenario: if a CD/CI, the service task should be executed by the
+real workers, not by the automator But in some environment, or to advance quickly the task to a
+certain position, you may want to simulate the worker. Then, the automator can execute a service
+task. The real worker should be deactivate then. If the service task is not found, then the scenario
+will have an error.
 
 | Parameter          | Explanation                                                                                                                              | Example                                                               |
 |--------------------|------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------|
 | type               | Specify the type (SERVICETASK)                                                                                                           | type: "USERTASK"                                                      |
 | delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                  | delay="PT0.1S" waits 100 ms                                           |
 | waitingTime        | Wait maximum this time, before returning an error. Automator query the engine every 500 ms, until this delay. Default value is 5 minutes | waitingTime="PT10S"                                                   |
-| activityId         | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
+| taskId             | Activity ID to query                                                                                                                     | actiityId= "review"                                                   |
+| topic              | Topic to search the task (mandatory in C8)                                                                                               | get-score                                                             | 
 | variables          | List of variable (JSON file) to update                                                                                                   | {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
 | numberOfExecutions | Number of execution, the task may be multi instance. Default is 1                                                                        | numberOfExecutions = 3                                                |
 
 ## Verification
+
 Each execution can declare verifications. Verification are executed after the execution.
 
 It's possible to check:
-* active activity: does the process instance is correctly waiting on the task "Final Review" after the execution?
-* any completed activity : does the process instance executed the task "GetScore"? Does the process instance ended on the end event "Application Done" ?
-* any variable value : does the process variable "ApplicantScore" is 150?
-* any performance: does the execution of the activity "getScore" stay under 500 milliseconds? Does the execution from the activity "getScore" to "GetRiskLevel" stay under 4 seconds?
 
+* active activity: does the process instance is correctly waiting on the task "Final Review" after
+  the execution?
+* any completed activity : does the process instance executed the task "GetScore"? Does the process
+  instance ended on the end event "Application Done" ?
+* any variable value : does the process variable "ApplicantScore" is 150?
+* any performance: does the execution of the activity "getScore" stay under 500 milliseconds? Does
+  the execution from the activity "getScore" to "GetRiskLevel" stay under 4 seconds?
 
 # Build a Scenario
-Automator can generate a scenario from a real execution.
-The user creates a process instance and executes it. It executes user tasks until the end of the process instance or at a certain point.
-Via the UI (or the API), the user gives the process instance. Automator queries Camunda Engine to collect the history of the process and, for each user task, which variable was provided. A new scenario is created from this example.
+
+Automator can generate a scenario from a real execution. The user creates a process instance and
+executes it. It executes user tasks until the end of the process instance or at a certain point. Via
+the UI (or the API), the user gives the process instance. Automator queries Camunda Engine to
+collect the history of the process and, for each user task, which variable was provided. A new
+scenario is created from this example.
 
 # Connect to a server
-Automator does not contain any Camunda server. It connects to an existing Camunda Engine.
-Two communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a Camunda 7 or a Camunda 8 server.
 
+Automator does not contain any Camunda server. It connects to an existing Camunda Engine. Two
+communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a
+Camunda 7 or a Camunda 8 server.
 
 # Comments
+
 * embedded a Camunda 7
 * start after an activity

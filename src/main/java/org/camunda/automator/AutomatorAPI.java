@@ -42,7 +42,7 @@ public class AutomatorAPI {
    *
    * @param scenarioFile file to read the scenario
    * @return the scenario
-   * @throws Exception if scenarion can't be read
+   * @throws AutomatorException if scenario can't be read
    */
   public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
     return Scenario.createFromFile(scenarioFile);
@@ -67,7 +67,10 @@ public class AutomatorAPI {
       return result;
     }
 
-    return runScenario.runScenario();
+    RunResult runResult = new RunResult(runScenario);
+    runResult.add( runScenario.runScenario());
+
+    return runResult;
   }
 
 
@@ -94,7 +97,7 @@ public class AutomatorAPI {
    * Deploy a process, bpmEngine is given by the caller
    * @param bpmnEngine Engine to deploy
    * @param scenario scenario
-   * @return
+   * @return the result object
    */
   public RunResult deployProcess(BpmnEngine bpmnEngine,
                                  Scenario scenario) {

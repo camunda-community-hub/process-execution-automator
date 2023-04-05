@@ -1,5 +1,6 @@
 package org.camunda.automator.engine;
 
+import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ public class RunScenarioExecution {
   /**
    * Execute the scenario.
    * Note: this method is multi thread safe.
+   * Each execution has its own Thread
    *
    * @return the execution
    */
@@ -52,8 +54,8 @@ public class RunScenarioExecution {
     List<Future<?>> listFutures = new ArrayList<>();
 
     for (int i = 0; i < scnExecution.getNumberProcessInstances(); i++) {
-      RunScenarioExecution.ScnThreadCallable scnExecutionCallable = new RunScenarioExecution.ScnThreadCallable(
-          "AutomatorThread-" + i, this, runScenario.getRunParameters());
+      ScnThreadExecutionCallable scnExecutionCallable = new ScnThreadExecutionCallable("AutomatorThread-" + i, this,
+          runScenario.getRunParameters());
 
       listFutures.add(executor.submit(scnExecutionCallable));
     }
@@ -80,15 +82,14 @@ public class RunScenarioExecution {
   /**
    * Start Event
    *
-   * @param result     result to complete and return
-   * @param step       step to execute
+   * @param result result to complete and return
+   * @param step   step to execute
    * @return result completed
    */
   public RunResult startEvent(RunResult result, ScenarioStep step) {
     try {
-      result.addProcessInstanceId(
-          runScenario.getBpmnEngine().createProcessInstance(step.getScnExecution().getScnHead().getProcessId(),
-              step.getActivityId(), // activityId
+      result.addProcessInstanceId(runScenario.getBpmnEngine()
+          .createProcessInstance(step.getScnExecution().getScnHead().getProcessId(), step.getTaskId(), // activityId
               getVariablesStep(step))); // resolve variables
     } catch (AutomatorException e) {
       result.addError(step, "Error at creation " + e.getMessage());
@@ -99,11 +100,13 @@ public class RunScenarioExecution {
   /**
    * Execute User task
    *
-   * @param result     result to complete and return
-   * @param step       step to execute
+   * @param result result to complete and return
+   * @param step   step to execute
    * @return result completed
    */
   public RunResult executeUserTask(RunResult result, ScenarioStep step) {
+
+
     if (step.getDelay() != null) {
       Duration duration = Duration.parse(step.getDelay());
       try {
@@ -126,7 +129,8 @@ public class RunScenarioExecution {
         List<String> listActivities;
         do {
 
-          listActivities = runScenario.getBpmnEngine().searchUserTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+          listActivities = runScenario.getBpmnEngine()
+              .searchUserTasks(result.getFirstProcessInstanceId(), step.getTaskId(), 1);
 
           if (listActivities.isEmpty()) {
             try {
@@ -138,7 +142,7 @@ public class RunScenarioExecution {
         } while (listActivities.isEmpty() && System.currentTimeMillis() - beginTimeWait < waitingTimeInMs);
 
         if (listActivities.isEmpty()) {
-          result.addError(step, "No user task show up task[" + step.getActivityId() + "] processInstance["
+          result.addError(step, "No user task show up task[" + step.getTaskId() + "] processInstance["
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
@@ -153,12 +157,11 @@ public class RunScenarioExecution {
 
   }
 
-
   /**
    * Execute User task
    *
-   * @param result     result to complete and return
-   * @param step       step to execute
+   * @param result result to complete and return
+   * @param step   step to execute
    * @return result completed
    */
   public RunResult executeServiceTask(RunResult result, ScenarioStep step) {
@@ -167,6 +170,7 @@ public class RunScenarioExecution {
       try {
         Thread.sleep(duration.toMillis());
       } catch (InterruptedException e) {
+        // nothing to do
       }
     }
     Long waitingTimeInMs = null;
@@ -183,7 +187,8 @@ public class RunScenarioExecution {
         List<String> listActivities;
         do {
 
-          listActivities = runScenario.getBpmnEngine().searchServiceTasks(result.getFirstProcessInstanceId(), step.getActivityId(), 1);
+          listActivities = runScenario.getBpmnEngine()
+              .searchServiceTasks(result.getFirstProcessInstanceId(), step.getTaskId(), step.getTopic(), 1);
 
           if (listActivities.isEmpty()) {
             try {
@@ -194,7 +199,7 @@ public class RunScenarioExecution {
         } while (listActivities.isEmpty() && System.currentTimeMillis() - beginTimeWait < waitingTimeInMs);
 
         if (listActivities.isEmpty()) {
-          result.addError(step, "No service task show up task[" + step.getActivityId() + "] processInstance["
+          result.addError(step, "No service task show up task[" + step.getTaskId() + "] processInstance["
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
@@ -208,6 +213,7 @@ public class RunScenarioExecution {
     return result;
 
   }
+
   /**
    * Resolve variables
    */
@@ -216,60 +222,93 @@ public class RunScenarioExecution {
     variablesCompleted.putAll(step.getVariables());
 
     // execute all operations now
-
     for (Map.Entry<String, String> entryOperation : step.getVariablesOperations().entrySet()) {
       variablesCompleted.put(entryOperation.getKey(),
           runScenario.getServiceAccess().serviceDataOperation.execute(entryOperation.getValue(), runScenario));
     }
+
+    // Check if
+
 
     return variablesCompleted;
   }
 
   /* ******************************************************************** */
   /*                                                                      */
-  /*  ScnThreadCallable                                                   */
+  /*  ScnThreadCallable : execute one Execution per thread                                                   */
   /*                                                                      */
   /* ******************************************************************** */
 
-  private class ScnThreadCallable implements Callable {
+  private class ScnThreadExecutionCallable implements Callable {
     private final String agentName;
     private final RunScenarioExecution scnRunExecution;
     private final RunParameters runParameters;
 
-
     private RunResult scnRunResult;
 
-    ScnThreadCallable(String agentName,
-                      RunScenarioExecution scnRunExecution,
-                      RunParameters runParameters) {
+    ScnThreadExecutionCallable(String agentName, RunScenarioExecution scnRunExecution, RunParameters runParameters) {
       this.agentName = agentName;
       this.scnRunExecution = scnRunExecution;
       this.runParameters = runParameters;
     }
 
-    /** run one execution.
+    /**
+     * run one execution.
      *
-     * @return
-     * @throws Exception
+     * @return the result object
+     * @throws Exception in case of error
      */
     public Object call() throws Exception {
       scnRunResult = new RunResult(scnRunExecution.runScenario);
       if (runParameters.execution)
         runExecution();
+
+      // two uses case here:
+      // Execution AND verifications: for each process Instance created, a verification is running
+      // Only VERIFICATION: the verification ojbnect define a filter to search existing process instance. Verification is perform againts this list
       if (runParameters.verification) {
-        runScenario.runVerifications(scnExecution);
+        if (runParameters.execution) {
+          runVerifications();
+        } else {
+          List<BpmnEngine.ProcessDescription> listProcessInstances = runScenario.getBpmnEngine()
+              .searchProcessInstanceByVariable(scnExecution.getScnHead().getProcessId(),
+                  scnExecution.getVerifications().searchProcessInstanceByVariable, 100);
+
+          for (BpmnEngine.ProcessDescription processInstance : listProcessInstances) {
+            scnRunResult.addProcessInstanceId(processInstance.processInstanceId);
+          }
+          runVerifications();
+        }
+
       }
       // we finish with this process instance
-      if (scnRunResult.getFirstProcessInstanceId()!=null)
-        runScenario.getBpmnEngine().endProcessInstance(scnRunResult.getFirstProcessInstanceId(), runParameters.clearAllAfter);
+      if (scnRunResult.getFirstProcessInstanceId() != null)
+        runScenario.getBpmnEngine()
+            .endProcessInstance(scnRunResult.getFirstProcessInstanceId(), runParameters.clearAllAfter);
       return scnRunResult;
     }
 
-    public void runExecution(){
+    public void runExecution() {
+
       if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
-        logger.info("ScnRunExecution.StartExecution [" + scnRunExecution.runScenario.getScenario().getName() + "] agent[" + agentName + "]");
+        logger.info(
+            "ScnRunExecution.StartExecution [" + scnRunExecution.runScenario.getScenario().getName() + "] agent["
+                + agentName + "]");
 
       for (ScenarioStep step : scnExecution.getSteps()) {
+
+        if (scnRunExecution.runScenario.getRunParameters().isLevelDebug())
+          logger.info(
+              "ScnRunExecution.StartExecution.Execute [" + scnRunExecution.runScenario.getScenario().getName() + "."+step.getTaskId()+" agent["
+                  + agentName + "]");
+
+
+        try {
+          step.checkConsistence();
+        } catch(AutomatorException e) {
+          scnRunResult.addError(step, e.getMessage());
+          continue;
+        }
         long timeBegin = System.currentTimeMillis();
         if (step.getType() == null) {
           scnRunResult.addError(step, "Unknown type");
@@ -298,17 +337,23 @@ public class RunScenarioExecution {
         scnRunResult.addStepExecution(step, timeEnd - timeBegin);
 
         if (!scnRunResult.isSuccess() && ScenarioExecution.Policy.STOPATFIRSTERROR.equals(scnExecution.getPolicy()))
-          return ;
+          return;
       }
       if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
         logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
-      return ;
+      return;
     }
 
-
-    public void runVerification(){
-
+    /**
+     * Run the verification just after the execution, on the process isntances created
+     */
+    public void runVerifications() {
+      RunScenarioVerification verifications = new RunScenarioVerification(scnExecution);
+      for (String processInstanceId : scnRunResult.getProcessInstanceId()) {
+        scnRunResult.add(verifications.runVerifications(scnRunExecution.runScenario, processInstanceId));
+      }
     }
+
     public RunResult getScnRunResult() {
       return scnRunResult;
     }

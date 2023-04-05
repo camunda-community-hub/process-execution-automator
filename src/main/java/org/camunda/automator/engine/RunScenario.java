@@ -50,6 +50,16 @@ public class RunScenario {
     this.serviceAccess = serviceAccess;
   }
 
+  /**
+   * Execute the scenario.
+   * A scenario is composed of
+   * - deployment
+   * - execution (which contains the verifications)
+
+   * these steps are controlled by the runParameters
+   *
+   * @return tue result object
+   */
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
     if (runParameters.allowDeployment)
@@ -81,7 +91,7 @@ public class RunScenario {
           try {
             long begin = System.currentTimeMillis();
             File processFile = ScenarioTool.loadFile(deployment.processFile, this);
-            result.addDeploymentProcessId(bpmnEngine.deployProcess(processFile, deployment.policy));
+            result.addDeploymentProcessId(bpmnEngine.deployBpmn(processFile, deployment.policy));
             result.addTimeExecution(System.currentTimeMillis() - begin);
           } catch (AutomatorException e) {
             result.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
@@ -108,9 +118,6 @@ public class RunScenario {
 
     for (int i = 0; i < scenario.getExecutions().size(); i++) {
       ScenarioExecution scnExecution = scenario.getExecutions().get(i);
-      // the execution does not want to be executed
-      if (!scnExecution.isExecution())
-        continue;
       ScnExecutionCallable scnExecutionCallable = new ScnExecutionCallable("Agent-" + i, this, scnExecution,
           runParameters);
 
@@ -143,6 +150,9 @@ public class RunScenario {
    */
   public RunResult runVerifications(ScenarioExecution scnExecution) {
     RunResult result = new RunResult(this);
+
+    RunScenarioVerification verifications = new RunScenarioVerification(scnExecution);
+    result.add(verifications.runVerifications(this, result.getFirstProcessInstanceId()));
     return result;
 
   }
