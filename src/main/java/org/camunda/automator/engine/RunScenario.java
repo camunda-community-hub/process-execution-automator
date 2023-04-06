@@ -82,10 +82,10 @@ public class RunScenario {
       for (ScenarioDeployment deployment : scenario.getDeployments()) {
         boolean sameTypeServer = false;
         if (deployment.server.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7)) {
-          sameTypeServer = bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7);
+          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7);
         } else if (deployment.server.equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8)) {
-          sameTypeServer = bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8)
-              || bpmnEngine.getServerDefinition().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS);
+          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8)
+              || bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS);
         }
         if (sameTypeServer) {
           try {

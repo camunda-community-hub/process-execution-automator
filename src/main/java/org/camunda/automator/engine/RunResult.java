@@ -29,9 +29,9 @@ public class RunResult {
   private final List<StepExecution> listDetailsSteps = new ArrayList<>();
 
   public class VerificationStatus {
-    ScenarioVerificationBasic verification;
-    boolean isSuccess;
-    String message;
+    public ScenarioVerificationBasic verification;
+    public boolean isSuccess;
+    public String message;
   }
 
 
@@ -87,6 +87,12 @@ public class RunResult {
     }
   }
 
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Errors                                                              */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   public List<ErrorDescription> getListErrors() {
     return listErrors;
   }
@@ -101,6 +107,15 @@ public class RunResult {
     this.listErrors.add(new ErrorDescription(step, e.getMessage()));
   }
 
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Verifications                                                     */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+
   public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
     VerificationStatus verificationStatus = new VerificationStatus();
     verificationStatus.verification = verification;
@@ -108,6 +123,16 @@ public class RunResult {
     verificationStatus.message = message;
     this.listVerifications.add(verificationStatus);
   }
+
+  public List<VerificationStatus> getListVerifications() {
+    return listVerifications;
+  }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  merge                                                               */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   /**
    * Merge the result in this result
@@ -121,15 +146,10 @@ public class RunResult {
     numberOfProcessInstances += result.numberOfProcessInstances;
     numberOfSteps += result.numberOfSteps;
     // we collect the list only if the level is low
-    if (runScenario.getRunParameters().isLevelInfo()) {
+    if (runScenario.getRunParameters()!=null && runScenario.getRunParameters().isLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }
-  }
-
-  public boolean isSuccess() {
-    long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
-    return listErrors.isEmpty() && nbVerificationErrors == 0;
   }
 
   /* ******************************************************************** */
@@ -137,6 +157,11 @@ public class RunResult {
   /*  method to get information                                           */
   /*                                                                      */
   /* ******************************************************************** */
+
+  public boolean isSuccess() {
+    long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
+    return listErrors.isEmpty() && nbVerificationErrors == 0;
+  }
 
   public String getFirstProcessInstanceId() {
     return listProcessInstancesId.isEmpty() ? null : listProcessInstancesId.get(0);
@@ -230,9 +255,9 @@ public class RunResult {
   }
 
   public static class ErrorDescription {
-    ScenarioStep step;
-    ScenarioVerificationBasic verificationBasic;
-    String explanation;
+    public ScenarioStep step;
+    public ScenarioVerificationBasic verificationBasic;
+    public String explanation;
 
     public ErrorDescription(ScenarioStep step, String explanation) {
       this.step = step;

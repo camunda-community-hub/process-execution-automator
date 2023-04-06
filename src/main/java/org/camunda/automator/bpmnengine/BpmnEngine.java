@@ -153,7 +153,7 @@ public interface BpmnEngine {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public BpmnEngineConfiguration.CamundaEngine getServerDefinition();
+  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine();
 
 
 

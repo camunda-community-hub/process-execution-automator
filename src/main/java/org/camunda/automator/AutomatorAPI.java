@@ -96,15 +96,17 @@ public class AutomatorAPI {
   /**
    * Deploy a process, bpmEngine is given by the caller
    * @param bpmnEngine Engine to deploy
+   * @param runParameters parameters used to deploy the version
    * @param scenario scenario
    * @return the result object
    */
   public RunResult deployProcess(BpmnEngine bpmnEngine,
+                                 RunParameters runParameters,
                                  Scenario scenario) {
     RunScenario runScenario = null;
     try {
       long begin = System.currentTimeMillis();
-      runScenario = new RunScenario(scenario, bpmnEngine, null, serviceAccess);
+      runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
       RunResult runResult = new RunResult(runScenario);
       runResult.add(runScenario.runDeployment());
       runResult.addTimeExecution(System.currentTimeMillis() - begin);

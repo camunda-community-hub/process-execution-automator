@@ -24,7 +24,7 @@ public class RunScenarioVerification {
     // we get a processInstanceId now
     ScenarioVerification verifications = scnExecution.getVerifications();
     for (ScenarioVerificationTask activity : verifications.getActivities()) {
-      checkActivity(runScenario, processInstanceId, activity, result);
+      checkTask(runScenario, processInstanceId, activity, result);
     }
     for (ScenarioVerificationVariable variable : verifications.getVariables()) {
       checkVariable(runScenario, processInstanceId, variable, result);
@@ -41,10 +41,10 @@ public class RunScenarioVerification {
    * @param verificationActivity activity to check
    * @param result               the result object
    */
-  private void checkActivity(RunScenario runScenario,
-                             String processInstanceId,
-                             ScenarioVerificationTask verificationActivity,
-                             RunResult result) {
+  private void checkTask(RunScenario runScenario,
+                         String processInstanceId,
+                         ScenarioVerificationTask verificationActivity,
+                         RunResult result) {
 
     try {
       StringBuilder message = new StringBuilder();
@@ -52,23 +52,24 @@ public class RunScenarioVerification {
       List<BpmnEngine.TaskDescription> listTaskDescriptions = runScenario.getBpmnEngine()
           .searchTasksByProcessInstanceId(processInstanceId, verificationActivity.taskId, 100);
       if (listTaskDescriptions.size() != verificationActivity.getNumberOfTasks()) {
-        message.append("Verification Search Task[");
-        message.append(verificationActivity.taskId);
-        message.append("] FAILED :  PID[");
+        message.append("CheckTask: FAILED_NOTASK Search Task PID[");
         message.append(processInstanceId);
-        message.append("] expected ");
+        message.append("] expected Task Name[");
+        message.append(verificationActivity.taskId);
+        message.append("] Number of tasks expected: ");
         message.append(verificationActivity.getNumberOfTasks());
-        message.append(" task, found ");
+        message.append(", found ");
         message.append(listTaskDescriptions.size());
       }
       // check the type for each taskDescription
       List<BpmnEngine.TaskDescription> listNotExpected = listTaskDescriptions.stream()
-          .filter(t -> !(verificationActivity.getType() != null && verificationActivity.getType().equals(t.type) && (
-              t.isCompleted && ScenarioVerificationTask.StepState.COMPLETED.equals(verificationActivity.state)
-                  || !t.isCompleted && ScenarioVerificationTask.StepState.ACTIVE.equals(verificationActivity.state))))
+          .filter(t -> !(verificationActivity.getType() != null && verificationActivity.getType().toString().equalsIgnoreCase(t.type.toString())))
+          .filter(t-> (
+              (t.isCompleted && ScenarioVerificationTask.StepState.COMPLETED.toString().equals(verificationActivity.state.toString()))
+                  || (!t.isCompleted && ScenarioVerificationTask.StepState.ACTIVE.toString().equals(verificationActivity.state.toString()))))
           .toList();
       if (!listNotExpected.isEmpty()) {
-        message.append("Tasks expected FAIL: PID[");
+        message.append("CheckTask: FAILED_BADTYPE PID[");
         message.append( processInstanceId );
         message.append("] Task[");
         message.append( verificationActivity.taskId);
