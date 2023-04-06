@@ -10,6 +10,7 @@ import org.camunda.community.rest.client.api.ExternalTaskApi;
 import org.camunda.community.rest.client.api.ProcessDefinitionApi;
 import org.camunda.community.rest.client.api.ProcessInstanceApi;
 import org.camunda.community.rest.client.api.TaskApi;
+import org.camunda.community.rest.client.api.VariableInstanceApi;
 import org.camunda.community.rest.client.dto.CompleteExternalTaskDto;
 import org.camunda.community.rest.client.dto.CompleteTaskDto;
 import org.camunda.community.rest.client.dto.DeploymentWithDefinitionsDto;
@@ -23,6 +24,8 @@ import org.camunda.community.rest.client.dto.StartProcessInstanceDto;
 import org.camunda.community.rest.client.dto.TaskDto;
 import org.camunda.community.rest.client.dto.TaskQueryDto;
 import org.camunda.community.rest.client.dto.UserIdDto;
+import org.camunda.community.rest.client.dto.VariableInstanceDto;
+import org.camunda.community.rest.client.dto.VariableInstanceQueryDto;
 import org.camunda.community.rest.client.dto.VariableValueDto;
 import org.camunda.community.rest.client.invoker.ApiCallback;
 import org.camunda.community.rest.client.invoker.ApiClient;
@@ -52,6 +55,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   TaskApi taskApi;
   ExternalTaskApi externalTaskApi;
   ProcessInstanceApi processInstanceApi;
+  VariableInstanceApi variableInstanceApi;
   DeploymentApi deploymentApi;
 
   public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration,
@@ -69,6 +73,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     taskApi = new TaskApi();
     externalTaskApi = new ExternalTaskApi();
     processInstanceApi = new ProcessInstanceApi();
+    variableInstanceApi = new VariableInstanceApi();
     deploymentApi = new DeploymentApi();
   }
 
@@ -182,7 +187,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
    *
    * @param processInstanceId processInstance
    * @param serviceTaskId     task name
-   * @param topic topic to search the task
+   * @param topic             topic to search the task
    * @param maxResult         number of result
    * @return the list of TaskId found according the criteria
    * @throws AutomatorException any error during search
@@ -281,25 +286,39 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     } catch (ApiException e) {
       throw new AutomatorException("Can't searchTask", e);
     }
-    List<TaskDescription> taskList = taskDtos.stream().map(t -> {
+    return taskDtos.stream().map(t -> {
       TaskDescription taskDescription = new TaskDescription();
       taskDescription.taskId = t.getName();
       taskDescription.type = ScenarioStep.Step.USERTASK;
       taskDescription.isCompleted = true;
       return taskDescription;
     }).toList();
-    return taskList;
   }
 
   @Override
   public List<ProcessDescription> searchProcessInstanceByVariable(String processId,
-                                                                  Map<String, Object> filterVariables, int maxResult) throws AutomatorException {
+                                                                  Map<String, Object> filterVariables,
+                                                                  int maxResult) throws AutomatorException {
     return null;
   }
 
   @Override
   public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
-    return null;
+
+    VariableInstanceQueryDto variableQuery = new VariableInstanceQueryDto();
+    variableQuery.processInstanceIdIn(List.of(processInstanceId));
+    try {
+    List<VariableInstanceDto> variableInstanceDtos = variableInstanceApi.queryVariableInstances(0, 1000, true,
+        variableQuery);
+
+    Map<String, Object> variables = new HashMap<>();
+    for (VariableInstanceDto variable : variableInstanceDtos) {
+      variables.put(variable.getName(), variable.getValue());
+    }
+    return variables;
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't searchVariables", e);
+    }
   }
 
 
@@ -335,7 +354,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /* ******************************************************************** */
 
   @Override
-  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine() {
     return BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7;
   }
 

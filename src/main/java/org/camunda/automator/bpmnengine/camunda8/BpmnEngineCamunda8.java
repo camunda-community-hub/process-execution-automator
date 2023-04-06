@@ -44,7 +44,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public static final String THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME = "ThisIsACompleteImpossibleVariableName";
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
 
-  private final BpmnEngineConfiguration engineConfiguration;
   private final BpmnEngineConfiguration.BpmnServerDefinition serverDefinition;
 
   private ZeebeClient zeebeClient;
@@ -53,22 +52,84 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
   private BpmnEngineConfiguration.CamundaEngine typeCamundaEngine;
 
+  /**
+   * Constructor from existing object
+   *
+   * @param engineConfiguration
+   * @param serverDefinition
+   */
   public BpmnEngineCamunda8(BpmnEngineConfiguration engineConfiguration,
                             BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
-    this.engineConfiguration = engineConfiguration;
     this.serverDefinition = serverDefinition;
+
+
+  }
+
+  /**
+   * Constructor to specify a Self Manage Zeebe Address por a Zeebe Saas
+   *
+   * @param zeebeSelfGatewayAddress    Self Manage : zeebe address
+   * @param zeebeSelfSecurityPlainText Self Manage: Plain text
+   * @param zeebeSaasCloudRegister     Saas Cloud Register information
+   * @param zeebeSaasCloudRegion       Saas Cloud region
+   * @param zeebeSaasCloudClusterId    Saas Cloud ClusterID
+   * @param zeebeSaasCloudClientId     Saas Cloud ClientID
+   * @param zeebeSaasClientSecret      Saas Cloud Client Secret
+   * @param operateUrl                 URL to access Operate
+   * @param operateUserName            Operate user name
+   * @param operateUserPassword        Operate password
+   * @param tasklistUrl                Url to access TaskList
+   */
+  public BpmnEngineCamunda8(String zeebeSelfGatewayAddress,
+                            String zeebeSelfSecurityPlainText,
+                            String zeebeSaasCloudRegister,
+                            String zeebeSaasCloudRegion,
+                            String zeebeSaasCloudClusterId,
+                            String zeebeSaasCloudClientId,
+                            String zeebeSaasClientSecret,
+                            String operateUrl,
+                            String operateUserName,
+                            String operateUserPassword,
+                            String tasklistUrl) {
+    this.serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
+    this.serverDefinition.zeebeGatewayAddress = zeebeSelfGatewayAddress;
+    this.serverDefinition.zeebeSecurityPlainText = zeebeSelfSecurityPlainText;
+
+    /**
+     * SaaS Zeebe
+     */
+    this.serverDefinition.zeebeCloudRegister = zeebeSaasCloudRegister;
+    this.serverDefinition.zeebeCloudRegion = zeebeSaasCloudRegion;
+    this.serverDefinition.zeebeCloudClusterId = zeebeSaasCloudClusterId;
+    this.serverDefinition.zeebeCloudClientId = zeebeSaasCloudClientId;
+    this.serverDefinition.clientSecret = zeebeSaasClientSecret;
+
+    /**
+     * Connection to Operate
+     */
+    this.serverDefinition.operateUserName = operateUserName;
+    this.serverDefinition.operateUserPassword = operateUserPassword;
+    this.serverDefinition.operateUrl = operateUrl;
+    this.serverDefinition.tasklistUrl = tasklistUrl;
+
   }
 
   @Override
   public void init() throws AutomatorException {
+
     final String defaultAddress = "localhost:26500";
     final String envVarAddress = System.getenv("ZEEBE_ADDRESS");
+
+    this.typeCamundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8;
+    if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim().isEmpty())
+      this.typeCamundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS;
+
 
     final ZeebeClientBuilder clientBuilder;
     io.camunda.operate.auth.AuthInterface saOperate;
     io.camunda.tasklist.auth.AuthInterface saTaskList;
 
-    if (serverDefinition.zeebeCloudRegister != null) {
+    if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim().isEmpty()) {
       /* Connect to Camunda Cloud Cluster, assumes that credentials are set in environment variables.
        * See JavaDoc on class level for details
        */
@@ -81,7 +142,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       typeCamundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8_SAAS;
 
       // Camunda 8 Self Manage
-    } else if (serverDefinition.zeebeGatewayAddress != null) {
+    } else if (serverDefinition.zeebeGatewayAddress != null && !this.serverDefinition.zeebeGatewayAddress.trim().isEmpty()) {
       // connect to local deployment; assumes that authentication is disabled
       clientBuilder = ZeebeClient.newClientBuilder()
           .gatewayAddress(serverDefinition.zeebeGatewayAddress)
@@ -163,23 +224,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     try {
-      /*
-      // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct onee
-      FlownodeInstanceFilter flownodeFilter = new FlownodeInstanceFilter.Builder().processInstanceKey(Long.valueOf(processInstanceId)) // filter on the process instance
-          .state(FlownodeInstanceState.ACTIVE) // only active task
-          .build();
-
-      SearchQuery flownodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(1000).build();
-      List<FlownodeInstance> flownodes = operateClient.searchFlownodeInstances(flownodeQuery);
-
-      List<FlownodeInstance> listUserTask = flownodes.stream()
-          .filter(t -> t.getType().equals("USER_TASK"))
-          .collect(Collectors.toList());
-      for (FlownodeInstance flownodeInstance : listUserTask) {
-        Task task = taskClient.getTask(String.valueOf(flownodeInstance.getKey()));
-        String taskId = task.getId();
-      }
-*/
+      // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
       Long processInstanceIdLong = Long.valueOf(processInstanceId);
 
       TaskSearch taskSearch = new TaskSearch();
@@ -223,8 +268,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     } catch (TaskListException e) {
       throw new AutomatorException("Can't execute task [" + userTaskId + "]");
     }
-
-    return;
   }
 
 
@@ -239,11 +282,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
     try {
-      long processInstanceIdLong = Long.valueOf(processInstanceId);
+      long processInstanceIdLong = Long.parseLong(processInstanceId);
       ActivateJobsResponse jobsResponse = zeebeClient.newActivateJobsCommand()
           .jobType(topic)
           .maxJobsToActivate(10000)
-          .workerName( Thread.currentThread().getName())
+          .workerName(Thread.currentThread().getName())
           .send()
           .join();
       List<String> listJobsId = new ArrayList<>();
@@ -291,7 +334,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
       SearchQuery flownodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(maxResult).build();
       List<FlownodeInstance> flownodes = operateClient.searchFlownodeInstances(flownodeQuery);
-      List<TaskDescription> taskList = flownodes.stream().filter(t -> taskId.equals(t.getFlowNodeId())).map(t -> {
+      return flownodes.stream().filter(t -> taskId.equals(t.getFlowNodeId())).map(t -> {
         TaskDescription taskDescription = new TaskDescription();
         taskDescription.taskId = t.getFlowNodeId();
         taskDescription.type = getTaskType(t.getType()); // to implement
@@ -299,7 +342,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         return taskDescription;
       }).toList();
 
-      return taskList;
 
     } catch (OperateException e) {
       throw new AutomatorException("Can't search users task " + e.getMessage());
@@ -397,8 +439,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
           .join();
 
       return String.valueOf(event.getKey());
-    } catch(Exception e) {
-      throw new AutomatorException("Can't deploy "+e.getMessage());
+    } catch (Exception e) {
+      throw new AutomatorException("Can't deploy " + e.getMessage());
     }
   }
 
@@ -410,7 +452,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
 
   @Override
-  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine() {
     return typeCamundaEngine;
   }
 

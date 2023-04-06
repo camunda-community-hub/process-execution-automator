@@ -266,23 +266,35 @@ public class RunScenarioExecution {
       // two uses case here:
       // Execution AND verifications: for each process Instance created, a verification is running
       // Only VERIFICATION: the verification ojbnect define a filter to search existing process instance. Verification is perform againts this list
-      if (runParameters.verification) {
+      if (runParameters.verification && (scnExecution.getVerifications()!=null)) {
         if (runParameters.execution) {
-          runVerifications();
-        } else {
-          List<BpmnEngine.ProcessDescription> listProcessInstances = runScenario.getBpmnEngine()
-              .searchProcessInstanceByVariable(scnExecution.getScnHead().getProcessId(),
-                  scnExecution.getVerifications().searchProcessInstanceByVariable, 100);
-
-          for (BpmnEngine.ProcessDescription processInstance : listProcessInstances) {
-            scnRunResult.addProcessInstanceId(processInstance.processInstanceId);
+          // we just finish executing process instance, so wait 30 S to let the engine finish
+          try {
+            Thread.sleep(30 * 1000);
+          }catch(Exception e) {
+            // nothing to do
           }
           runVerifications();
+        } else {
+          // use the search criteria
+          if (scnExecution.getVerifications().getSearchProcessInstanceByVariable().isEmpty()) {
+            scnRunResult.addVerification(null, false, "No Search Instance by Variable is defined");
+          }
+          else {
+            List<BpmnEngine.ProcessDescription> listProcessInstances = runScenario.getBpmnEngine()
+                .searchProcessInstanceByVariable(scnExecution.getScnHead().getProcessId(),
+                    scnExecution.getVerifications().getSearchProcessInstanceByVariable(), 100);
+
+            for (BpmnEngine.ProcessDescription processInstance : listProcessInstances) {
+              scnRunResult.addProcessInstanceId(processInstance.processInstanceId);
+            }
+            runVerifications();
+          }
         }
 
       }
       // we finish with this process instance
-      if (scnRunResult.getFirstProcessInstanceId() != null)
+      if (scnRunResult.getFirstProcessInstanceId() != null && runParameters.clearAllAfter)
         runScenario.getBpmnEngine()
             .endProcessInstance(scnRunResult.getFirstProcessInstanceId(), runParameters.clearAllAfter);
       return scnRunResult;

@@ -88,7 +88,7 @@ public class BpmnEngineDummy implements BpmnEngine {
   }
 
   @Override
-  public BpmnEngineConfiguration.CamundaEngine getServerDefinition() {
+  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine() {
     return BpmnEngineConfiguration.CamundaEngine.DUMMY;
   }
 
