@@ -166,7 +166,7 @@
           </descriptorRefs>
           <archive>
             <manifest>
-              <mainClass>io.camunda.CherryApplication</mainClass>
+              <mainClass>org.camunda.automator.AutomatorApplication</mainClass>
             </manifest>
           </archive>
         </configuration>
