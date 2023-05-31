@@ -9,11 +9,17 @@ package org.camunda.automator.definition;
 
 import org.camunda.automator.engine.AutomatorException;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
 public class ScenarioStep {
 
+  /**
+   * each component contains an operations, to fulfill variables
+   * operations; stringtodate()
+   */
+  private final Map<String, String> variablesOperation = Collections.emptyMap();
   private ScenarioExecution scnExecution;
   private Step type;
   private String taskId;
@@ -22,13 +28,6 @@ public class ScenarioStep {
    */
   private String topic;
   private Map<String, Object> variables = Collections.emptyMap();
-
-  /**
-   * each component contains an operations, to fulfill variables
-   * operations; stringtodate()
-   */
-  private final Map<String, String> variablesOperation = Collections.emptyMap();
-
   private String userId;
 
   /**
@@ -42,9 +41,26 @@ public class ScenarioStep {
   private String waitingTime;
 
   /**
-   * Optional, may not b
+   * Optional, may not be set
    */
   private Integer numberOfExecutions;
+
+  /**
+   * In case of a Flow step, the frequency to execute this step, for example PT10S every 10 seconds
+   */
+  private String frequency;
+
+  /**
+   * In case of a Flow Step, the number of workers to execute this tasks
+   */
+  private final Integer nbWorkers = Integer.valueOf(1);
+
+  /**
+   * In case of FlowStep, the processId to execute the step
+   */
+  private String processId;
+
+  private final Long fixedBackOffDelay = Long.valueOf(0);
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -92,8 +108,9 @@ public class ScenarioStep {
     return userId;
   }
 
-  public String getTopic() {
-    return topic;
+  public ScenarioStep setUserId(String userId) {
+    this.userId = userId;
+    return this;
   }
 
   /* ******************************************************************** */
@@ -102,9 +119,8 @@ public class ScenarioStep {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public ScenarioStep setUserId(String userId) {
-    this.userId = userId;
-    return this;
+  public String getTopic() {
+    return topic;
   }
 
   public Map<String, String> getVariablesOperations() {
@@ -129,10 +145,6 @@ public class ScenarioStep {
     return this;
   }
 
-  public void setScnExecution(ScenarioExecution scnExecution) {
-    this.scnExecution = scnExecution;
-  }
-
   public String getWaitingTime() {
     return waitingTime;
   }
@@ -141,8 +153,25 @@ public class ScenarioStep {
     this.waitingTime = waitingTime;
   }
 
+  /**
+   * Return the waiting time in Duration
+   *
+   * @return Duration, defaultDuration if error
+   */
+  public Duration getWaitingTimeDuration(Duration defaultDuration) {
+    try {
+      return Duration.parse(waitingTime);
+    } catch (Exception e) {
+      return defaultDuration;
+    }
+  }
+
   public ScenarioExecution getScnExecution() {
     return scnExecution;
+  }
+
+  public void setScnExecution(ScenarioExecution scnExecution) {
+    this.scnExecution = scnExecution;
   }
 
   public int getNumberOfExecutions() {
@@ -153,17 +182,25 @@ public class ScenarioStep {
     this.numberOfExecutions = numberOfExecutions;
   }
 
+  public String getFrequency() {
+    return frequency;
+  }
+
+  public int getNbWorkers() {
+    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
+  }
+
+  public String getProcessId() {
+    return processId;
+  }
+
+  public long getFixedBackOffDelay() {
+    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay;
+  }
+
   protected void afterUnSerialize(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
-
-  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY}
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Check consistence                                                              */
-  /*                                                                      */
-  /* ******************************************************************** */
 
   public void checkConsistence() throws AutomatorException {
     if (getTaskId() == null || getTaskId().trim().isEmpty())
@@ -173,7 +210,16 @@ public class ScenarioStep {
       if (getTopic() == null || getTopic().trim().isEmpty())
         throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " topic is mandatory");
     }
+    default -> {}
     }
   }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Check consistence                                                              */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY}
 
 }

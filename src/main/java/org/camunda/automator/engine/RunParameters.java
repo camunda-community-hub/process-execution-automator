@@ -1,5 +1,8 @@
 package org.camunda.automator.engine;
 
+import java.util.Collections;
+import java.util.List;
+
 public class RunParameters {
   public LOGLEVEL logLevel = LOGLEVEL.MONITORING;
 
@@ -9,6 +12,13 @@ public class RunParameters {
    * Execute the scenario (execution part): create process instance, execute user & service task
    */
   public boolean execution = false;
+
+  /**
+   * On execution, it's possible to pilot each item, one by one
+   */
+  public boolean creation = true;
+  public boolean servicetask = true;
+  public boolean usertask = true;
   /**
    * Verify the scenario (verification part) : check that tasks exist
    */
@@ -25,12 +35,15 @@ public class RunParameters {
   public boolean allowDeployment = true;
 
   public boolean fullDetailsSythesis = false;
+  public List<String> filterServiceTask = Collections.emptyList();
+  /**
+   * Load the scenario path here. Some functions may be relative to this path
+   */
+  public String scenarioPath;
 
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
   }
-
-  public enum LOGLEVEL {DEBUG, INFO, MONITORING, MAIN, NOTHING}
 
   public boolean isLevelDebug() {
     return getLogLevelAsNumber() >= 4;
@@ -42,6 +55,18 @@ public class RunParameters {
 
   public boolean isLevelMonitoring() {
     return getLogLevelAsNumber() >= 2;
+  }
+
+  public void setFilterExecutionServiceTask(List<String> filterServiceTask) {
+    this.filterServiceTask = filterServiceTask;
+  }
+
+  public boolean blockExecutionServiceTask(String topic) {
+    // no filter: execute everything
+    if (filterServiceTask.isEmpty())
+      return false;
+    // filter in place: only if the topic is registered
+    return !filterServiceTask.contains(topic);
   }
 
   private int getLogLevelAsNumber() {
@@ -65,9 +90,6 @@ public class RunParameters {
     return 0;
   }
 
-  /**
-   * Load the scenario path here. Some functions may be relative to this path
-   */
-  public String scenarioPath;
+  public enum LOGLEVEL {DEBUG, INFO, MONITORING, MAIN, NOTHING}
 
 }

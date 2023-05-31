@@ -1,79 +1,73 @@
 package org.camunda.automator.bpmnengine;
 
-import java.util.ArrayList;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 
 /**
  * Generate BpmnEngineConfiguration for different servers
  */
 public class BpmnEngineConfigurationInstance {
 
-  public static BpmnEngineConfiguration getZeebeSaas(String zeebeGatewayAddress, String zeebeSecurityPlainText) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
+  public static ConfigurationBpmEngine getZeebeSaas(String zeebeGatewayAddress, String zeebeSecurityPlainText) {
+    ConfigurationBpmEngine bpmEngineConfiguration = new ConfigurationBpmEngine();
 
-    BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
-    serverDefinition.camundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8;
+    ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
+    serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8;
     serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
     serverDefinition.zeebeSecurityPlainText = zeebeSecurityPlainText;
 
-    bpmEngineConfiguration.servers = new ArrayList<>();
-    bpmEngineConfiguration.servers.add( serverDefinition);
+    bpmEngineConfiguration.addExplicitServer(serverDefinition);
     return bpmEngineConfiguration;
   }
 
-  public static BpmnEngineConfiguration getCamunda7(String serverUrl) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
+  public static ConfigurationBpmEngine getCamunda7(String serverUrl) {
+    ConfigurationBpmEngine bpmEngineConfiguration = new ConfigurationBpmEngine();
 
-    BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
-    serverDefinition.camundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7;
+    ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
+    serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7;
     serverDefinition.serverUrl = serverUrl;
 
-    bpmEngineConfiguration.servers = new ArrayList<>();
-    bpmEngineConfiguration.servers.add( serverDefinition);
+    bpmEngineConfiguration.addExplicitServer(serverDefinition);
 
     return bpmEngineConfiguration;
   }
 
-  public static BpmnEngineConfiguration getCamunda8(String zeebeGatewayAddress) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
+  public static ConfigurationBpmEngine getCamunda8(String zeebeGatewayAddress) {
+    ConfigurationBpmEngine bpmEngineConfiguration = new ConfigurationBpmEngine();
 
-    BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
-    serverDefinition.camundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8;
+    ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
+    serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8;
     serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
 
-    bpmEngineConfiguration.servers = new ArrayList<>();
-    bpmEngineConfiguration.servers.add( serverDefinition);
+    bpmEngineConfiguration.addExplicitServer(serverDefinition);
 
     return bpmEngineConfiguration;
   }
 
-  public static BpmnEngineConfiguration getCamundaSaas8(String zeebeCloudRegister,
-                                                        String zeebeCloudRegion,
-                                                        String zeebeCloudClusterId,
-                                                        String zeebeCloudClientId) {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
+  public static ConfigurationBpmEngine getCamundaSaas8(String zeebeCloudRegister,
+                                                       String zeebeCloudRegion,
+                                                       String zeebeCloudClusterId,
+                                                       String zeebeCloudClientId) {
+    ConfigurationBpmEngine bpmEngineConfiguration = new ConfigurationBpmEngine();
 
-    BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
-    serverDefinition.camundaEngine = BpmnEngineConfiguration.CamundaEngine.CAMUNDA_8;
+    ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
+    serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8;
     serverDefinition.zeebeCloudRegister = zeebeCloudRegister;
     serverDefinition.zeebeCloudRegion = zeebeCloudRegion;
     serverDefinition.zeebeCloudClusterId = zeebeCloudClusterId;
     serverDefinition.zeebeCloudClientId = zeebeCloudClientId;
 
-    bpmEngineConfiguration.servers = new ArrayList<>();
-    bpmEngineConfiguration.servers.add( serverDefinition);
-
+    bpmEngineConfiguration.addExplicitServer(serverDefinition);
 
     return bpmEngineConfiguration;
   }
 
-  public static BpmnEngineConfiguration getDummy() {
-    BpmnEngineConfiguration bpmEngineConfiguration = new BpmnEngineConfiguration();
+  public static ConfigurationBpmEngine getDummy() {
+    ConfigurationBpmEngine bpmEngineConfiguration = new ConfigurationBpmEngine();
 
-    BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = new BpmnEngineConfiguration.BpmnServerDefinition();
-    serverDefinition.camundaEngine = BpmnEngineConfiguration.CamundaEngine.DUMMY;
+    ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
+    serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.DUMMY;
 
-    bpmEngineConfiguration.servers = new ArrayList<>();
-    bpmEngineConfiguration.servers.add( serverDefinition);
+    bpmEngineConfiguration.addExplicitServer(serverDefinition);
 
     return bpmEngineConfiguration;
   }

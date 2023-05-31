@@ -1,14 +1,14 @@
 /* ******************************************************************** */
 /*                                                                      */
-/*  Scenario                                                     */
+/*  Scenario                                                            */
 /*                                                                      */
-/*  Store a scenario                                                    */
-/* a scenario is a list of order to execute
+/*  Store a scenario. It is a list of order to execute                  */
 /* ******************************************************************** */
 package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.engine.AutomatorException;
 
 import java.io.BufferedReader;
@@ -24,6 +24,9 @@ public class Scenario {
 
   private final List<ScenarioExecution> executions = new ArrayList<>();
   private final List<ScenarioDeployment> deployments = new ArrayList<>();
+  private final List<ScenarioStep> flows = new ArrayList<>();
+  private ScenarioFlowControl flowControl;
+
   private String name;
   private String version;
   private String processName;
@@ -31,10 +34,16 @@ public class Scenario {
   private String modeVerification;
 
   /**
+   * Server to run the scenario
+   */
+  private String serverName;
+
+  private String serverType;
+
+  /**
    * This value is fulfill only if the scenario was read from a file
    */
-  private transient File scenarioFile=null;
-
+  private File scenarioFile = null;
 
   public static Scenario createFromJson(String jsonFile) {
     GsonBuilder builder = new GsonBuilder();
@@ -51,20 +60,20 @@ public class Scenario {
    *
    * @param scenarioFile file to read
    * @return the scenario
-   * @throws Exception if file cannot be read or it's not a Json file
+   * @throws AutomatorException if file cannot be read or it's not a Json file
    */
   public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
-    try (BufferedReader br = new BufferedReader(new FileReader(scenarioFile));){
+    try (BufferedReader br = new BufferedReader(new FileReader(scenarioFile))) {
       StringBuilder jsonContent = new StringBuilder();
       String st;
       while ((st = br.readLine()) != null)
         jsonContent.append(st);
 
-      Scenario scnHead= createFromJson(jsonContent.toString());
+      Scenario scnHead = createFromJson(jsonContent.toString());
       scnHead.scenarioFile = scenarioFile;
       return scnHead;
     } catch (Exception e) {
-      throw new AutomatorException("Can't read ["+scenarioFile.getAbsolutePath()+"] "+ e.getMessage());
+      throw new AutomatorException("Can't read [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
     }
 
   }
@@ -83,10 +92,17 @@ public class Scenario {
     return executions;
   }
 
+  public List<ScenarioStep> getFlows() {
+    return flows;
+  }
+
+  public ScenarioFlowControl getFlowControl() {
+    return flowControl;
+  }
+
   public List<ScenarioDeployment> getDeployments() {
     return deployments;
   }
-
 
   public String getName() {
     return name;
@@ -109,12 +125,28 @@ public class Scenario {
     return processId;
   }
 
-  public File getScenarioFile() {
-    return scenarioFile;
-  }
   public Scenario setProcessId(String processId) {
     this.processId = processId;
     return this;
+  }
+
+  public File getScenarioFile() {
+    return scenarioFile;
+  }
+
+  public String getServerName() {
+    if (serverName == null || serverName.isEmpty())
+      return null;
+    return serverName;
+  }
+
+  public ConfigurationBpmEngine.CamundaEngine getServerType() {
+    try {
+      return ConfigurationBpmEngine.CamundaEngine.valueOf(serverType.toUpperCase());
+    } catch (Exception e) {
+      return null;
+    }
+
   }
 
   public String getModeVerification() {

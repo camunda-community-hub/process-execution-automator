@@ -1,0 +1,98 @@
+{
+  "name": "Verification",
+  "processId": "Verification",
+  "modeVerification": "NO",
+  "type": "FLOW",
+  "serverType": "Camunda_8",
+  "deployments": [
+    {
+      "serverType": "CAMUNDA_8",
+      "type": "PROCESS",
+      "processFile": "Verification.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
+  "flowControl": {
+    "duration": "PT10M",
+    "objectives": [
+      {
+        "label": "Creation Verification",
+        "processId": "Verification",
+        "type": "CREATED",
+        "value": 20820,
+        "real": "Frequency: 347 PI/10s Duration(warmup): 2mn42 ==> CREATION 10MN: 20820, Ended 10 MN: 15198"
+      },
+      {
+        "label": "Ended Verification",
+        "processId": "Verification",
+        "type": "ENDED",
+        "value": 0
+      },
+      {
+        "label": "Ended (UserTask TheEnd) Verification",
+        "processId": "Verification",
+        "type" : "USERTASK",
+        "taskId" : "Activity_Verification_TheEnd",
+        "value": 15198
+      }
+    ]
+  },
+  "flows": [
+    {
+      "type": "STARTEVENT",
+      "taskId": "StartEvent_1",
+      "processId": "Verification",
+      "variables": {},
+      "frequency": "PT10S",
+      "numberOfExecutions": "347",
+      "nbWorkers": "1",
+      "label" : "347 /1 worker"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-retrieve",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-checkurl",
+      "waitingTime": "PT5S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-updateitem",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-download",
+      "waitingTime": "PT30S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-fingerprint",
+      "waitingTime": "PT1M"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-getresult",
+      "waitingTime": "PT1M"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-obtaindescription",
+      "waitingTime": "PT3S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-thresoldcheck",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-createpotentialclaim",
+      "waitingTime": "PT1S"
+    }
+  ]
+}
+

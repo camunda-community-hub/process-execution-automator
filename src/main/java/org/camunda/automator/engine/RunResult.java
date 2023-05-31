@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RunResult {
-  Logger logger = LoggerFactory.getLogger(RunResult.class);
-
   /**
    * Scenario attached to this execution
    */
@@ -27,33 +25,32 @@ public class RunResult {
    */
   private final List<ErrorDescription> listErrors = new ArrayList<>();
   private final List<StepExecution> listDetailsSteps = new ArrayList<>();
-
-  public class VerificationStatus {
-    public ScenarioVerificationBasic verification;
-    public boolean isSuccess;
-    public String message;
-  }
-
-
   private final List<VerificationStatus> listVerifications = new ArrayList<>();
-
   /**
    * process instance started for this execution. The executionResult stand for only one process instance
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
-
   private final List<String> listProcessIdDeployed = new ArrayList<>();
-
+  Logger logger = LoggerFactory.getLogger(RunResult.class);
   private int numberOfProcessInstances = 0;
   private int numberOfSteps = 0;
   /**
    * Time to execute it
    */
   private long timeExecution;
-
   public RunResult(RunScenario runScenario) {
     this.runScenario = runScenario;
 
+  }
+
+  /**
+   * Add the process instance - this is mandatory to
+   *
+   * @param processInstanceId processInstanceId to add
+   */
+  public void addProcessInstanceId(String processInstanceId) {
+    this.listProcessInstancesId.add(processInstanceId);
+    numberOfProcessInstances++;
   }
 
 
@@ -64,12 +61,9 @@ public class RunResult {
   /* ******************************************************************** */
 
   /**
-   * Add the process instance - this is mandatory to
-   *
-   * @param processInstanceId processInstanceId to add
+   * large flow: just register the number of PI
    */
-  public void addProcessInstanceId(String processInstanceId) {
-    this.listProcessInstancesId.add(processInstanceId);
+  public void registerAddProcessInstance() {
     numberOfProcessInstances++;
   }
 
@@ -87,24 +81,40 @@ public class RunResult {
     }
   }
 
+  /**
+   * large flow: just register the number of execution
+   */
+  public void registerAddStepExecution() {
+    numberOfSteps++;
+
+  }
+
+  public List<ErrorDescription> getListErrors() {
+    return listErrors;
+  }
+
   /* ******************************************************************** */
   /*                                                                      */
   /*  Errors                                                              */
   /*                                                                      */
   /* ******************************************************************** */
 
-  public List<ErrorDescription> getListErrors() {
-    return listErrors;
-  }
-
   public void addError(ScenarioStep step, String explanation) {
     this.listErrors.add(new ErrorDescription(step, explanation));
-    logger.error("scnResult: " + (step == null ? "" : step.getType().toString()) + " error " + explanation);
+    logger.error((step == null ? "" : step.getType().toString()) + " " + explanation);
 
   }
 
   public void addError(ScenarioStep step, AutomatorException e) {
     this.listErrors.add(new ErrorDescription(step, e.getMessage()));
+  }
+
+  public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
+    VerificationStatus verificationStatus = new VerificationStatus();
+    verificationStatus.verification = verification;
+    verificationStatus.isSuccess = isSuccess;
+    verificationStatus.message = message;
+    this.listVerifications.add(verificationStatus);
   }
 
 
@@ -115,24 +125,9 @@ public class RunResult {
   /*                                                                      */
   /* ******************************************************************** */
 
-
-  public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
-    VerificationStatus verificationStatus = new VerificationStatus();
-    verificationStatus.verification = verification;
-    verificationStatus.isSuccess = isSuccess;
-    verificationStatus.message = message;
-    this.listVerifications.add(verificationStatus);
-  }
-
   public List<VerificationStatus> getListVerifications() {
     return listVerifications;
   }
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  merge                                                               */
-  /*                                                                      */
-  /* ******************************************************************** */
 
   /**
    * Merge the result in this result
@@ -146,7 +141,7 @@ public class RunResult {
     numberOfProcessInstances += result.numberOfProcessInstances;
     numberOfSteps += result.numberOfSteps;
     // we collect the list only if the level is low
-    if (runScenario.getRunParameters()!=null && runScenario.getRunParameters().isLevelInfo()) {
+    if (runScenario.getRunParameters() != null && runScenario.getRunParameters().isLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }
@@ -154,7 +149,7 @@ public class RunResult {
 
   /* ******************************************************************** */
   /*                                                                      */
-  /*  method to get information                                           */
+  /*  merge                                                               */
   /*                                                                      */
   /* ******************************************************************** */
 
@@ -162,6 +157,12 @@ public class RunResult {
     long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
     return listErrors.isEmpty() && nbVerificationErrors == 0;
   }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  method to get information                                           */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   public String getFirstProcessInstanceId() {
     return listProcessInstancesId.isEmpty() ? null : listProcessInstancesId.get(0);
@@ -185,6 +186,14 @@ public class RunResult {
 
   public void addDeploymentProcessId(String processId) {
     this.listProcessIdDeployed.add(processId);
+  }
+
+  public int getNumberOfProcessInstances() {
+    return numberOfProcessInstances;
+  }
+
+  public int getNumberOfSteps() {
+    return numberOfSteps;
   }
 
   /**
@@ -233,17 +242,11 @@ public class RunResult {
 
   }
 
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  local class                                                         */
-  /*                                                                      */
-  /* ******************************************************************** */
-
   public static class StepExecution {
     public final List<ErrorDescription> listErrors = new ArrayList<>();
+    private final RunResult scenarioExecutionResult;
     public ScenarioStep step;
     public long timeExecution;
-    private final RunResult scenarioExecutionResult;
 
     public StepExecution(RunResult scenarioExecutionResult) {
       this.scenarioExecutionResult = scenarioExecutionResult;
@@ -253,6 +256,12 @@ public class RunResult {
       listErrors.add(error);
     }
   }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  local class                                                         */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   public static class ErrorDescription {
     public ScenarioStep step;
@@ -268,6 +277,12 @@ public class RunResult {
       this.verificationBasic = verificationBasic;
       this.explanation = explanation;
     }
+  }
+
+  public class VerificationStatus {
+    public ScenarioVerificationBasic verification;
+    public boolean isSuccess;
+    public String message;
   }
 
 }

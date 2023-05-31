@@ -1,12 +1,12 @@
 package org.camunda.automator.definition;
 
-import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 
 public class ScenarioDeployment {
   /**
    * type of server
    */
-  public BpmnEngineConfiguration.CamundaEngine server;
+  public ConfigurationBpmEngine.CamundaEngine serverType;
   /**
    * Type pf deployment
    */
@@ -19,6 +19,7 @@ public class ScenarioDeployment {
   public Policy policy;
 
   public enum TypeDeployment {PROCESS}
+
   public enum Policy {ONLYNOTEXIST, ALWAYS}
 
 }

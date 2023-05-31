@@ -1,0 +1,80 @@
+{
+  "name": "DiscoverySeedExtraction",
+  "processId": "DiscoverySeedExtraction",
+  "modeVerification": "NO",
+  "type": "FLOW",
+  "serverType": "Camunda_8",
+  "deployments": [
+    {
+      "serverType": "CAMUNDA_8",
+      "type": "PROCESS",
+      "processFile": "DiscoverySeedExtraction.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
+  "flowControl": {
+    "duration": "PT30M",
+    "objectives": [
+      {
+        "label": "Creation SeedExtraction",
+        "processId": "DiscoverySeedExtraction",
+        "type" : "CREATED",
+        "value" : 450,
+        "real": "Frequency: 5/20S Duration: 16S ==> 10MN : 145 / 30 MN: 450"
+      },
+      {
+        "label": "Ended SeedExtraction",
+        "processId": "DiscoverySeedExtraction",
+        "type" : "ENDED",
+        "value" : 0
+      },
+      {
+        "label": "Ended (UserTask TheEnd) SeedExtraction",
+        "processId": "DiscoverySeedExtraction",
+        "type" : "USERTASK",
+        "taskId" : "Activity_Dicovery_TheEnd",
+        "value": 450
+      }
+    ]
+  },
+  "flows": [
+    {
+      "type": "STARTEVENT",
+      "taskId": "StartEvent_1",
+      "processId": "DiscoverySeedExtraction",
+      "variablesOperation": {
+        "loopcrawl": "generaterandomlist(1000)",
+        "loopmatch": "generaterandomlist(10)"
+      },
+      "frequency": "PT20S",
+      "numberOfExecutions": "5",
+      "nbWorkers": 1,
+      "real": "PT20S 5 exe"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "discovery-seedextraction-retrieve",
+      "waitingTime": "PT2S",
+      "fixedBackOffDelay": "0"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "discovery-seedextraction-crawl",
+      "waitingTime": "PT2S",
+      "fixedBackOffDelay": "0"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "discovery-seedextraction-match",
+      "waitingTime": "PT10S",
+      "nbWorkers": 50
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "discovery-seedextraction-store",
+      "waitingTime": "PT2S",
+      "nbWorkers": 10
+    }
+  ]
+}
+

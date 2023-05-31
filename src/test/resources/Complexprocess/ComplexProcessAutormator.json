@@ -4,14 +4,14 @@
   "numberOfExecutions" : 1000,
   "deployments": [
     {
-      "server": "CAMUNDA_7",
+      "serverType": "CAMUNDA_7",
       "name": "Camunda7Local",
       "type": "PROCESS",
       "processFile": "ComplexProcess_C7.bpmn",
       "policy": "ONLYNOTEXIST"
     },
     {
-      "server": "CAMUNDA_8",
+      "serverType": "CAMUNDA_8",
       "name": "Camunda8Local",
       "type": "PROCESS",
       "processFile": "ComplexProcess_C8.bpmn",

@@ -17,7 +17,7 @@ public class AutomatorException extends Exception {
 
   public AutomatorException(String message, ApiException exception) {
     this.code = exception.getCode();
-    this.message = message + " : " + exception.getMessage()+" "+exception.getResponseBody();
+    this.message = message + " : " + exception.getMessage() + " " + exception.getResponseBody();
   }
 
   public String getMessage() {

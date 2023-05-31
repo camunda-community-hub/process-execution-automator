@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: camunda-8-processautomator-service
+  labels:
+    app: camunda-8-processautomator-service
+spec:
+  selector:
+    matchLabels:
+      app: camunda-8-processautomator-service
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: camunda-8-processautomator-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: camunda-8-processautomator-service
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=2000
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.waitWarmup=PT10S
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi

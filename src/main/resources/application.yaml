@@ -1,15 +1,19 @@
 automator:
 
-  scheduler:
-    runAtStartup: true
-    server: camunda7LocalBlue
-    scenarioPath: D:\dev\intellij\community\process-execution-automator\src\test\ressources\simpleusertask
-    exam: a,b,c,d
 
-    colors:
-      - blue
-      - green
-      - red
+
+  scheduler:
+
+  startup:
+    scenarioPath: ./src/main/resources/loadtest
+    # list of scenario separate by ;
+    scenarioAtStartup: Discovery.json;bob
+    # DEBUG, INFO, MONITORING, MAIN, NOTHING
+    logLevel: INFO
+    # string composed with CREATION, SERVICETASK (ex: "CREATION", "CREATION|SERVICETASK")
+    policyExecution: CREATION|SERVICETASK
+    # list of topice separate by ;. If empty, all services task in the scenario are started, else only the list here
+    filterService: verification-checkurl;verification-retrieve
 
 
   logdebug: true
@@ -20,19 +24,31 @@ automator:
   # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl
   # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,clientSecret,OperateUserName,OperateUserPassword,OperateUrl
 
-  serversconnection: camunda7Local,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Local,CAMUNDA_8,127.0.0.1:26500,http://localhost:8081,demo,demo,http://localhost:8082
+  serversconnection:
 
   # other way to provide the list of server connection
+
   servers:
-    - name: camunda7Local
-      type: Camunda_7
+    camunda7:
+      name: "camunda7Local"
       url: "http://localhost:8080/engine-rest"
-    - name: Camunda8Local
-      type: Camunda_8
-      zeebeGatewayAddress: "http://127.0.0.1:26500"
-      operateUserName: demo
-      operateUserPassword: demo
-      operateUrl: http://localhost:8081/
+    camunda8:
+      name: "Camunda8Local"
+      zeebeGatewayAddress: "127.0.0.1:26500"
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+      operateUrl: "http://localhost:8081"
+      taskListUrl: ""
+      workerExecutionThreads: 500
+      workerMaxJobsActive: 10
+
+      zeebeCloudRegister:
+      zeebeCloudRegion:
+      clientSecret:
+      zeebeCloudClusterId:
+      zeebeCloudClientId:
 
 
-server.port: 8089
+
+server.port: 8380
+scheduler.poolSize: 10

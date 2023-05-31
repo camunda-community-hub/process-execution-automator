@@ -1,13 +1,11 @@
 package org.camunda.automator.definition;
 
-public class ScenarioVerificationTask implements ScenarioVerificationBasic{
+public class ScenarioVerificationTask implements ScenarioVerificationBasic {
+  private final ScenarioVerification scenarioVerification;
   public ScenarioStep.Step type;
   public String taskId;
   public Integer numberOfTasks;
-  public enum StepState { COMPLETED, ACTIVE}
   public StepState state;
-
-  private final ScenarioVerification scenarioVerification;
 
   public ScenarioVerificationTask(ScenarioVerification scenarioVerification) {
     this.scenarioVerification = scenarioVerification;
@@ -30,7 +28,7 @@ public class ScenarioVerificationTask implements ScenarioVerificationBasic{
   }
 
   public int getNumberOfTasks() {
-    return numberOfTasks==null? 1 : numberOfTasks;
+    return numberOfTasks == null ? 1 : numberOfTasks;
   }
 
   public void setNumberOfTasks(int numberOfTasks) {
@@ -42,7 +40,9 @@ public class ScenarioVerificationTask implements ScenarioVerificationBasic{
   }
 
   public String getSynthesis() {
-    return "ActivityCheck ["+ taskId +"] "+state.toString();
+    return "ActivityCheck [" + taskId + "] " + state.toString();
   }
+
+  public enum StepState {COMPLETED, ACTIVE}
 
 }

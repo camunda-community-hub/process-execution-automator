@@ -1,7 +1,8 @@
 package org.camunda.automator.bpmnengine.camunda7;
 
+import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,10 +60,21 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   VariableInstanceApi variableInstanceApi;
   DeploymentApi deploymentApi;
 
-  public BpmnEngineCamunda7(BpmnEngineConfiguration engineConfiguration,
-                            BpmnEngineConfiguration.BpmnServerDefinition serverDefinition) {
+  public BpmnEngineCamunda7(ConfigurationBpmEngine engineConfiguration,
+                            ConfigurationBpmEngine.BpmnServerDefinition serverDefinition) {
     this.serverUrl = serverDefinition.serverUrl;
     this.logDebug = engineConfiguration.logDebug;
+    init();
+  }
+
+  /**
+   * P
+   *
+   * @param serverUrl is  "http://localhost:8080/engine-rest"
+   */
+  public BpmnEngineCamunda7(String serverUrl, boolean logDebug) {
+    this.serverUrl = serverUrl;
+    this.logDebug = logDebug;
     init();
   }
 
@@ -75,17 +88,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     processInstanceApi = new ProcessInstanceApi();
     variableInstanceApi = new VariableInstanceApi();
     deploymentApi = new DeploymentApi();
-  }
-
-  /**
-   * P
-   *
-   * @param serverUrl is  "http://localhost:8080/engine-rest"
-   */
-  public BpmnEngineCamunda7(String serverUrl, boolean logDebug) {
-    this.serverUrl = serverUrl;
-    this.logDebug = logDebug;
-    init();
   }
 
 
@@ -299,7 +301,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   public List<ProcessDescription> searchProcessInstanceByVariable(String processId,
                                                                   Map<String, Object> filterVariables,
                                                                   int maxResult) throws AutomatorException {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
@@ -308,19 +310,40 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     VariableInstanceQueryDto variableQuery = new VariableInstanceQueryDto();
     variableQuery.processInstanceIdIn(List.of(processInstanceId));
     try {
-    List<VariableInstanceDto> variableInstanceDtos = variableInstanceApi.queryVariableInstances(0, 1000, true,
-        variableQuery);
+      List<VariableInstanceDto> variableInstanceDtos = variableInstanceApi.queryVariableInstances(0, 1000, true,
+          variableQuery);
 
-    Map<String, Object> variables = new HashMap<>();
-    for (VariableInstanceDto variable : variableInstanceDtos) {
-      variables.put(variable.getName(), variable.getValue());
-    }
-    return variables;
+      Map<String, Object> variables = new HashMap<>();
+      for (VariableInstanceDto variable : variableInstanceDtos) {
+        variables.put(variable.getName(), variable.getValue());
+      }
+      return variables;
     } catch (ApiException e) {
       throw new AutomatorException("Can't searchVariables", e);
     }
   }
 
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  CountInformation                                                    */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public long countNumberOfProcessInstancesCreated(String processName, DateFilter startDate, DateFilter endDate)
+      throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
+
+  @Override
+  public long countNumberOfProcessInstancesEnded(String processName, DateFilter startDate, DateFilter endDate)
+      throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
+
+  public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -354,16 +377,45 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /* ******************************************************************** */
 
   @Override
-  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine() {
-    return BpmnEngineConfiguration.CamundaEngine.CAMUNDA_7;
+  public ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine() {
+    return ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7;
+  }
+
+  @Override
+  public String getSignature() {
+    return ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
+  }
+
+  public void turnHighFlowMode(boolean hightFlowMode) {
+  }
+
+  private String getUniqWorkerId() {
+    return Thread.currentThread().getName() + "-" + System.currentTimeMillis();
+  }
+
+  /**
+   * Collect all subprocess for a process instance
+   *
+   * @param rootProcessInstance root process instance
+   * @return list of SubProcess ID
+   * @throws AutomatorException if any errors arrive
+   */
+  private List<String> getListSubProcessInstance(String rootProcessInstance) throws AutomatorException {
+    ProcessInstanceQueryDto processInstanceQueryDto = new ProcessInstanceQueryDto();
+    processInstanceQueryDto.superProcessInstance(rootProcessInstance);
+    List<ProcessInstanceDto> processInstanceDtos;
+    try {
+      processInstanceDtos = processInstanceApi.queryProcessInstances(0, 100000, processInstanceQueryDto);
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't searchSubProcess", e);
+    }
+    return processInstanceDtos.stream().map(ProcessInstanceDto::getId).toList();
   }
 
   /**
    * Call back asynchronous
    */
-  public class ExternalCallBack implements ApiCallback {
-
-    public enum STATUS {WAIT, FAILURE, SUCCESS}
+  public static class ExternalCallBack implements ApiCallback {
 
     public STATUS status = STATUS.WAIT;
     public ApiException e;
@@ -388,28 +440,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     public void onDownloadProgress(long l, long l1, boolean b) {
 
     }
-  }
 
-  private String getUniqWorkerId() {
-    return Thread.currentThread().getName() + "-" + System.currentTimeMillis();
-  }
-
-  /**
-   * Collect all subprocess for a process instance
-   *
-   * @param rootProcessInstance root process instance
-   * @return list of SubProcess ID
-   * @throws AutomatorException if any errors arrive
-   */
-  private List<String> getListSubProcessInstance(String rootProcessInstance) throws AutomatorException {
-    ProcessInstanceQueryDto processInstanceQueryDto = new ProcessInstanceQueryDto();
-    processInstanceQueryDto.superProcessInstance(rootProcessInstance);
-    List<ProcessInstanceDto> processInstanceDtos;
-    try {
-      processInstanceDtos = processInstanceApi.queryProcessInstances(0, 100000, processInstanceQueryDto);
-    } catch (ApiException e) {
-      throw new AutomatorException("Can't searchSubProcess", e);
-    }
-    return processInstanceDtos.stream().map(ProcessInstanceDto::getId).toList();
+    public enum STATUS {WAIT, FAILURE, SUCCESS}
   }
 }
