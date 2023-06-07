@@ -7,6 +7,7 @@
 package org.camunda.automator.definition;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
 public class ScenarioFlowControl {
@@ -28,17 +29,22 @@ public class ScenarioFlowControl {
   }
 
   public List<Objective> getObjectives() {
-    return objectives;
+    return objectives==null? Collections.emptyList():objectives;
   }
 
   public static class Objective {
+    public int index;
     public String label;
     public TYPEOBJECTIVE type;
     public String processId;
     public String taskId;
     public String period;
     public Integer value;
+    public Integer standardDeviation;
 
-    public enum TYPEOBJECTIVE {CREATED, ENDED, USERTASK}
+    public int getStandardDeviation() {
+      return standardDeviation==null? 0 : standardDeviation;
+    }
+    public enum TYPEOBJECTIVE {CREATED, ENDED, USERTASK, FLOWRATEUSERTASKMN}
   }
 }

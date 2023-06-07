@@ -6,7 +6,6 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine.flow;
 
-import org.camunda.automator.definition.ScenarioFlowControl;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
@@ -37,28 +36,44 @@ public class RunScenarioFlows {
    * @param runResult result to populate
    */
   public void execute(RunResult runResult) {
-    // Create one executor per flows
-    Date startTestDate = new Date();
+    // Create one executor per flow
+    RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
+    Map<String, Long> processInstancesCreatedMap = new HashMap<>();
+    RunObjectives runObjectives = new RunObjectives(runScenario.getScenario().getFlowControl().getObjectives(),
+        runScenario.getBpmnEngine(),
+        processInstancesCreatedMap);
 
+
+    logger.info("ScenarioFlow: ------ WarmingUp");
+    runScenarioWarmingUp.warmingUp();
+
+    Date startTestDate = new Date();
+    runObjectives.setStartDate(startTestDate);
+
+    logger.info("ScenarioFlow: ------ Start");
     List<RunScenarioFlowBasic> listFlows = startExecution();
 
-    waitEndExecution(startTestDate, listFlows);
+    waitEndExecution(runObjectives, startTestDate, listFlows);
 
     Date endTestDate = new Date();
-    logger.info("RunScenarioFlows: Stop execution");
+    runObjectives.setEndDate(endTestDate);
+    logger.info("ScenarioFlow: ------ Stop Execution");
+
     stopExecution(listFlows);
 
-    Map<String, Long> processInstancesCreatedMap = new HashMap<>();
+    logger.info("ScenarioFlow: ------ Collect Data");
     collectInformation(listFlows, runResult, processInstancesCreatedMap);
 
     // Check with Objective now
-    logger.info("RunScenarioFlows: Check objective");
+    logger.info("ScenarioFlow: ------ Check objective");
     if (runScenario.getScenario().getFlowControl() != null
         && runScenario.getScenario().getFlowControl().getObjectives() != null) {
-      checkObjectives(startTestDate, endTestDate, processInstancesCreatedMap, runResult);
+      checkObjectives(runObjectives, startTestDate, endTestDate, processInstancesCreatedMap, runResult);
     }
-
+    logger.info("ScenarioFlow: ------ The end");
   }
+
+
 
   /**
    * Start execution
@@ -99,14 +114,24 @@ public class RunScenarioFlows {
 
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time
-   *
+   * @param runObjectives checkObjectif: we may have a Flow Objectives
    * @param listFlows list of flows to monitor the execution
    */
-  private void waitEndExecution(Date startTestDate, List<RunScenarioFlowBasic> listFlows) {
+  private void waitEndExecution(RunObjectives runObjectives, Date startTestDate, List<RunScenarioFlowBasic> listFlows) {
     // Then wait the delay, and kill everything after
     Duration durationExecution = runScenario.getScenario().getFlowControl().getDuration();
-    long endTimeExpected = startTestDate.getTime() + durationExecution.getSeconds() * 1000;
-    logger.info("RunScenarioFlows: start execution for [" + durationExecution.getSeconds() + " s]");
+    Duration durationWarmingUp = Duration.ZERO;
+    // if this server didn't do the warmingup, then other server did it: we have to keep this time into account
+    if (!runScenario.getRunParameters().warmingUp)
+      durationWarmingUp = runScenario.getScenario().getWarmingUp().getDuration();
+
+    long endTimeExpected =
+        startTestDate.getTime() + durationExecution.getSeconds() * 1000 + durationWarmingUp.getSeconds() * 1000;
+
+    logger.info("RunScenarioFlows: start execution Fixed WarmingUp {} s ExecutionDuration {} s (total {} s)",
+        durationWarmingUp.getSeconds(), durationExecution.getSeconds(),
+        durationWarmingUp.getSeconds() + durationExecution.getSeconds());
+
     while (System.currentTimeMillis() < endTimeExpected) {
       long currentTime = System.currentTimeMillis();
       long sleepTime = Math.min(30 * 1000, endTimeExpected - currentTime);
@@ -116,6 +141,7 @@ public class RunScenarioFlows {
       }
       int advancement = (int) (100.0 * (currentTime - startTestDate.getTime()) / (endTimeExpected
           - startTestDate.getTime()));
+      runObjectives.heartBeat();
       logRealTime(listFlows, advancement);
     }
   }
@@ -178,26 +204,36 @@ public class RunScenarioFlows {
    * @param processInstancesCreatedMap statistic
    * @param runResult                  result to populate
    */
-  private void checkObjectives(Date startTestDate,
+  private void checkObjectives(RunObjectives runObjectives,
+                               Date startTestDate,
                                Date endTestDate,
                                Map<String, Long> processInstancesCreatedMap,
                                RunResult runResult) {
-    CheckObjectives checkObjectives = new CheckObjectives(runScenario.getBpmnEngine(), startTestDate, endTestDate,
-        processInstancesCreatedMap);
 
-    for (ScenarioFlowControl.Objective objective : runScenario.getScenario().getFlowControl().getObjectives()) {
-      CheckObjectives.ObjectiveResult check = checkObjectives.check(objective);
+    // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
+    logger.info("Collecting data...");
+    try {
+      Thread.sleep(1000*60);
+    } catch (InterruptedException e) {
+      // do nothing
+    }
 
-      if (check.success) {
-        if (runScenario.getRunParameters().isLevelMonitoring()) {
-          logger.info("Objective: {} type {} processId[{}] value {} reached (get {} ) ", objective.label,
-              objective.type, objective.processId, objective.value, check.realValue);
-          // do not need to log the error, already done
-        }
+    List<RunObjectives.ObjectiveResult> listCheckResult = runObjectives.check();
+    for (RunObjectives.ObjectiveResult checkResult : listCheckResult) {
+      if (checkResult.success) {
+        logger.info("Objective: SUCCESS type {}  label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
+            checkResult.objective.type,
+            checkResult.objective.label,
+            checkResult.objective.processId,
+            checkResult.realValue,
+            checkResult.objective.value,
+            checkResult.analysis);
+        // do not need to log the error, already done
+
       } else {
         runResult.addError(null,
-            "Objective " + objective.label + " type " + objective.type + " processId [" + objective.processId
-                + "] FAILED " + check.analysis.toString());
+            "Objective: FAIL " + checkResult.objective.label + " type " + checkResult.objective.type + " processId [" + checkResult.objective.processId
+                + "] " + checkResult.analysis.toString());
       }
     }
   }

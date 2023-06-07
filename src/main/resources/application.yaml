@@ -7,11 +7,11 @@ automator:
   startup:
     scenarioPath: ./src/main/resources/loadtest
     # list of scenario separate by ;
-    scenarioAtStartup: Discovery.json;bob
+    scenarioAtStartup: Verification.json;
     # DEBUG, INFO, MONITORING, MAIN, NOTHING
     logLevel: INFO
     # string composed with CREATION, SERVICETASK (ex: "CREATION", "CREATION|SERVICETASK")
-    policyExecution: CREATION|SERVICETASK
+    policyExecution: WARMINGUP|CREATION|SERVICETASK
     # list of topice separate by ;. If empty, all services task in the scenario are started, else only the list here
     filterService: verification-checkurl;verification-retrieve
 

@@ -25,6 +25,7 @@ public class Scenario {
   private final List<ScenarioExecution> executions = new ArrayList<>();
   private final List<ScenarioDeployment> deployments = new ArrayList<>();
   private final List<ScenarioStep> flows = new ArrayList<>();
+  private ScenarioWarmingUp warmingUp;
   private ScenarioFlowControl flowControl;
 
   private String name;
@@ -43,7 +44,8 @@ public class Scenario {
   /**
    * This value is fulfill only if the scenario was read from a file
    */
-  private File scenarioFile = null;
+  private String scenarioFile = null;
+
 
   public static Scenario createFromJson(String jsonFile) {
     GsonBuilder builder = new GsonBuilder();
@@ -70,10 +72,10 @@ public class Scenario {
         jsonContent.append(st);
 
       Scenario scnHead = createFromJson(jsonContent.toString());
-      scnHead.scenarioFile = scenarioFile;
+      scnHead.scenarioFile = scenarioFile.getAbsolutePath();
       return scnHead;
     } catch (Exception e) {
-      throw new AutomatorException("Can't read [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
+      throw new AutomatorException("Can't interpret JSON [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
     }
 
   }
@@ -95,6 +97,8 @@ public class Scenario {
   public List<ScenarioStep> getFlows() {
     return flows;
   }
+
+  public ScenarioWarmingUp getWarmingUp() { return warmingUp;}
 
   public ScenarioFlowControl getFlowControl() {
     return flowControl;
@@ -131,7 +135,7 @@ public class Scenario {
   }
 
   public File getScenarioFile() {
-    return scenarioFile;
+    return new File(scenarioFile);
   }
 
   public String getServerName() {

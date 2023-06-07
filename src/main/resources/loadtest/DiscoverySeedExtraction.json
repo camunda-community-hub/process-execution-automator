@@ -32,8 +32,25 @@
         "label": "Ended (UserTask TheEnd) SeedExtraction",
         "processId": "DiscoverySeedExtraction",
         "type" : "USERTASK",
-        "taskId" : "Activity_Dicovery_TheEnd",
+        "taskId" : "Activity_DiscoverySeedExtraction_TheEnd",
         "value": 450
+      }
+    ]
+  },
+  "warmingUp" : {
+    "duration": "PT4M",
+    "operations": [
+      {
+        "type": "STARTEVENT",
+        "taskId": "StartEvent_1",
+        "processId": "DiscoverySeedExtraction",
+        "variablesOperation": {
+          "loopcrawl": "generaterandomlist(1000)",
+          "loopmatch": "generaterandomlist(10)"
+        },
+        "frequency": "PT20S",
+        "numberOfExecutions": "5",
+        "endWarmingUp": "UserTaskThreshold(Activity_DiscoverySeedExtraction_TheEnd,1)"
       }
     ]
   },

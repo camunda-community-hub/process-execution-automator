@@ -124,7 +124,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
       if (runScenario.getRunParameters().isLevelMonitoring()) {
         logger.info("[" + getId() + "] Create[" + scenarioStep.getNumberOfExecutions() + "] in " + (end - begin) + " ms"
-            + " Sleep [" + duration.getSeconds() + " s]");
+            + " Sleep[" + duration.getSeconds() + " s]");
       }
       scheduler.schedule(this, Instant.now().plusMillis(duration.toMillis()));
 

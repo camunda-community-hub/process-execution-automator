@@ -29,14 +29,14 @@ public class ConfigurationStartup {
   @Value("${automator.startup.logLevel:MONITORING}")
   public String logLevel;
 
-  @Value("${automator.startup.policyExecution:CREATION|SERVICETASK|USERTASK}")
+  @Value("${automator.startup.policyExecution:WARMINGUP|CREATION|SERVICETASK|USERTASK}")
   public String policyExecution;
 
   /**
    * it may be necessary to wait the other component to warm up
    */
-  @Value("${automator.startup.waitWarmup:PT0S}")
-  public String waitWarmup;
+  @Value("${automator.startup.waitWarmUpServer:PT0S}")
+  public String waitWarmupServer;
 
   public void setLogLevel(String logLevel) {
     this.logLevel = logLevel;
@@ -66,15 +66,20 @@ public class ConfigurationStartup {
     return policyExtended.contains("|USERTASK|");
   }
 
+  public boolean isPolicyExecutionWarmingUp() {
+    String policyExtended = "|" + policyExecution + "|";
+    return policyExtended.contains("|WARMINGUP|");
+  }
+
   public List<String> getFilterService() {
     return filterService;
   }
 
-  public Duration getWarmup() {
+  public Duration getWarmingUpServer() {
     try {
-      return Duration.parse(waitWarmup);
+      return Duration.parse(waitWarmupServer);
     } catch (Exception e) {
-      logger.error("Can't parse warmup [{}]", waitWarmup);
+      logger.error("Can't parse warmup [{}]", waitWarmupServer);
       return Duration.ZERO;
     }
   }

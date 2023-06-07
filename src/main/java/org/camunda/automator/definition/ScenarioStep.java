@@ -55,6 +55,16 @@ public class ScenarioStep {
    */
   private final Integer nbWorkers = Integer.valueOf(1);
 
+
+  /**
+   * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
+   * Expression is
+   * UserTaskThreashold(<taskId>,<numberOfTaskExpected>)
+   */
+  public String endWarmingUp;
+
+
+
   /**
    * In case of FlowStep, the processId to execute the step
    */
@@ -214,6 +224,9 @@ public class ScenarioStep {
     }
   }
 
+  public String getEndWarmingUp() {
+    return endWarmingUp;
+  }
   /* ******************************************************************** */
   /*                                                                      */
   /*  Check consistence                                                              */

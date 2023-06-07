@@ -14,7 +14,7 @@ services:
       - automator.servers.camunda8.taskListUrl=
       - automator.servers.camunda8.workerExecutionThreads=500
       - automator.startup.scenarioPath=/app/processautomator/src/main/resources/loadtest
-      - automator.startup.scenarioAtStartup=Discovery.json
+      - automator.startup.scenarioAtStartup=DiscoverySeedExtraction.json
       - automator.startup.waitWarmup=PT1M
       - automator.startup.policyExecution=CREATION|SERVICETASK|USERTASK
       - automator.startup.loglevel=MAIN

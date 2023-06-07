@@ -41,6 +41,8 @@ public class RunParameters {
    */
   public String scenarioPath;
 
+  public boolean warmingUp =true;
+
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
   }

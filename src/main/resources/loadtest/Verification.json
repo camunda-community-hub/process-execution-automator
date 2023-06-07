@@ -33,7 +33,29 @@
         "processId": "Verification",
         "type" : "USERTASK",
         "taskId" : "Activity_Verification_TheEnd",
-        "value": 15198
+        "value": 15195
+      },
+      {
+        "label": "Flow per minutes",
+        "processId": "Verification",
+        "type" : "FLOWRATEUSERTASKMN",
+        "taskId" : "Activity_Verification_TheEnd",
+        "standardDeviation": 10,
+        "value": 2082
+      }
+    ]
+  },
+  "warmingUp" : {
+    "duration": "PT4M",
+    "operations": [
+      {
+        "type": "STARTEVENT",
+        "taskId": "StartEvent_1",
+        "processId": "Verification",
+        "variables": {},
+        "frequency": "PT10S",
+        "numberOfExecutions": "347",
+        "endWarmingUp": "UserTaskThreshold(Activity_Verification_TheEnd,10)"
       }
     ]
   },

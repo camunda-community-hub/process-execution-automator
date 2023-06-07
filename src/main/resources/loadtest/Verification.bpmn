@@ -214,7 +214,9 @@
       <bpmn:textAnnotation id="TextAnnotation_0kvnqmo">
         <bpmn:text>1 s</bpmn:text>
       </bpmn:textAnnotation>
-      <bpmn:textAnnotation id="TextAnnotation_16no6yk" />
+      <bpmn:textAnnotation id="TextAnnotation_16no6yk">
+        <bpmn:text>1 s</bpmn:text>
+      </bpmn:textAnnotation>
       <bpmn:textAnnotation id="TextAnnotation_0i08f71">
         <bpmn:text>5 s</bpmn:text>
       </bpmn:textAnnotation>
@@ -255,15 +257,6 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Verification">
-      <bpmndi:BPMNShape id="Event_1ykwkmx_di" bpmnElement="Event_1ykwkmx">
-        <dc:Bounds x="3262" y="372" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0cbcvp8_di" bpmnElement="Activity_Verification_TheEnd">
-        <dc:Bounds x="3120" y="350" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_01fj4kr_di" bpmnElement="Event_01fj4kr">
-        <dc:Bounds x="3232" y="492" width="36" height="36" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_07o083j_di" bpmnElement="Activity_07o083j" isExpanded="true">
         <dc:Bounds x="400" y="80" width="2690" height="620" />
       </bpmndi:BPMNShape>
@@ -430,6 +423,7 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_16no6yk_di" bpmnElement="TextAnnotation_16no6yk">
         <dc:Bounds x="2890" y="363" width="100" height="30" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="TextAnnotation_0i08f71_di" bpmnElement="TextAnnotation_0i08f71">
         <dc:Bounds x="880" y="363" width="100" height="30" />
@@ -578,14 +572,23 @@
           <dc:Bounds x="154" y="455" width="53" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ykwkmx_di" bpmnElement="Event_1ykwkmx">
+        <dc:Bounds x="3262" y="372" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0cbcvp8_di" bpmnElement="Activity_Verification_TheEnd">
+        <dc:Bounds x="3120" y="350" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_01fj4kr_di" bpmnElement="Event_01fj4kr">
+        <dc:Bounds x="3232" y="492" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ubhqsg_di" bpmnElement="Event_0xa5wfw">
+        <dc:Bounds x="3142" y="412" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_1ha1m96_di" bpmnElement="Event_18vp9hq">
         <dc:Bounds x="842" y="682" width="36" height="36" />
         <bpmndi:BPMNLabel>
           <dc:Bounds x="882" y="725" width="15" height="14" />
         </bpmndi:BPMNLabel>
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0ubhqsg_di" bpmnElement="Event_0xa5wfw">
-        <dc:Bounds x="3142" y="412" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_0qb8c6g_di" bpmnElement="Flow_0qb8c6g">
         <di:waypoint x="860" y="718" />

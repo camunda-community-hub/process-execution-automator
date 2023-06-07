@@ -91,7 +91,7 @@
     <bpmn:endEvent id="Event_1kohv64">
       <bpmn:incoming>Flow_1cvbvg8</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0kfwoz3" sourceRef="Activity_1c7afj5" targetRef="Activity_Dicovery_TheEnd" />
+    <bpmn:sequenceFlow id="Flow_0kfwoz3" sourceRef="Activity_1c7afj5" targetRef="Activity_DiscoverySeedExtraction_TheEnd" />
     <bpmn:boundaryEvent id="Event_1w1i1rl" name="1 H" attachedToRef="Activity_1c7afj5">
       <bpmn:outgoing>Flow_1lqx0x6</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_0jk7qvk">
@@ -112,8 +112,8 @@
       <bpmn:incoming>Flow_1vov107</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1vov107" sourceRef="Event_1dvfzsg" targetRef="Event_05hjkis" />
-    <bpmn:sequenceFlow id="Flow_1cvbvg8" sourceRef="Activity_Dicovery_TheEnd" targetRef="Event_1kohv64" />
-    <bpmn:userTask id="Activity_Dicovery_TheEnd" name="the End">
+    <bpmn:sequenceFlow id="Flow_1cvbvg8" sourceRef="Activity_DiscoverySeedExtraction_TheEnd" targetRef="Event_1kohv64" />
+    <bpmn:userTask id="Activity_DiscoverySeedExtraction_TheEnd" name="the End">
       <bpmn:incoming>Flow_0kfwoz3</bpmn:incoming>
       <bpmn:outgoing>Flow_1cvbvg8</bpmn:outgoing>
     </bpmn:userTask>
@@ -121,7 +121,7 @@
       <bpmn:incoming>Flow_1tp79hf</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_1tp79hf" sourceRef="Event_1q3z3mg" targetRef="Event_07jvxb1" />
-    <bpmn:boundaryEvent id="Event_1q3z3mg" attachedToRef="Activity_Dicovery_TheEnd">
+    <bpmn:boundaryEvent id="Event_1q3z3mg" attachedToRef="Activity_DiscoverySeedExtraction_TheEnd">
       <bpmn:outgoing>Flow_1tp79hf</bpmn:outgoing>
       <bpmn:timerEventDefinition id="TimerEventDefinition_1b1pkd6">
         <bpmn:timeDuration xsi:type="bpmn:tFormalExpression">PT1H</bpmn:timeDuration>
@@ -242,7 +242,7 @@
       <bpmndi:BPMNShape id="Event_05hjkis_di" bpmnElement="Event_05hjkis">
         <dc:Bounds x="272" y="472" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0dv8424_di" bpmnElement="Activity_Dicovery_TheEnd">
+      <bpmndi:BPMNShape id="Activity_0dv8424_di" bpmnElement="Activity_DiscoverySeedExtraction_TheEnd">
         <dc:Bounds x="1380" y="360" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
