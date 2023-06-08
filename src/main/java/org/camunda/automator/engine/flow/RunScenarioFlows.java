@@ -40,9 +40,7 @@ public class RunScenarioFlows {
     RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
     Map<String, Long> processInstancesCreatedMap = new HashMap<>();
     RunObjectives runObjectives = new RunObjectives(runScenario.getScenario().getFlowControl().getObjectives(),
-        runScenario.getBpmnEngine(),
-        processInstancesCreatedMap);
-
+        runScenario.getBpmnEngine(), processInstancesCreatedMap);
 
     logger.info("ScenarioFlow: ------ WarmingUp");
     runScenarioWarmingUp.warmingUp();
@@ -72,8 +70,6 @@ public class RunScenarioFlows {
     }
     logger.info("ScenarioFlow: ------ The end");
   }
-
-
 
   /**
    * Start execution
@@ -114,8 +110,9 @@ public class RunScenarioFlows {
 
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time
+   *
    * @param runObjectives checkObjectif: we may have a Flow Objectives
-   * @param listFlows list of flows to monitor the execution
+   * @param listFlows     list of flows to monitor the execution
    */
   private void waitEndExecution(RunObjectives runObjectives, Date startTestDate, List<RunScenarioFlowBasic> listFlows) {
     // Then wait the delay, and kill everything after
@@ -142,7 +139,7 @@ public class RunScenarioFlows {
       int advancement = (int) (100.0 * (currentTime - startTestDate.getTime()) / (endTimeExpected
           - startTestDate.getTime()));
       runObjectives.heartBeat();
-      logRealTime(listFlows, advancement);
+      logRealTime(listFlows, endTimeExpected - System.currentTimeMillis(), advancement);
     }
   }
 
@@ -185,6 +182,7 @@ public class RunScenarioFlows {
                                   RunResult runResult,
                                   Map<String, Long> processInstancesCreatedMap) {
     // Collect information
+    logger.info("Collect Data : listFlows[{}]", listFlows.size());
     for (RunScenarioFlowBasic flowBasic : listFlows) {
       RunResult runResultFlow = flowBasic.getRunResult();
       runResult.add(runResultFlow);
@@ -192,6 +190,8 @@ public class RunScenarioFlows {
         String processId = flowBasic.getRunScenario().getScenario().getProcessId();
         long processInstanceCreated = processInstancesCreatedMap.getOrDefault(processId, Long.valueOf(0));
         processInstancesCreatedMap.put(processId, processInstanceCreated + runResultFlow.getNumberOfProcessInstances());
+        logger.info("Collect Data : Flow is Start Event, processId[{}] processInstanceCreated[{}]", processId,
+            processInstanceCreated);
       }
     }
   }
@@ -213,7 +213,7 @@ public class RunScenarioFlows {
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
     logger.info("Collecting data...");
     try {
-      Thread.sleep(1000*60);
+      Thread.sleep(1000 * 60);
     } catch (InterruptedException e) {
       // do nothing
     }
@@ -222,18 +222,14 @@ public class RunScenarioFlows {
     for (RunObjectives.ObjectiveResult checkResult : listCheckResult) {
       if (checkResult.success) {
         logger.info("Objective: SUCCESS type {}  label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
-            checkResult.objective.type,
-            checkResult.objective.label,
-            checkResult.objective.processId,
-            checkResult.realValue,
-            checkResult.objective.value,
-            checkResult.analysis);
+            checkResult.objective.type, checkResult.objective.label, checkResult.objective.processId,
+            checkResult.realValue, checkResult.objective.value, checkResult.analysis);
         // do not need to log the error, already done
 
       } else {
         runResult.addError(null,
-            "Objective: FAIL " + checkResult.objective.label + " type " + checkResult.objective.type + " processId [" + checkResult.objective.processId
-                + "] " + checkResult.analysis.toString());
+            "Objective: FAIL " + checkResult.objective.label + " type " + checkResult.objective.type + " processId ["
+                + checkResult.objective.processId + "] " + checkResult.analysis.toString());
       }
     }
   }
@@ -244,53 +240,76 @@ public class RunScenarioFlows {
    * @param listFlows          list flows running
    * @param percentAdvancement percentAdvancement of the test, according the timeframe
    */
-  private void logRealTime(List<RunScenarioFlowBasic> listFlows, int percentAdvancement) {
-    logger.info("------------ Log advancement at {} ----- {} %", new Date(), percentAdvancement);
+  private void logRealTime(List<RunScenarioFlowBasic> listFlows, long timeToFinishInMs, int percentAdvancement) {
+    logger.info("------------ Log advancement at {} ----- {} %, end in {} s", new Date(), percentAdvancement,
+        timeToFinishInMs / 1000);
 
     for (RunScenarioFlowBasic flowBasic : listFlows) {
 
       RunResult runResultFlow = flowBasic.getRunResult();
       // logs only flow with a result
-      if (runResultFlow.getNumberOfProcessInstances() + runResultFlow.getNumberOfSteps() == 0)
+      if (runResultFlow.getNumberOfProcessInstances() + runResultFlow.getNumberOfSteps()
+          + runResultFlow.getNumberOfErrorSteps() == 0)
         continue;
       ScenarioStep scenarioStep = flowBasic.getScenarioStep();
       String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " ";
       key += switch (scenarioStep.getType()) {
         case STARTEVENT -> "PI[" + runResultFlow.getNumberOfProcessInstances() + "]";
-        case SERVICETASK -> "Steps[" + runResultFlow.getNumberOfSteps() + "]";
+        case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] StepsErrors["
+            + runResultFlow.getNumberOfErrorSteps() + "]";
         default -> "]";
       };
       logger.info(key);
     }
+    int nbThreadsServiceTask = 0;
+    int nbThreadsAutomator=0;
     int nbThreadsTimeWaiting = 0;
     int nbThreadsWaiting = 0;
     int nbThreadsTimeRunnable = 0;
     for (Map.Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
       boolean isZeebe = false;
-
+      boolean isServiceTask = false;
+      boolean isAutomator = false;
+      String analysis = "";
       for (StackTraceElement ste : entry.getValue()) {
+        analysis += ste.toString() + ", ";
         if (ste.getClassName().contains("io.camunda"))
           isZeebe = true;
-      }
-      if (!isZeebe)
-        continue;
-      logger.info("{} {}", entry.getKey(), entry.getKey().getState());
+        else if (ste.getClassName().contains(RunScenarioFlowServiceTask.SimpleDelayCompletionHandler.class.getName()))
+          isServiceTask = true;
+        else if (ste.getClassName().contains(".automator."))
+          isAutomator = true;
 
+        // org.camunda.automator.engine.flow.RunScenarioFlowServiceTask$SimpleDelayCompletionHandler
+      }
+      if (isAutomator)
+        logger.info(analysis);
+      if (!isZeebe && !isServiceTask && ! isAutomator)
+        continue;
+
+      if (isServiceTask)
+        nbThreadsServiceTask++;
+      else if (isAutomator)
+        nbThreadsAutomator++;
+      else
       // TIME_WAITING: typical for the FlowServiceTask with a sleep
       if (entry.getKey().getState().equals(Thread.State.TIMED_WAITING)) {
-        nbThreadsTimeWaiting++;
+        // is the thread is running the service task (with a Thread.sleep?
+          nbThreadsTimeWaiting++;
       } else if (entry.getKey().getState().equals(Thread.State.WAITING)) {
-        nbThreadsWaiting++;
+          nbThreadsTimeWaiting++;
       } else if (entry.getKey().getState().equals(Thread.State.RUNNABLE)) {
-        nbThreadsTimeRunnable++;
+          nbThreadsTimeRunnable++;
       } else {
+        logger.info("{} {}", entry.getKey(), entry.getKey().getState());
         for (StackTraceElement ste : entry.getValue()) {
           logger.info("\tat {}", ste);
         }
       }
     }
-    if (nbThreadsTimeWaiting > 0)
-      logger.info("Threads {} TIME_WAITING, {} WAITING, {} RUNNABLE ", nbThreadsTimeWaiting, nbThreadsWaiting,
-          nbThreadsTimeRunnable);
+    if (nbThreadsServiceTask + nbThreadsTimeWaiting + nbThreadsWaiting + nbThreadsTimeRunnable +nbThreadsAutomator> 0)
+      logger.info("Threads: ServiceTaskExecution[{}] Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ", nbThreadsServiceTask,
+          nbThreadsAutomator,
+          nbThreadsTimeWaiting, nbThreadsWaiting, nbThreadsTimeRunnable);
   }
 }

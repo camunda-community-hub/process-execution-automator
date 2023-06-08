@@ -32,7 +32,7 @@ public class RunParameters {
   /**
    * Allow any deployment
    */
-  public boolean allowDeployment = true;
+  public boolean deploymentProcess = true;
 
   public boolean fullDetailsSythesis = false;
   public List<String> filterServiceTask = Collections.emptyList();
@@ -70,6 +70,8 @@ public class RunParameters {
     // filter in place: only if the topic is registered
     return !filterServiceTask.contains(topic);
   }
+
+
 
   private int getLogLevelAsNumber() {
     switch (logLevel) {

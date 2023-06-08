@@ -1,6 +1,8 @@
 {
   "name": "DiscoverySeedExtraction",
-  "processId": "DiscoverySeedExtraction",
+  "processIdSubprocess": "DiscoverySeedExtraction",
+  "processIdCallactivity": "DiscoverySeedExtraction-ca",
+  "processId": "DiscoverySeedExtraction-ca",
   "modeVerification": "NO",
   "type": "FLOW",
   "serverType": "Camunda_8",
@@ -8,32 +10,50 @@
     {
       "serverType": "CAMUNDA_8",
       "type": "PROCESS",
-      "processFile": "DiscoverySeedExtraction.bpmn",
+      "processFileSubprocess": "DiscoverySeedExtraction",
+      "processFileCallactivity": "DiscoverySeedExtraction-ca",
+      "processFile": "DiscoverySeedExtraction-ca.bpmn",
       "policy": "ONLYNOTEXIST"
     }
   ],
   "flowControl": {
-    "duration": "PT30M",
+    "duration": "PT10M",
     "objectives": [
       {
         "label": "Creation SeedExtraction",
-        "processId": "DiscoverySeedExtraction",
+        "processIdSubprocess": "DiscoverySeedExtraction",
+        "processIdCallactivity": "DiscoverySeedExtraction-ca",
+        "processId": "DiscoverySeedExtraction-ca",
         "type" : "CREATED",
-        "value" : 450,
+        "value" : 150,
         "real": "Frequency: 5/20S Duration: 16S ==> 10MN : 145 / 30 MN: 450"
       },
       {
         "label": "Ended SeedExtraction",
-        "processId": "DiscoverySeedExtraction",
+        "processIdSubprocess": "DiscoverySeedExtraction",
+        "processIdCallactivity": "DiscoverySeedExtraction-ca",
+        "processId": "DiscoverySeedExtraction-ca",
         "type" : "ENDED",
         "value" : 0
       },
       {
         "label": "Ended (UserTask TheEnd) SeedExtraction",
-        "processId": "DiscoverySeedExtraction",
+        "processIdSubprocess": "DiscoverySeedExtraction",
+        "processIdCallactivity": "DiscoverySeedExtraction-ca",
+        "processId": "DiscoverySeedExtraction-ca",
         "type" : "USERTASK",
         "taskId" : "Activity_DiscoverySeedExtraction_TheEnd",
-        "value": 450
+        "value": 150
+      },
+      {
+        "label": "Flow per minutes",
+        "processIdSubprocess": "DiscoverySeedExtraction",
+        "processIdCallactivity": "DiscoverySeedExtraction-ca",
+        "processId": "DiscoverySeedExtraction-ca",
+        "type" : "FLOWRATEUSERTASKMN",
+        "taskId" : "Activity_DiscoverySeedExtraction_TheEnd",
+        "standardDeviation": 10,
+        "value": 15
       }
     ]
   },
@@ -43,13 +63,15 @@
       {
         "type": "STARTEVENT",
         "taskId": "StartEvent_1",
-        "processId": "DiscoverySeedExtraction",
+        "processIdSubprocess": "DiscoverySeedExtraction",
+        "processIdCallactivity": "DiscoverySeedExtraction-ca",
+        "processId": "DiscoverySeedExtraction-ca",
         "variablesOperation": {
           "loopcrawl": "generaterandomlist(1000)",
           "loopmatch": "generaterandomlist(10)"
         },
         "frequency": "PT20S",
-        "numberOfExecutions": "5",
+        "numberOfExecutions": "1",
         "endWarmingUp": "UserTaskThreshold(Activity_DiscoverySeedExtraction_TheEnd,1)"
       }
     ]
@@ -58,13 +80,16 @@
     {
       "type": "STARTEVENT",
       "taskId": "StartEvent_1",
-      "processId": "DiscoverySeedExtraction",
+      "processIdSubprocess": "DiscoverySeedExtraction",
+      "processIdCallactivity": "DiscoverySeedExtraction-ca",
+      "processId": "DiscoverySeedExtraction-ca",
       "variablesOperation": {
         "loopcrawl": "generaterandomlist(1000)",
         "loopmatch": "generaterandomlist(10)"
       },
       "frequency": "PT20S",
-      "numberOfExecutions": "5",
+      "target" : "5",
+      "numberOfExecutions": "1",
       "nbWorkers": 1,
       "real": "PT20S 5 exe"
     },

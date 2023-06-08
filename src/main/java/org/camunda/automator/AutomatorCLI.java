@@ -144,7 +144,7 @@ public class AutomatorCLI implements CommandLineRunner {
         } else if ("-d".equals(args[i]) || "--deploy".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : -d TRUE|FALSE");
-          runParameters.allowDeployment = "TRUE".equalsIgnoreCase(args[i + 1]);
+          runParameters.deploymentProcess = "TRUE".equalsIgnoreCase(args[i + 1]);
           i++;
         } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
           runParameters.execution = true;

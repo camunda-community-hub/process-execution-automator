@@ -29,7 +29,7 @@ public class ConfigurationStartup {
   @Value("${automator.startup.logLevel:MONITORING}")
   public String logLevel;
 
-  @Value("${automator.startup.policyExecution:WARMINGUP|CREATION|SERVICETASK|USERTASK}")
+  @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}")
   public String policyExecution;
 
   /**
@@ -70,6 +70,12 @@ public class ConfigurationStartup {
     String policyExtended = "|" + policyExecution + "|";
     return policyExtended.contains("|WARMINGUP|");
   }
+  public boolean isPolicyDeployProcess() {
+    String policyExtended = "|" + policyExecution + "|";
+    return policyExtended.contains("|DEPLOYPROCESS|");
+  }
+
+
 
   public List<String> getFilterService() {
     return filterService;

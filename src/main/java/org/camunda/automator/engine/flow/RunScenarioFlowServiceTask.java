@@ -139,13 +139,14 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
       } catch (Exception e) {
         logger.error("Error task[" + flowServiceTask.getId() + " " + activatedJob.getKey() + " : " + e.getMessage());
+        flowServiceTask.runResult.registerAddErrorStepExecution();
 
       }
       long end = System.currentTimeMillis();
 
       if (getRunScenario().getRunParameters().isLevelMonitoring()) {
         logger.info(
-            "Execute task[" + getId() + "] in " + (end - begin) + " ms" + " Sleep [" + durationSleep.getSeconds()
+            "Executed task[" + getId() + "] in " + (end - begin) + " ms" + " Sleep [" + durationSleep.getSeconds()
                 + " s]");
       }
 

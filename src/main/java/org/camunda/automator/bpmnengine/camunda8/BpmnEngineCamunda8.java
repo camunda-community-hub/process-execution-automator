@@ -137,7 +137,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     // connection is critical, so let build the analysis
     StringBuilder analysis = new StringBuilder();
-
+    analysis.append("ZeebeConnection: ");
     this.typeCamundaEngine = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8;
     if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim().isEmpty())
       this.typeCamundaEngine = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8_SAAS;
@@ -148,7 +148,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim()
         .isEmpty()) {
-      analysis.append("Saas,");
+      analysis.append("Saas ClientId[");
+      analysis.append(serverDefinition.zeebeCloudClientId);
+      analysis.append("]");
       /* Connect to Camunda Cloud Cluster, assumes that credentials are set in environment variables.
        * See JavaDoc on class level for details
        */
@@ -163,7 +165,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       // Camunda 8 Self Manage
     } else if (serverDefinition.zeebeGatewayAddress != null && !this.serverDefinition.zeebeGatewayAddress.trim()
         .isEmpty()) {
-      analysis.append("GatewayAddress,");
+      analysis.append("GatewayAddress [");
+      analysis.append(serverDefinition.zeebeGatewayAddress);
+      analysis.append("]");
+
       // connect to local deployment; assumes that authentication is disabled
       clientBuilder = ZeebeClient.newClientBuilder()
           .gatewayAddress(serverDefinition.zeebeGatewayAddress)
@@ -177,6 +182,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       throw new AutomatorException("Invalid configuration");
 
     try {
+      analysis.append("ExecutionThread[");
+      analysis.append(serverDefinition.workerExecutionThreads);
+      analysis.append("] MaxJobsActive[");
+      analysis.append(serverDefinition.workerMaxJobsActive);
+      analysis.append("] ");
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);
       clientBuilder.defaultJobWorkerMaxJobsActive(serverDefinition.workerMaxJobsActive);
       zeebeClient = clientBuilder.build();
@@ -195,9 +205,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         analysis.append("TasklistConnection with success,");
       }
       //get tasks assigned to demo
+      logger.info(analysis.toString());
 
     } catch (Exception e) {
-      throw new AutomatorException("Can't connect to Zeebe " + e.getMessage() + " - " + analysis);
+      throw new AutomatorException("Can't connect to Zeebe " + e.getMessage() + " - Analysis:" + analysis);
     }
   }
 
@@ -507,7 +518,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       int maxLoop = 0;
       do {
         maxLoop++;
-        if (searchResult != null && ! searchResult.getItems().isEmpty()) {
+        if (searchResult != null && !searchResult.getItems().isEmpty()) {
           queryBuilder.searchAfter(searchResult.getSortValues());
         }
         SearchQuery searchQuery = queryBuilder.build();
@@ -539,7 +550,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       int maxLoop = 0;
       do {
         maxLoop++;
-        if (searchResult != null && ! searchResult.getItems().isEmpty()) {
+        if (searchResult != null && !searchResult.getItems().isEmpty()) {
           queryBuilder.searchAfter(searchResult.getSortValues());
         }
         SearchQuery searchQuery = queryBuilder.build();
@@ -573,7 +584,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
         queryBuilder = queryBuilder.filter(new FlownodeInstanceFilter.Builder().flowNodeId(taskId).build());
         queryBuilder.sort(new Sort("key", SortOrder.ASC));
-        if (searchResult != null && ! searchResult.getItems().isEmpty()) {
+        if (searchResult != null && !searchResult.getItems().isEmpty()) {
           queryBuilder.searchAfter(searchResult.getSortValues());
         }
         SearchQuery searchQuery = queryBuilder.build();

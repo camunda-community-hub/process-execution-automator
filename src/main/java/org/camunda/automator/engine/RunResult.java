@@ -34,6 +34,8 @@ public class RunResult {
   Logger logger = LoggerFactory.getLogger(RunResult.class);
   private int numberOfProcessInstances = 0;
   private int numberOfSteps = 0;
+  private int numberOfErrorSteps = 0;
+
   /**
    * Time to execute it
    */
@@ -86,9 +88,12 @@ public class RunResult {
    */
   public void registerAddStepExecution() {
     numberOfSteps++;
-
   }
 
+  public void registerAddErrorStepExecution() {
+    numberOfErrorSteps++;
+
+  }
   public List<ErrorDescription> getListErrors() {
     return listErrors;
   }
@@ -140,6 +145,7 @@ public class RunResult {
     listVerifications.addAll(result.listVerifications);
     numberOfProcessInstances += result.numberOfProcessInstances;
     numberOfSteps += result.numberOfSteps;
+    numberOfErrorSteps += result.numberOfErrorSteps;
     // we collect the list only if the level is low
     if (runScenario.getRunParameters() != null && runScenario.getRunParameters().isLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
@@ -195,7 +201,9 @@ public class RunResult {
   public int getNumberOfSteps() {
     return numberOfSteps;
   }
-
+  public int getNumberOfErrorSteps() {
+    return numberOfErrorSteps;
+  }
   /**
    * @return a synthesis
    */
@@ -213,6 +221,8 @@ public class RunResult {
     synthesis.append(" processInstancesCreated, ");
     synthesis.append(numberOfSteps);
     synthesis.append(" stepsExecuted, ");
+    synthesis.append(numberOfErrorSteps);
+    synthesis.append(" errorStepsExecuted, ");
 
     StringBuilder errorMessage = new StringBuilder();
     // add errors

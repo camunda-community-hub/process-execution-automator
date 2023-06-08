@@ -82,6 +82,7 @@ public class AutomatorStartup {
       runParameters.servicetask = configurationStartup.isPolicyExecutionServiceTask();
       runParameters.usertask = configurationStartup.isPolicyExecutionUserTask();
       runParameters.warmingUp = configurationStartup.isPolicyExecutionWarmingUp();
+      runParameters.deploymentProcess = configurationStartup.isPolicyDeployProcess();
 
       List<String> filterService = configurationStartup.getFilterService();
       if (filterService != null) {

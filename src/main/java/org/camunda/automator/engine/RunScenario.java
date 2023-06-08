@@ -61,7 +61,7 @@ public class RunScenario {
    */
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
-    if (runParameters.allowDeployment)
+    if (runParameters.deploymentProcess)
       result.add(runDeployment());
     // verification is inside execution
     result.add(runExecutions());

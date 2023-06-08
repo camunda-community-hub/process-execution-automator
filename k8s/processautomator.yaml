@@ -34,7 +34,7 @@ spec:
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Discovery.json
                 -Dautomator.startup.waitWarmup=PT10S
-                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
                 -Dautomator.startup.logLevel=MAIN
           resources:
             limits:
