@@ -187,6 +187,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       analysis.append("] MaxJobsActive[");
       analysis.append(serverDefinition.workerMaxJobsActive);
       analysis.append("] ");
+      if (serverDefinition.workerMaxJobsActive==-1) {
+        serverDefinition.workerMaxJobsActive=serverDefinition.workerExecutionThreads;
+        analysis.append("No MaxJobsActive defined, align to the number of threads, ");
+      }
+      if (serverDefinition.workerExecutionThreads < serverDefinition.workerMaxJobsActive) {
+        logger.error("Incorrect definition: the number of threads must be >= number Jobs Active, else ZeebeClient will not fetch enough jobs to feed threads");
+      }
+
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);
       clientBuilder.defaultJobWorkerMaxJobsActive(serverDefinition.workerMaxJobsActive);
       zeebeClient = clientBuilder.build();
@@ -635,6 +643,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     signature += " numJobWorkerExecutionThreads[" + serverDefinition.workerExecutionThreads + "] workerMaxJobsActive["
         + serverDefinition.workerMaxJobsActive + "]";
     return signature;
+  }
+
+  @Override
+  public int getWorkerExecutionThreads() {
+    return serverDefinition != null ? serverDefinition.workerExecutionThreads : 0;
   }
 
   private String getUniqueMarker(String processId, String starterEventId) {

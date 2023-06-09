@@ -21,16 +21,13 @@ import java.util.Map;
 
 public class RunObjectives {
   private final BpmnEngine bpmnEngine;
-  private DateFilter startDateFilter;
-  private DateFilter endDateFilter;
   private final Map<String, Long> processInstancesCreatedMap;
-
   private final Map<Integer, List<SavePhoto>> flowRateMnObjective = new HashMap<>();
-
-
-  private long lastHeartBeat;
   private final List<ScenarioFlowControl.Objective> listObjectives;
   Logger logger = LoggerFactory.getLogger(RunObjectives.class);
+  private DateFilter startDateFilter;
+  private DateFilter endDateFilter;
+  private long lastHeartBeat;
 
   public RunObjectives(List<ScenarioFlowControl.Objective> listObjectives,
                        BpmnEngine bpmnEngine,
@@ -39,8 +36,8 @@ public class RunObjectives {
     this.bpmnEngine = bpmnEngine;
     this.processInstancesCreatedMap = processInstancesCreatedMap;
 
-    for (int i=0;i<listObjectives.size();i++) {
-      listObjectives.get(i).index=i;
+    for (int i = 0; i < listObjectives.size(); i++) {
+      listObjectives.get(i).index = i;
     }
   }
 
@@ -73,17 +70,16 @@ public class RunObjectives {
           logger.error("Can't get NumberOfTask ");
         }
         List<SavePhoto> listValues = flowRateMnObjective.getOrDefault(objective.index, new ArrayList<>());
-        SavePhoto previousPhoto = listValues.isEmpty()? new SavePhoto() : listValues.get(listValues.size()-1);
-        currentPhoto.delta = currentPhoto.nbOfTasks -previousPhoto.nbOfTasks;
+        SavePhoto previousPhoto = listValues.isEmpty() ? new SavePhoto() : listValues.get(listValues.size() - 1);
+        currentPhoto.delta = currentPhoto.nbOfTasks - previousPhoto.nbOfTasks;
         listValues.add(currentPhoto);
         flowRateMnObjective.put(objective.index, listValues);
         logger.info("heartBeat: FlowRateUserTaskMn [{}] prev {} current {} delta {} expected {} in {} s",
-            objective.label,
-            previousPhoto.nbOfTasks, currentPhoto.nbOfTasks, currentPhoto.delta, objective.value,
-            (currentTime-lastHeartBeat)/1000);
+            objective.label, previousPhoto.nbOfTasks, currentPhoto.nbOfTasks, currentPhoto.delta, objective.value,
+            (currentTime - lastHeartBeat) / 1000);
       }
     }
-    lastHeartBeat=currentTime;
+    lastHeartBeat = currentTime;
   }
 
   /**
@@ -93,7 +89,7 @@ public class RunObjectives {
    */
   public List<ObjectiveResult> check() {
     List<ObjectiveResult> listCheck = new ArrayList<>();
-    for(ScenarioFlowControl.Objective objective: listObjectives) {
+    for (ScenarioFlowControl.Objective objective : listObjectives) {
       listCheck.add(switch (objective.type) {
         case CREATED -> checkObjectiveCreated(objective);
         case ENDED -> checkObjectiveEnded(objective);
@@ -115,7 +111,7 @@ public class RunObjectives {
     objectiveResult.objectiveValue = objective.value;
     if (objective.value <= 0) {
       objectiveResult.success = true;
-      objectiveResult.analysis+="No value to reach";
+      objectiveResult.analysis += "No value to reach";
       return objectiveResult;
     }
     try {
@@ -124,22 +120,24 @@ public class RunObjectives {
       objectiveResult.realValue = processInstancesCreatedMap.getOrDefault(objective.processId, 0L);
 
       if (objectiveResult.realValue != processInstancesCreated) {
-        logger.info("processID [{}] PI Created[{}} FoundInEngine[{}]", objective.processId,
-            objectiveResult.realValue, processInstancesCreated);
+        logger.info("processID [{}] PI Created[{}} FoundInEngine[{}]", objective.processId, objectiveResult.realValue,
+            processInstancesCreated);
       }
       if (processInstancesCreated < objective.value) {
-        objectiveResult.analysis+="Fail: "+objective.label+": ObjectiveCreation["+objective.value+"] Created["+processInstancesCreated+"] ("+(int) (100.0 * processInstancesCreated / objective.value)+" %), ";
+        objectiveResult.analysis += "Fail: " + objective.label + ": ObjectiveCreation[" + objective.value + "] Created["
+            + processInstancesCreated + "] (" + (int) (100.0 * processInstancesCreated / objective.value) + " %), ";
         objectiveResult.success = false;
       }
     } catch (AutomatorException e) {
       objectiveResult.success = false;
-      objectiveResult.analysis+="Can't search countNumberOfProcessInstancesCreated " + e.getMessage();
+      objectiveResult.analysis += "Can't search countNumberOfProcessInstancesCreated " + e.getMessage();
     }
     return objectiveResult;
   }
 
   /**
    * ObjectiveEnded : does process ended?
+   *
    * @param objective objective to reach
    * @return result
    */
@@ -148,7 +146,7 @@ public class RunObjectives {
     objectiveResult.objectiveValue = objective.value;
     if (objective.value <= 0) {
       objectiveResult.success = true;
-      objectiveResult.analysis +="No value to reach";
+      objectiveResult.analysis += "No value to reach";
       return objectiveResult;
     }
     try {
@@ -170,6 +168,7 @@ public class RunObjectives {
 
   /**
    * UserTask: does user tasks are present?
+   *
    * @param objective objective to reach
    * @return result
    */
@@ -199,6 +198,7 @@ public class RunObjectives {
 
   /**
    * FlowRate
+   *
    * @param objective objective to reach
    * @return result
    */
@@ -206,7 +206,8 @@ public class RunObjectives {
     ObjectiveResult objectiveResult = new ObjectiveResult(objective);
     // check all values
     try {
-      long lowThreshold = (long) (((double)objective.value) * (1.0 - ((double)objective.getStandardDeviation()) / 100.0));
+      long lowThreshold = (long) (((double) objective.value) * (1.0
+          - ((double) objective.getStandardDeviation()) / 100.0));
       objectiveResult.objectiveValue = objective.value;
       objectiveResult.analysis +=
           "Threshold[" + objective.value + "] standardDeviation[" + objective.getStandardDeviation() + "] LowThreshold["
@@ -220,17 +221,17 @@ public class RunObjectives {
       }
 
       StringBuilder valuesString = new StringBuilder();
-      int numberUnderThreshold=0;
-      int count=0;
+      int numberUnderThreshold = 0;
+      int count = 0;
       for (SavePhoto photo : listValues) {
         sumValues += photo.delta;
         count++;
-        if (count==50) {
+        if (count == 50) {
           valuesString.append("... TooManyValues[");
           valuesString.append(listValues.size());
           valuesString.append("]");
         }
-        if (count<50) {
+        if (count < 50) {
           valuesString.append(photo.delta);
           valuesString.append(",");
         }
@@ -239,22 +240,23 @@ public class RunObjectives {
           numberUnderThreshold++;
         }
       }
-      if (numberUnderThreshold>0) {
-        objectiveResult.analysis += "NumberOrValueUnderThreshold[" + numberUnderThreshold + "], values: "+valuesString.toString();
+      if (numberUnderThreshold > 0) {
+        objectiveResult.analysis +=
+            "NumberOrValueUnderThreshold[" + numberUnderThreshold + "], values: " + valuesString;
         objectiveResult.success = false;
       }
       // the total must be at the value
-      long averageValue = (long) ( ((double)sumValues) / listValues.size());
-      objectiveResult.realValue=averageValue;
+      long averageValue = (long) (((double) sumValues) / listValues.size());
+      objectiveResult.realValue = averageValue;
       if (averageValue < objective.value) {
         objectiveResult.analysis += "AverageUnderObjective[" + averageValue + "]";
         objectiveResult.success = false;
       } else {
         objectiveResult.analysis += "AverageReach[" + averageValue + "]";
       }
-    } catch(Exception e) {
-      logger.error("Error during checkFlowRateObjective {}",e.getMessage());
-      objectiveResult.success=false;
+    } catch (Exception e) {
+      logger.error("Error during checkFlowRateObjective {}", e.getMessage());
+      objectiveResult.success = false;
     }
     return objectiveResult;
 
@@ -279,10 +281,9 @@ public class RunObjectives {
    * - the
    */
   public static class SavePhoto {
-    public long nbOfTasks =0;
-    public long delta=0;
+    public long nbOfTasks = 0;
+    public long delta = 0;
 
   }
-
 
 }

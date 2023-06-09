@@ -74,6 +74,8 @@ public abstract class RunScenarioFlowBasic {
 
   public abstract STATUS getStatus();
 
+  public abstract int getCurrentNumberOfThreads();
+
   /**
    * The flow must stop now
    */

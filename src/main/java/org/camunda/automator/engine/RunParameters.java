@@ -36,12 +36,14 @@ public class RunParameters {
 
   public boolean fullDetailsSythesis = false;
   public List<String> filterServiceTask = Collections.emptyList();
+
+  public boolean deepTracking = true;
   /**
    * Load the scenario path here. Some functions may be relative to this path
    */
   public String scenarioPath;
 
-  public boolean warmingUp =true;
+  public boolean warmingUp = true;
 
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
@@ -70,8 +72,6 @@ public class RunParameters {
     // filter in place: only if the topic is registered
     return !filterServiceTask.contains(topic);
   }
-
-
 
   private int getLogLevelAsNumber() {
     switch (logLevel) {

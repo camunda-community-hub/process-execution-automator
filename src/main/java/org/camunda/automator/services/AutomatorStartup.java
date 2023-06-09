@@ -83,7 +83,7 @@ public class AutomatorStartup {
       runParameters.usertask = configurationStartup.isPolicyExecutionUserTask();
       runParameters.warmingUp = configurationStartup.isPolicyExecutionWarmingUp();
       runParameters.deploymentProcess = configurationStartup.isPolicyDeployProcess();
-
+      runParameters.deepTracking = configurationStartup.deepTracking();
       List<String> filterService = configurationStartup.getFilterService();
       if (filterService != null) {
         runParameters.setFilterExecutionServiceTask(filterService);
@@ -115,7 +115,7 @@ public class AutomatorStartup {
       for (String scenarioFileName : configurationStartup.scenarioAtStartup) {
         File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
         if (!scenarioFile.exists()) {
-          logger.error("Can't find [{}/{}]", configurationStartup.scenarioPath , scenarioFileName );
+          logger.error("Can't find [{}/{}]", configurationStartup.scenarioPath, scenarioFileName);
           continue;
         }
 
@@ -132,7 +132,7 @@ public class AutomatorStartup {
 
             try {
               if (runParameters.isLevelMonitoring()) {
-                logger.info("Connect to Bpmn Engine Type{}",scenario.getServerType());
+                logger.info("Connect to Bpmn Engine Type{}", scenario.getServerType());
               }
               bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
             } catch (AutomatorException e) {
@@ -161,7 +161,8 @@ public class AutomatorStartup {
           logger.info("Scenario [{}] file[{}] use BpmnEngine {}", scenario.getName(), scenarioFile.getName(),
               bpmnEngine.getSignature());
           RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
-          logger.info("AutomatorStartup: end scenario [{}] in {} ms", scenario.getName(), scenarioExecutionResult.getTimeExecution());
+          logger.info("AutomatorStartup: end scenario [{}] in {} ms", scenario.getName(),
+              scenarioExecutionResult.getTimeExecution());
           bpmnEngine.turnHighFlowMode(false);
 
         } catch (AutomatorException e) {

@@ -192,6 +192,10 @@ public class ConfigurationBpmEngine {
       camunda8.serverType = CamundaEngine.CAMUNDA_8;
       camunda8.name = configurationServersEngine.zeebeName;
       camunda8.zeebeGatewayAddress = configurationServersEngine.zeebeGatewayAddress;
+      camunda8.workerExecutionThreads = parseInt("Camunda8.workerExecutionThreads",
+          configurationServersEngine.workerExecutionThreads, 101);
+      camunda8.workerMaxJobsActive = parseInt("Camunda8.workerMaxJobsActive",
+          configurationServersEngine.workerMaxJobsActive, -1);
       camunda8.operateUrl = configurationServersEngine.operateUrl;
       camunda8.operateUserName = configurationServersEngine.operateUserName;
       camunda8.operateUserPassword = configurationServersEngine.operateUserPassword;
@@ -214,6 +218,15 @@ public class ConfigurationBpmEngine {
 
     }
     return list;
+  }
+
+  private int parseInt(String label, String value, int defaultValue) {
+    try {
+      return Integer.parseInt(value);
+    } catch (Exception e) {
+      logger.error("Can't parse value [{}] at [{}]", value, label);
+      return defaultValue;
+    }
   }
 
   private boolean hasValue(String value) {
@@ -247,7 +260,7 @@ public class ConfigurationBpmEngine {
     public String clientSecret;
 
     public Integer workerExecutionThreads = Integer.valueOf(100);
-    public Integer workerMaxJobsActive = Integer.valueOf(100);
+    public Integer workerMaxJobsActive = Integer.valueOf(-1);
 
     /**
      * Connection to Operate

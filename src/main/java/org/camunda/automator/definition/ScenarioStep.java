@@ -20,6 +20,17 @@ public class ScenarioStep {
    * operations; stringtodate()
    */
   private final Map<String, String> variablesOperation = Collections.emptyMap();
+  /**
+   * In case of a Flow Step, the number of workers to execute this tasks
+   */
+  private final Integer nbWorkers = Integer.valueOf(1);
+  private final Long fixedBackOffDelay = Long.valueOf(0);
+  /**
+   * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
+   * Expression is
+   * UserTaskThreashold(<taskId>,<numberOfTaskExpected>)
+   */
+  public String endWarmingUp;
   private ScenarioExecution scnExecution;
   private Step type;
   private String taskId;
@@ -29,48 +40,26 @@ public class ScenarioStep {
   private String topic;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
-
   /**
    * ISO 8601: PT10S
    */
   private String delay;
-
   /**
    * ISO 8601: PT10S
    */
   private String waitingTime;
-
   /**
    * Optional, may not be set
    */
   private Integer numberOfExecutions;
-
   /**
    * In case of a Flow step, the frequency to execute this step, for example PT10S every 10 seconds
    */
   private String frequency;
-
-  /**
-   * In case of a Flow Step, the number of workers to execute this tasks
-   */
-  private final Integer nbWorkers = Integer.valueOf(1);
-
-
-  /**
-   * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
-   * Expression is
-   * UserTaskThreashold(<taskId>,<numberOfTaskExpected>)
-   */
-  public String endWarmingUp;
-
-
-
   /**
    * In case of FlowStep, the processId to execute the step
    */
   private String processId;
-
-  private final Long fixedBackOffDelay = Long.valueOf(0);
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -220,7 +209,8 @@ public class ScenarioStep {
       if (getTopic() == null || getTopic().trim().isEmpty())
         throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " topic is mandatory");
     }
-    default -> {}
+    default -> {
+    }
     }
   }
 

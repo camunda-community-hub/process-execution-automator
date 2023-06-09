@@ -120,6 +120,12 @@ public class BpmnEngineDummy implements BpmnEngine {
     return ConfigurationBpmEngine.CamundaEngine.DUMMY.toString();
   }
 
+  @Override
+
+  public int getWorkerExecutionThreads() {
+    return 0;
+  }
+
   public void turnHighFlowMode(boolean hightFlowMode) {
   }
 

@@ -46,7 +46,6 @@ public class Scenario {
    */
   private String scenarioFile = null;
 
-
   public static Scenario createFromJson(String jsonFile) {
     GsonBuilder builder = new GsonBuilder();
     builder.setPrettyPrinting();
@@ -98,7 +97,9 @@ public class Scenario {
     return flows;
   }
 
-  public ScenarioWarmingUp getWarmingUp() { return warmingUp;}
+  public ScenarioWarmingUp getWarmingUp() {
+    return warmingUp;
+  }
 
   public ScenarioFlowControl getFlowControl() {
     return flowControl;

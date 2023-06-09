@@ -386,6 +386,11 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     return ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
   }
 
+  @Override
+  public int getWorkerExecutionThreads() {
+    return 0;
+  }
+
   public void turnHighFlowMode(boolean hightFlowMode) {
   }
 

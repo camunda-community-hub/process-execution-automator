@@ -9,12 +9,13 @@ automator:
     # list of scenario separate by ;
     scenarioAtStartup: DiscoverySeedExtraction.json;
     # DEBUG, INFO, MONITORING, MAIN, NOTHING
-    logLevel: INFO
+    logLevel: MAIN
     # string composed with WARMINGUP, CREATION, SERVICETASK (ex: "CREATION", "CREATION|SERVICETASK")
     policyExecution: SERVICETASK
     # list of topice separate by ;. If empty, all services task in the scenario are started, else only the list here
-    filterService: discovery-seedextraction-match
+    filterService: discovery-seedextraction-crawl
 
+    deepTracking: true
 
   logdebug: true
 
@@ -39,8 +40,13 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
       taskListUrl: ""
-      workerExecutionThreads: 50
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 500
+      workerMaxJobsActive2: 500
+
+
+
+
+
 
       zeebeCloudRegister:
       zeebeCloudRegion:

@@ -29,7 +29,7 @@ public class ScenarioFlowControl {
   }
 
   public List<Objective> getObjectives() {
-    return objectives==null? Collections.emptyList():objectives;
+    return objectives == null ? Collections.emptyList() : objectives;
   }
 
   public static class Objective {
@@ -43,8 +43,9 @@ public class ScenarioFlowControl {
     public Integer standardDeviation;
 
     public int getStandardDeviation() {
-      return standardDeviation==null? 0 : standardDeviation;
+      return standardDeviation == null ? 0 : standardDeviation;
     }
+
     public enum TYPEOBJECTIVE {CREATED, ENDED, USERTASK, FLOWRATEUSERTASKMN}
   }
 }

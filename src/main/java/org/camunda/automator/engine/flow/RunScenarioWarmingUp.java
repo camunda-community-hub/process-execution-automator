@@ -53,7 +53,7 @@ public class RunScenarioWarmingUp {
     long endWarmingUp =
         beginTime + (warmingUp.getDuration().toMillis() > 0 ? warmingUp.getDuration().toMillis() : 1000 * 60 * 10);
 
-    logger.info("WarmingUp: Start ---- {} operations ",warmingUp.getOperations().size());
+    logger.info("WarmingUp: Start ---- {} operations ", warmingUp.getOperations().size());
 
     List<RunScenarioFlowServiceTask> listWarmingUpServiceTask = new ArrayList<>();
     List<StartEventWarmingUpRunnable> listWarmingUpStartEvent = new ArrayList<>();
@@ -92,9 +92,10 @@ public class RunScenarioWarmingUp {
       }
       boolean allIsFinished = true;
       for (StartEventWarmingUpRunnable startRunnable : listWarmingUpStartEvent) {
-        analysis += "warmingUp[" + startRunnable.scenarioStep.getTaskId() + "] instanceCreated["+startRunnable.nbInstancesCreated+"]";
+        analysis += "warmingUp[" + startRunnable.scenarioStep.getTaskId() + "] instanceCreated["
+            + startRunnable.nbInstancesCreated + "]";
         if (startRunnable.warmingUpFinished) {
-          analysis += " FINISH!:"+startRunnable.warmingUpFinishedAnalysis;
+          analysis += " FINISH!:" + startRunnable.warmingUpFinishedAnalysis;
         } else {
           allIsFinished = false;
         }
@@ -106,7 +107,7 @@ public class RunScenarioWarmingUp {
       logger.info("WarmingUpFinished? {} analysis: {}", warmingUpIsFinish, analysis);
       if (!warmingUpIsFinish) {
         try {
-          Thread.sleep( 1000L * 15);
+          Thread.sleep(1000L * 15);
         } catch (InterruptedException e) {
           // do not care
         }
@@ -135,13 +136,11 @@ public class RunScenarioWarmingUp {
     private final TaskScheduler scheduler;
     private final ScenarioStep scenarioStep;
     private final RunScenario runScenario;
-
-    private int nbOverloaded = 0;
-
     public boolean stop = false;
     public boolean warmingUpFinished = false;
-    public String warmingUpFinishedAnalysis="";
+    public String warmingUpFinishedAnalysis = "";
     public int nbInstancesCreated = 0;
+    private int nbOverloaded = 0;
 
     public StartEventWarmingUpRunnable(TaskScheduler scheduler, ScenarioStep scenarioStep, RunScenario runScenario) {
       this.scheduler = scheduler;
@@ -163,7 +162,7 @@ public class RunScenarioWarmingUp {
       if (scenarioStep.getEndWarmingUp() != null) {
         checkFunctionResult = endCheckFunction(scenarioStep.getEndWarmingUp());
         if (checkFunctionResult.goalReach) {
-          warmingUpFinishedAnalysis+="GoalReach["+checkFunctionResult.analysis+"]";
+          warmingUpFinishedAnalysis += "GoalReach[" + checkFunctionResult.analysis + "]";
           warmingUpFinished = true;
           return;
         }
@@ -187,7 +186,7 @@ public class RunScenarioWarmingUp {
           logger.info("WarmingUp:StartEvent Create[{}] in {} " + " ms" + " (oneShoot)",
               scenarioStep.getNumberOfExecutions(), (end - begin));
         }
-        warmingUpFinishedAnalysis+="GoalOneShoot";
+        warmingUpFinishedAnalysis += "GoalOneShoot";
         warmingUpFinished = true;
         return;
       }
@@ -207,12 +206,6 @@ public class RunScenarioWarmingUp {
                 "EndWarmingUp:" + checkFunctionResult.analysis));
       }
       scheduler.schedule(this, Instant.now().plusMillis(duration.toMillis()));
-    }
-
-    /**
-     * UserTaskTask(<taskId>,<numberOfTaskExpected>)
-     */
-    public record CheckFunctionResult(boolean goalReach, String analysis) {
     }
 
     private CheckFunctionResult endCheckFunction(String function) {
@@ -235,6 +228,12 @@ public class RunScenarioWarmingUp {
         logger.error("Error during warmingup {}", e.getMessage());
         return new CheckFunctionResult(false, "Exception " + e.getMessage());
       }
+    }
+
+    /**
+     * UserTaskTask(<taskId>,<numberOfTaskExpected>)
+     */
+    public record CheckFunctionResult(boolean goalReach, String analysis) {
     }
   }
 }

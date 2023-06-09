@@ -183,6 +183,8 @@ public interface BpmnEngine {
    */
   String getSignature();
 
+  int getWorkerExecutionThreads();
+
   class TaskDescription {
     public String processInstanceId;
     public String taskId;

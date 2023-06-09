@@ -28,11 +28,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.Duration;
 
 public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
+  private static final TrackActiveWorker trackActiveWorker = new TrackActiveWorker();
   Logger logger = LoggerFactory.getLogger(RunScenarioFlowServiceTask.class);
-
   private JobWorker jobWorker;
   private boolean stopping;
-
   @Autowired
   private BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy;
 
@@ -82,6 +81,11 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     return STATUS.RUNNING;
   }
 
+  @Override
+  public int getCurrentNumberOfThreads() {
+    return trackActiveWorker.getCounter();
+  }
+
   /**
    * Register the worker
    */
@@ -105,6 +109,18 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     jobWorker = step3.open();
   }
 
+  private static class TrackActiveWorker {
+    public int counter = 0;
+
+    public synchronized void movement(int movement) {
+      counter += movement;
+    }
+
+    public int getCounter() {
+      return counter;
+    }
+  }
+
   public class SimpleDelayCompletionHandler implements JobHandler {
 
     private final RunScenarioFlowServiceTask flowServiceTask;
@@ -117,6 +133,9 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
     @Override
     public void handle(JobClient jobClient, ActivatedJob activatedJob) throws Exception {
+
+      if (getRunScenario().getRunParameters().deepTracking)
+        trackActiveWorker.movement(1);
 
       long begin = System.currentTimeMillis();
       Thread.sleep(durationSleep.toMillis());
@@ -139,10 +158,14 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
       } catch (Exception e) {
         logger.error("Error task[" + flowServiceTask.getId() + " " + activatedJob.getKey() + " : " + e.getMessage());
+
         flowServiceTask.runResult.registerAddErrorStepExecution();
 
       }
       long end = System.currentTimeMillis();
+
+      if (getRunScenario().getRunParameters().deepTracking)
+        trackActiveWorker.movement(-1);
 
       if (getRunScenario().getRunParameters().isLevelMonitoring()) {
         logger.info(

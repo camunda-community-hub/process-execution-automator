@@ -6,6 +6,7 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine.flow;
 
+import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
@@ -24,6 +25,7 @@ public class RunScenarioFlows {
   private final ServiceAccess serviceAccess;
   private final RunScenario runScenario;
   Logger logger = LoggerFactory.getLogger(RunScenarioFlows.class);
+  private final Map<String, Long> previousValueMap = new HashMap<>();
 
   public RunScenarioFlows(ServiceAccess serviceAccess, RunScenario runScenario) {
     this.serviceAccess = serviceAccess;
@@ -95,8 +97,8 @@ public class RunScenarioFlows {
         if (!runScenario.getRunParameters().servicetask) {
           logger.info("According configuration, SERVICETASK[{}] Does not start", scenarioStep.getTopic());
         } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
-          logger.info("According configuration, SERVICETASK[{}] is block (only acceptable {})", scenarioStep.getTopic(),
-              runScenario.getRunParameters().filterServiceTask);
+          logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
+              scenarioStep.getTopic(), runScenario.getRunParameters().filterServiceTask);
         } else {
           RunScenarioFlowServiceTask runStartEvent = new RunScenarioFlowServiceTask(scenarioStep, 0, runScenario,
               new RunResult(runScenario));
@@ -229,7 +231,7 @@ public class RunScenarioFlows {
       } else {
         runResult.addError(null,
             "Objective: FAIL " + checkResult.objective.label + " type " + checkResult.objective.type + " processId ["
-                + checkResult.objective.processId + "] " + checkResult.analysis.toString());
+                + checkResult.objective.processId + "] " + checkResult.analysis);
       }
     }
   }
@@ -247,22 +249,29 @@ public class RunScenarioFlows {
     for (RunScenarioFlowBasic flowBasic : listFlows) {
 
       RunResult runResultFlow = flowBasic.getRunResult();
-      // logs only flow with a result
+      int currentNumberOfThreads = flowBasic.getCurrentNumberOfThreads();
+      // logs only flow with a result or currently active
       if (runResultFlow.getNumberOfProcessInstances() + runResultFlow.getNumberOfSteps()
-          + runResultFlow.getNumberOfErrorSteps() == 0)
+          + runResultFlow.getNumberOfErrorSteps() == 0 && currentNumberOfThreads == 0)
         continue;
+      long previousValue = previousValueMap.getOrDefault(flowBasic.getId(), 0L);
+
       ScenarioStep scenarioStep = flowBasic.getScenarioStep();
-      String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " ";
+      String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " " + " currentNbThreads["
+          + currentNumberOfThreads + "] ";
       key += switch (scenarioStep.getType()) {
-        case STARTEVENT -> "PI[" + runResultFlow.getNumberOfProcessInstances() + "]";
-        case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] StepsErrors["
+        case STARTEVENT -> "PI[" + runResultFlow.getNumberOfProcessInstances() + "] delta[" + (
+            runResultFlow.getNumberOfSteps() - previousValue) + "]";
+        case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
+            runResultFlow.getNumberOfSteps() - previousValue) + "]StepsErrors["
             + runResultFlow.getNumberOfErrorSteps() + "]";
         default -> "]";
       };
       logger.info(key);
+      previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
     }
     int nbThreadsServiceTask = 0;
-    int nbThreadsAutomator=0;
+    int nbThreadsAutomator = 0;
     int nbThreadsTimeWaiting = 0;
     int nbThreadsWaiting = 0;
     int nbThreadsTimeRunnable = 0;
@@ -270,9 +279,7 @@ public class RunScenarioFlows {
       boolean isZeebe = false;
       boolean isServiceTask = false;
       boolean isAutomator = false;
-      String analysis = "";
       for (StackTraceElement ste : entry.getValue()) {
-        analysis += ste.toString() + ", ";
         if (ste.getClassName().contains("io.camunda"))
           isZeebe = true;
         else if (ste.getClassName().contains(RunScenarioFlowServiceTask.SimpleDelayCompletionHandler.class.getName()))
@@ -282,9 +289,7 @@ public class RunScenarioFlows {
 
         // org.camunda.automator.engine.flow.RunScenarioFlowServiceTask$SimpleDelayCompletionHandler
       }
-      if (isAutomator)
-        logger.info(analysis);
-      if (!isZeebe && !isServiceTask && ! isAutomator)
+      if (!isZeebe && !isServiceTask && !isAutomator)
         continue;
 
       if (isServiceTask)
@@ -292,24 +297,28 @@ public class RunScenarioFlows {
       else if (isAutomator)
         nbThreadsAutomator++;
       else
-      // TIME_WAITING: typical for the FlowServiceTask with a sleep
-      if (entry.getKey().getState().equals(Thread.State.TIMED_WAITING)) {
-        // is the thread is running the service task (with a Thread.sleep?
+        // TIME_WAITING: typical for the FlowServiceTask with a sleep
+        if (entry.getKey().getState().equals(Thread.State.TIMED_WAITING)) {
+          // is the thread is running the service task (with a Thread.sleep?
           nbThreadsTimeWaiting++;
-      } else if (entry.getKey().getState().equals(Thread.State.WAITING)) {
+        } else if (entry.getKey().getState().equals(Thread.State.WAITING)) {
           nbThreadsTimeWaiting++;
-      } else if (entry.getKey().getState().equals(Thread.State.RUNNABLE)) {
+        } else if (entry.getKey().getState().equals(Thread.State.RUNNABLE)) {
           nbThreadsTimeRunnable++;
-      } else {
-        logger.info("{} {}", entry.getKey(), entry.getKey().getState());
-        for (StackTraceElement ste : entry.getValue()) {
-          logger.info("\tat {}", ste);
+        } else {
+          logger.info(" {} {}", entry.getKey(), entry.getKey().getState());
+          for (StackTraceElement ste : entry.getValue()) {
+            logger.info("\tat {}", ste);
+          }
+
         }
-      }
     }
-    if (nbThreadsServiceTask + nbThreadsTimeWaiting + nbThreadsWaiting + nbThreadsTimeRunnable +nbThreadsAutomator> 0)
-      logger.info("Threads: ServiceTaskExecution[{}] Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ", nbThreadsServiceTask,
-          nbThreadsAutomator,
-          nbThreadsTimeWaiting, nbThreadsWaiting, nbThreadsTimeRunnable);
+    BpmnEngine bpmnEngine = runScenario.getBpmnEngine();
+    int workerExecutionThreads = bpmnEngine.getWorkerExecutionThreads();
+    if (nbThreadsServiceTask + nbThreadsTimeWaiting + nbThreadsWaiting + nbThreadsTimeRunnable + nbThreadsAutomator > 0)
+      logger.info("Threads: ServiceTaskExecution[{}/{}] {} % Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ",
+          nbThreadsServiceTask, workerExecutionThreads,
+          workerExecutionThreads == 0 ? 0 : (int) (100.0 * nbThreadsServiceTask / workerExecutionThreads),
+          nbThreadsAutomator, nbThreadsTimeWaiting, nbThreadsWaiting, nbThreadsTimeRunnable);
   }
 }

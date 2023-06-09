@@ -40,6 +40,7 @@ public class RunResult {
    * Time to execute it
    */
   private long timeExecution;
+
   public RunResult(RunScenario runScenario) {
     this.runScenario = runScenario;
 
@@ -94,6 +95,7 @@ public class RunResult {
     numberOfErrorSteps++;
 
   }
+
   public List<ErrorDescription> getListErrors() {
     return listErrors;
   }
@@ -201,9 +203,11 @@ public class RunResult {
   public int getNumberOfSteps() {
     return numberOfSteps;
   }
+
   public int getNumberOfErrorSteps() {
     return numberOfErrorSteps;
   }
+
   /**
    * @return a synthesis
    */

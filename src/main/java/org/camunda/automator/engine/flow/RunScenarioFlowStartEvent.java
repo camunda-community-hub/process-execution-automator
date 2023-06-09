@@ -59,6 +59,11 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   }
 
   @Override
+  public int getCurrentNumberOfThreads() {
+    return 0;
+  }
+
+  @Override
   public RunResult getRunResult() {
     return runResult;
   }

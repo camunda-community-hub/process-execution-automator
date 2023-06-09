@@ -26,7 +26,7 @@
         "processId": "DiscoverySeedExtraction-ca",
         "type" : "CREATED",
         "value" : 150,
-        "real": "Frequency: 5/20S Duration: 16S ==> 10MN : 145 / 30 MN: 450"
+        "real": "Frequency: 5/20S Duration:  10MN : 150"
       },
       {
         "label": "Ended SeedExtraction",
@@ -58,7 +58,7 @@
     ]
   },
   "warmingUp" : {
-    "duration": "PT4M",
+    "duration": "PT5M",
     "operations": [
       {
         "type": "STARTEVENT",
@@ -71,7 +71,7 @@
           "loopmatch": "generaterandomlist(10)"
         },
         "frequency": "PT20S",
-        "numberOfExecutions": "1",
+        "numberOfExecutions": "5",
         "endWarmingUp": "UserTaskThreshold(Activity_DiscoverySeedExtraction_TheEnd,1)"
       }
     ]
@@ -88,8 +88,7 @@
         "loopmatch": "generaterandomlist(10)"
       },
       "frequency": "PT20S",
-      "target" : "5",
-      "numberOfExecutions": "1",
+      "numberOfExecutions": "5",
       "nbWorkers": 1,
       "real": "PT20S 5 exe"
     },

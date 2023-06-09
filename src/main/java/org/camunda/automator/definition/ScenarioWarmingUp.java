@@ -21,10 +21,10 @@ public class ScenarioWarmingUp {
   public List<ScenarioStep> operations;
 
   public Duration getDuration() {
-    return duration==null? Duration.ZERO : Duration.parse(duration);
+    return duration == null ? Duration.ZERO : Duration.parse(duration);
   }
 
   public List<ScenarioStep> getOperations() {
-    return operations==null? Collections.emptyList(): operations;
+    return operations == null ? Collections.emptyList() : operations;
   }
 }
