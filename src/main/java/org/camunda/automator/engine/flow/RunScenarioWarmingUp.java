@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
 
 public class RunScenarioWarmingUp {
   private final ServiceAccess serviceAccess;
@@ -70,8 +71,8 @@ public class RunScenarioWarmingUp {
       }
       case SERVICETASK -> {
         logger.info("WarmingUp: Start Service Task topic[{}]", scenarioStep.getTopic());
-        RunScenarioFlowServiceTask task = new RunScenarioFlowServiceTask(scenarioStep, 0, runScenario,
-            new RunResult(runScenario));
+        RunScenarioFlowServiceTask task = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"),
+            scenarioStep, 0, runScenario, new RunResult(runScenario));
         task.execute();
         listWarmingUpServiceTask.add(task);
       }
@@ -169,12 +170,15 @@ public class RunScenarioWarmingUp {
       }
       // continue to generate PI
       long begin = System.currentTimeMillis();
+      List<String> listProcessInstance = new ArrayList<>();
       try {
         for (int i = 0; i < scenarioStep.getNumberOfExecutions(); i++) {
-          runScenario.getBpmnEngine()
+          String processInstance = runScenario.getBpmnEngine()
               .createProcessInstance(scenarioStep.getProcessId(), scenarioStep.getTaskId(), // activityId
                   RunZeebeOperation.getVariablesStep(runScenario, scenarioStep));
           nbInstancesCreated++;
+          if (listProcessInstance.size() < 21)
+            listProcessInstance.add(processInstance);
         }
       } catch (AutomatorException e) {
         logger.error("Error at creation: [{}]", e.getMessage());
@@ -183,8 +187,9 @@ public class RunScenarioWarmingUp {
       // one step generation?
       if (scenarioStep.getFrequency() == null || scenarioStep.getFrequency().isEmpty()) {
         if (runScenario.getRunParameters().isLevelMonitoring()) {
-          logger.info("WarmingUp:StartEvent Create[{}] in {} " + " ms" + " (oneShoot)",
-              scenarioStep.getNumberOfExecutions(), (end - begin));
+          logger.info("WarmingUp:StartEvent Create[{}] in {} " + " ms" + " (oneShoot) listPI(max20): ",
+              scenarioStep.getNumberOfExecutions(), (end - begin),
+              listProcessInstance.stream().collect(Collectors.joining(",")));
         }
         warmingUpFinishedAnalysis += "GoalOneShoot";
         warmingUpFinished = true;

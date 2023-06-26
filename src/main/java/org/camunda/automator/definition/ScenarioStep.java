@@ -61,6 +61,21 @@ public class ScenarioStep {
    */
   private String processId;
 
+  /**
+   * MODE EXECUTION
+   * WAIT: the worker wait the waitingTime time
+   * ASYNCHRONOUS: the worker release the method, wait asynchrously the waiting time and send back the answer
+   * ASYNCHRONOUSLIMITED: same as ASYNCHRONOUS, but use the maxClient information to not accept more than this number
+   * In ASYNCHRONOUS, the method can potentially having millions of works in parallel (it accept <NumberOfClients> works,
+   * but because it finish the method, then Zeebe Client will accept more works. So, with a waiting time of 1 mn, it may have a lot
+   * of works in progress in the client.
+   * This mode limit the number of current execution on the worker. it redeem immediately the method, but when we reach this
+   * limitation, it froze the worker, waiting for a slot.
+   */
+  public enum MODEEXECUTION {WAIT, ASYNCHRONOUS, ASYNCHRONOUSLIMITED}
+
+  private MODEEXECUTION modeExecution = MODEEXECUTION.WAIT;
+
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
@@ -217,6 +232,11 @@ public class ScenarioStep {
   public String getEndWarmingUp() {
     return endWarmingUp;
   }
+
+  public MODEEXECUTION getModeExecution() {
+    return modeExecution==null? MODEEXECUTION.WAIT : modeExecution;
+  }
+
   /* ******************************************************************** */
   /*                                                                      */
   /*  Check consistence                                                              */

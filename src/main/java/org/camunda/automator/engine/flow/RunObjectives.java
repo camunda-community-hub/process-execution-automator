@@ -10,6 +10,7 @@ import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScenarioFlowControl;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.RunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +22,7 @@ import java.util.Map;
 
 public class RunObjectives {
   private final BpmnEngine bpmnEngine;
-  private final Map<String, Long> processInstancesCreatedMap;
+  private final Map<String, RunResult.RecordCreationPI> recordCreationPIMap;
   private final Map<Integer, List<SavePhoto>> flowRateMnObjective = new HashMap<>();
   private final List<ScenarioFlowControl.Objective> listObjectives;
   Logger logger = LoggerFactory.getLogger(RunObjectives.class);
@@ -31,10 +32,10 @@ public class RunObjectives {
 
   public RunObjectives(List<ScenarioFlowControl.Objective> listObjectives,
                        BpmnEngine bpmnEngine,
-                       Map<String, Long> processInstancesCreatedMap) {
+                       Map<String, RunResult.RecordCreationPI> recordCreationPIMap) {
     this.listObjectives = listObjectives;
     this.bpmnEngine = bpmnEngine;
-    this.processInstancesCreatedMap = processInstancesCreatedMap;
+    this.recordCreationPIMap = recordCreationPIMap;
 
     for (int i = 0; i < listObjectives.size(); i++) {
       listObjectives.get(i).index = i;
@@ -74,7 +75,7 @@ public class RunObjectives {
         currentPhoto.delta = currentPhoto.nbOfTasks - previousPhoto.nbOfTasks;
         listValues.add(currentPhoto);
         flowRateMnObjective.put(objective.index, listValues);
-        logger.info("heartBeat: FlowRateUserTaskMn [{}] prev {} current {} delta {} expected {} in {} s",
+        logger.info("heartBeat: FlowRateUserTaskMn [{}] prev [{}} current [{}] delta [{}] expected [{}] in {} s",
             objective.label, previousPhoto.nbOfTasks, currentPhoto.nbOfTasks, currentPhoto.delta, objective.value,
             (currentTime - lastHeartBeat) / 1000);
       }
@@ -115,17 +116,24 @@ public class RunObjectives {
       return objectiveResult;
     }
     try {
-      long processInstancesCreated = bpmnEngine.countNumberOfProcessInstancesCreated(objective.processId,
+      long processInstancesCreatedAPI = bpmnEngine.countNumberOfProcessInstancesCreated(objective.processId,
           startDateFilter, endDateFilter);
-      objectiveResult.realValue = processInstancesCreatedMap.getOrDefault(objective.processId, 0L);
+      RunResult.RecordCreationPI recordCreation = recordCreationPIMap.getOrDefault(objective.processId,
+          new RunResult.RecordCreationPI(objective.processId));
 
-      if (objectiveResult.realValue != processInstancesCreated) {
-        logger.info("processID [{}] PI Created[{}} FoundInEngine[{}]", objective.processId, objectiveResult.realValue,
-            processInstancesCreated);
-      }
-      if (processInstancesCreated < objective.value) {
-        objectiveResult.analysis += "Fail: " + objective.label + ": ObjectiveCreation[" + objective.value + "] Created["
-            + processInstancesCreated + "] (" + (int) (100.0 * processInstancesCreated / objective.value) + " %), ";
+      objectiveResult.recordedSuccessValue = recordCreation.nbCreated;
+      objectiveResult.recordedFailValue = recordCreation.nbFailed;
+
+      int percent = (int) (100.0 * objectiveResult.recordedSuccessValue / (objective.value == 0 ? 1 : objective.value));
+
+      objectiveResult.analysis +=
+          "Objective " + objective.label + ": ObjectiveCreation[" + objective.value // objective
+              + "] Created(zeebeAPI)["       + processInstancesCreatedAPI // Value by the API, not really accurate
+              + "] Create(AutomatorRecord)[" + objectiveResult.recordedSuccessValue // value recorded by automator
+              + " (" + percent + " % )" // percent based on the recorded value
+              + " CreateFail(AutomatorRecord)[" + objectiveResult.recordedFailValue + "]";
+
+      if (objectiveResult.recordedSuccessValue < objective.value) {
         objectiveResult.success = false;
       }
     } catch (AutomatorException e) {
@@ -150,12 +158,12 @@ public class RunObjectives {
       return objectiveResult;
     }
     try {
-      objectiveResult.realValue = bpmnEngine.countNumberOfProcessInstancesEnded(objective.processId, startDateFilter,
-          endDateFilter);
-      if (objectiveResult.realValue < objective.value) {
-        objectiveResult.analysis +=
-            "Fail: " + objective.label + " : " + objective.value + " ended expected, " + objectiveResult.realValue
-                + " created (" + (int) (100.0 * objectiveResult.realValue / objective.value) + " %), ";
+      objectiveResult.recordedSuccessValue = bpmnEngine.countNumberOfProcessInstancesEnded(objective.processId,
+          startDateFilter, endDateFilter);
+      if (objectiveResult.recordedSuccessValue < objective.value) {
+        objectiveResult.analysis += "Fail: " + objective.label + " : " + objective.value + " ended expected, "
+            + objectiveResult.recordedSuccessValue + " created (" + (int) (100.0 * objectiveResult.recordedSuccessValue
+            / objective.value) + " %), ";
         objectiveResult.success = false;
       }
 
@@ -181,12 +189,12 @@ public class RunObjectives {
       return objectiveResult;
     }
     try {
-      objectiveResult.realValue = bpmnEngine.countNumberOfTasks(objective.processId, objective.taskId);
-      if (objectiveResult.realValue < objective.value) {
+      objectiveResult.recordedSuccessValue = bpmnEngine.countNumberOfTasks(objective.processId, objective.taskId);
+      if (objectiveResult.recordedSuccessValue < objective.value) {
         objectiveResult.analysis += "Fail: " + objective.label + " : [" + objective.value + "] tasks expected, ";
         objectiveResult.analysis +=
-            objectiveResult.realValue + " found (" + (int) (100.0 * objectiveResult.realValue / objective.value)
-                + " %), ";
+            objectiveResult.recordedSuccessValue + " found (" + (int) (100.0 * objectiveResult.recordedSuccessValue
+                / objective.value) + " %), ";
         objectiveResult.success = false;
       }
     } catch (AutomatorException e) {
@@ -247,7 +255,7 @@ public class RunObjectives {
       }
       // the total must be at the value
       long averageValue = (long) (((double) sumValues) / listValues.size());
-      objectiveResult.realValue = averageValue;
+      objectiveResult.recordedSuccessValue = averageValue;
       if (averageValue < objective.value) {
         objectiveResult.analysis += "AverageUnderObjective[" + averageValue + "]";
         objectiveResult.success = false;
@@ -266,7 +274,8 @@ public class RunObjectives {
     public String analysis = "";
     public boolean success = true;
     public long objectiveValue;
-    public long realValue;
+    public long recordedSuccessValue;
+    public long recordedFailValue;
     ScenarioFlowControl.Objective objective;
 
     public ObjectiveResult(ScenarioFlowControl.Objective objective) {

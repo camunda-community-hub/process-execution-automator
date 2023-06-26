@@ -2,7 +2,7 @@
   "name": "DiscoverySeedExtraction",
   "processIdSubprocess": "DiscoverySeedExtraction",
   "processIdCallactivity": "DiscoverySeedExtraction-ca",
-  "processId": "DiscoverySeedExtraction-ca",
+  "processId": "DiscoverySeedExtraction",
   "modeVerification": "NO",
   "type": "FLOW",
   "serverType": "Camunda_8",
@@ -58,7 +58,7 @@
     ]
   },
   "warmingUp" : {
-    "duration": "PT5M",
+    "duration": "PT4M",
     "operations": [
       {
         "type": "STARTEVENT",
@@ -68,7 +68,7 @@
         "processId": "DiscoverySeedExtraction-ca",
         "variablesOperation": {
           "loopcrawl": "generaterandomlist(1000)",
-          "loopmatch": "generaterandomlist(10)"
+          "loopmatch": "generaterandomlist(1)"
         },
         "frequency": "PT20S",
         "numberOfExecutions": "5",
@@ -85,7 +85,7 @@
       "processId": "DiscoverySeedExtraction-ca",
       "variablesOperation": {
         "loopcrawl": "generaterandomlist(1000)",
-        "loopmatch": "generaterandomlist(10)"
+        "loopmatch": "generaterandomlist(1)"
       },
       "frequency": "PT20S",
       "numberOfExecutions": "5",
@@ -102,19 +102,20 @@
       "type": "SERVICETASK",
       "topic": "discovery-seedextraction-crawl",
       "waitingTime": "PT2S",
+      "modeExecution": "ASYNCHRONOUS",
       "fixedBackOffDelay": "0"
     },
     {
       "type": "SERVICETASK",
       "topic": "discovery-seedextraction-match",
-      "waitingTime": "PT10S",
-      "nbWorkers": 50
+      "modeExecution": "ASYNCHRONOUS",
+      "waitingTime": "PT10S"
     },
     {
       "type": "SERVICETASK",
       "topic": "discovery-seedextraction-store",
-      "waitingTime": "PT2S",
-      "nbWorkers": 10
+      "modeExecution": "ASYNCHRONOUS",
+      "waitingTime": "PT2S"
     }
   ]
 }

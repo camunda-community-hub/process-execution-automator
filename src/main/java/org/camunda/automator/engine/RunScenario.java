@@ -61,8 +61,11 @@ public class RunScenario {
    */
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
+    logger.info("RunScenario: ------ Deployment ({})", runParameters.deploymentProcess);
     if (runParameters.deploymentProcess)
       result.add(runDeployment());
+    logger.info("RunScenario: ------ End deployment ");
+
     // verification is inside execution
     result.add(runExecutions());
     return result;
@@ -79,6 +82,7 @@ public class RunScenario {
     // first, do we have to deploy something?
     if (scenario.getDeployments() != null) {
       for (ScenarioDeployment deployment : scenario.getDeployments()) {
+
         boolean sameTypeServer = false;
         if (deployment.serverType.equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7)) {
           sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7);
@@ -96,6 +100,10 @@ public class RunScenario {
           } catch (AutomatorException e) {
             result.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
           }
+        }
+        else {
+          logger.info("RunScenario: can't Deploy ({}), not the same server", deployment.processFile);
+
         }
       }
     }

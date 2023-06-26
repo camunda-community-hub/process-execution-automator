@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RunResult {
@@ -32,7 +34,10 @@ public class RunResult {
   private final List<String> listProcessInstancesId = new ArrayList<>();
   private final List<String> listProcessIdDeployed = new ArrayList<>();
   Logger logger = LoggerFactory.getLogger(RunResult.class);
-  private int numberOfProcessInstances = 0;
+  /**
+   * Keep a photo of process instance created/failed per processid
+   */
+  private Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
   private int numberOfSteps = 0;
   private int numberOfErrorSteps = 0;
 
@@ -51,9 +56,12 @@ public class RunResult {
    *
    * @param processInstanceId processInstanceId to add
    */
-  public void addProcessInstanceId(String processInstanceId) {
+  public void addProcessInstanceId(String processId, String processInstanceId) {
     this.listProcessInstancesId.add(processInstanceId);
-    numberOfProcessInstances++;
+
+    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    create.nbCreated++;
+    recordCreationPIMap.put(processId, create);
   }
 
 
@@ -66,8 +74,13 @@ public class RunResult {
   /**
    * large flow: just register the number of PI
    */
-  public void registerAddProcessInstance() {
-    numberOfProcessInstances++;
+  public void registerAddProcessInstance(String processId, boolean withSuccess) {
+    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    if (withSuccess)
+      create.nbCreated++;
+    else
+      create.nbFailed++;
+    recordCreationPIMap.put(processId, create);
   }
 
   public void addTimeExecution(long timeToAdd) {
@@ -145,7 +158,14 @@ public class RunResult {
     addTimeExecution(result.getTimeExecution());
     listErrors.addAll(result.listErrors);
     listVerifications.addAll(result.listVerifications);
-    numberOfProcessInstances += result.numberOfProcessInstances;
+    for (Map.Entry<String, RecordCreationPI> entry : result.recordCreationPIMap.entrySet()) {
+      RecordCreationPI currentReference = recordCreationPIMap.getOrDefault(entry.getKey(), new RecordCreationPI(
+          entry.getKey()));
+      currentReference.nbFailed += entry.getValue().nbFailed;
+      currentReference.nbCreated += entry.getValue().nbCreated;
+
+      recordCreationPIMap.put(entry.getKey(), currentReference);
+    }
     numberOfSteps += result.numberOfSteps;
     numberOfErrorSteps += result.numberOfErrorSteps;
     // we collect the list only if the level is low
@@ -196,8 +216,15 @@ public class RunResult {
     this.listProcessIdDeployed.add(processId);
   }
 
-  public int getNumberOfProcessInstances() {
-    return numberOfProcessInstances;
+  public Map<String, RecordCreationPI> getRecordCreationPI() {
+    return recordCreationPIMap;
+  }
+
+  public long getRecordCreationPIAllProcesses() {
+    long sum = 0;
+    for (RecordCreationPI value : recordCreationPIMap.values())
+      sum += value.nbCreated;
+    return sum;
   }
 
   public int getNumberOfSteps() {
@@ -221,8 +248,10 @@ public class RunResult {
 
     synthesis.append(timeExecution);
     synthesis.append(" timeExecution(ms), ");
-    synthesis.append(numberOfProcessInstances);
-    synthesis.append(" processInstancesCreated, ");
+    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbCreated);
+    synthesis.append(" PICreated, ");
+    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbFailed);
+    synthesis.append(" PIFailed, ");
     synthesis.append(numberOfSteps);
     synthesis.append(" stepsExecuted, ");
     synthesis.append(numberOfErrorSteps);
@@ -246,8 +275,8 @@ public class RunResult {
       synthesis.append(verificationMessage);
     }
     // add full details
-    if (fullDetail && numberOfProcessInstances == listProcessInstancesId.size()) {
-      synthesis.append(" ListOfProcessInstancesCreated: ");
+    if (fullDetail) {
+      synthesis.append(" ListOfPICreated: ");
 
       synthesis.append(listProcessInstancesId.stream() // stream
           .collect(Collectors.joining(",")));
@@ -299,4 +328,19 @@ public class RunResult {
     public String message;
   }
 
+  public static class RecordCreationPI {
+    public String processId;
+    public long nbCreated=0;
+    public long nbFailed=0;
+    public RecordCreationPI(String processId) {
+      this.processId = processId;
+    }
+
+    public void add(RecordCreationPI record) {
+      if (record==null)
+        return;
+      nbCreated+= record.nbCreated;
+      nbFailed += record.nbFailed;
+    }
+  }
 }

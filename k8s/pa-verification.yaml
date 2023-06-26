@@ -30,11 +30,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=5
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=1
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION
                 -Dautomator.startup.logLevel=MAIN
           resources:
@@ -55,7 +53,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-retrieve
-  replicas: 2
+  # 34
+  replicas: 1
   template:
     metadata:
       labels:
@@ -77,11 +76,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=18
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=50
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-retrieve
                 -Dautomator.startup.logLevel=MAIN
@@ -103,7 +100,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-checkurl
-  replicas: 4
+  # 173
+  replicas: 1
   template:
     metadata:
       labels:
@@ -125,11 +123,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=50
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=300
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-checkurl
                 -Dautomator.startup.logLevel=MAIN
@@ -151,6 +147,7 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-updateitem
+  # 34
   replicas: 1
   template:
     metadata:
@@ -173,11 +170,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=35
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=50
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-updateitem
                 -Dautomator.startup.logLevel=MAIN
@@ -199,7 +194,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-download
-  replicas: 20
+  # 1042
+  replicas: 10
   template:
     metadata:
       labels:
@@ -221,11 +217,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=50
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-download
                 -Dautomator.startup.logLevel=MAIN
@@ -247,7 +241,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-fingerprint
-  replicas: 28
+  # 2083
+  replicas: 12
   template:
     metadata:
       labels:
@@ -269,11 +264,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=75
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-fingerprint
                 -Dautomator.startup.logLevel=MAIN
@@ -295,7 +288,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-getresult
-  replicas: 56
+  # 2083
+  replicas: 12
   template:
     metadata:
       labels:
@@ -317,11 +311,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=38
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-getresult
                 -Dautomator.startup.logLevel=MAIN
@@ -343,6 +335,7 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-obtaindescription
+  # 104
   replicas: 2
   template:
     metadata:
@@ -365,11 +358,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=52
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-obtaindescription
                 -Dautomator.startup.logLevel=MAIN
@@ -391,7 +382,8 @@ spec:
   selector:
     matchLabels:
       app: pa-verification-thresoldcheck
-  replicas: 1
+  # 34
+  replicas: 2
   template:
     metadata:
       labels:
@@ -413,7 +405,7 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=34
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.servers.camunda8.workerMaxJobsActive=15
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
@@ -432,18 +424,19 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pa-verification-createpotentialclaim
+  name: pa-verification-potentialclaim
   labels:
-    app: pa-verification-createpotentialclaim
+    app: pa-verification-potentialclaim
 spec:
   selector:
     matchLabels:
-      app: pa-verification-createpotentialclaim
+      app: pa-verification-potentialclaim
+  # 34
   replicas: 1
   template:
     metadata:
       labels:
-        app: pa-verification-createpotentialclaim
+        app: pa-verification-potentialclaim
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8088"
@@ -461,11 +454,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=34
-                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
                 -Dautomator.startup.scenarioAtStartup=Verification.json
-                -Dautomator.startup.waitWarmup=PT10S
                 -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
                 -Dautomator.startup.filterService=verification-createpotentialclaim
                 -Dautomator.startup.logLevel=MAIN

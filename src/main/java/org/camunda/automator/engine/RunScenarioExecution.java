@@ -84,7 +84,8 @@ public class RunScenarioExecution {
    */
   public RunResult startEvent(RunResult result, ScenarioStep step) {
     try {
-      result.addProcessInstanceId(runScenario.getBpmnEngine()
+      result.addProcessInstanceId(step.getScnExecution().getScnHead().getProcessId(),
+          runScenario.getBpmnEngine()
           .createProcessInstance(step.getScnExecution().getScnHead().getProcessId(), step.getTaskId(), // activityId
               RunZeebeOperation.getVariablesStep(runScenario, step))); // resolve variables
     } catch (AutomatorException e) {
@@ -267,7 +268,7 @@ public class RunScenarioExecution {
                     scnExecution.getVerifications().getSearchProcessInstanceByVariable(), 100);
 
             for (BpmnEngine.ProcessDescription processInstance : listProcessInstances) {
-              scnRunResult.addProcessInstanceId(processInstance.processInstanceId);
+              scnRunResult.addProcessInstanceId(scnExecution.getScnHead().getProcessId(), processInstance.processInstanceId);
             }
             runVerifications();
           }

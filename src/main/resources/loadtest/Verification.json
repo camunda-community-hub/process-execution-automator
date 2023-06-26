@@ -23,17 +23,11 @@
         "real": "Frequency: 347 PI/10s Duration(warmup): 2mn42 ==> CREATION 10MN: 20820, Ended 10 MN: 15198"
       },
       {
-        "label": "Ended Verification",
-        "processId": "Verification",
-        "type": "ENDED",
-        "value": 0
-      },
-      {
         "label": "Ended (UserTask TheEnd) Verification",
         "processId": "Verification",
         "type" : "USERTASK",
         "taskId" : "Activity_Verification_TheEnd",
-        "value": 15195
+        "value": 20820
       },
       {
         "label": "Flow per minutes",
@@ -73,46 +67,55 @@
     {
       "type": "SERVICETASK",
       "topic": "verification-retrieve",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-checkurl",
+      "modeExecution": "WAIT",
       "waitingTime": "PT5S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-updateitem",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-download",
+      "modeExecution": "WAIT",
       "waitingTime": "PT30S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-fingerprint",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1M"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-getresult",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1M"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-obtaindescription",
+      "modeExecution": "WAIT",
       "waitingTime": "PT3S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-thresoldcheck",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1S"
     },
     {
       "type": "SERVICETASK",
       "topic": "verification-createpotentialclaim",
+      "modeExecution": "WAIT",
       "waitingTime": "PT1S"
     }
   ]

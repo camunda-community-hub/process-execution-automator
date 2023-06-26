@@ -40,9 +40,9 @@ public class RunScenarioFlows {
   public void execute(RunResult runResult) {
     // Create one executor per flow
     RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
-    Map<String, Long> processInstancesCreatedMap = new HashMap<>();
+    Map<String, RunResult.RecordCreationPI> recordCreationPIMap = new HashMap<>();
     RunObjectives runObjectives = new RunObjectives(runScenario.getScenario().getFlowControl().getObjectives(),
-        runScenario.getBpmnEngine(), processInstancesCreatedMap);
+        runScenario.getBpmnEngine(), recordCreationPIMap);
 
     logger.info("ScenarioFlow: ------ WarmingUp");
     runScenarioWarmingUp.warmingUp();
@@ -62,13 +62,13 @@ public class RunScenarioFlows {
     stopExecution(listFlows);
 
     logger.info("ScenarioFlow: ------ Collect Data");
-    collectInformation(listFlows, runResult, processInstancesCreatedMap);
+    collectInformation(listFlows, runResult, recordCreationPIMap);
 
     // Check with Objective now
-    logger.info("ScenarioFlow: ------ Check objective");
+    logger.info("ScenarioFlow: ------ Check objectives");
     if (runScenario.getScenario().getFlowControl() != null
         && runScenario.getScenario().getFlowControl().getObjectives() != null) {
-      checkObjectives(runObjectives, startTestDate, endTestDate, processInstancesCreatedMap, runResult);
+      checkObjectives(runObjectives, startTestDate, endTestDate, runResult);
     }
     logger.info("ScenarioFlow: ------ The end");
   }
@@ -83,7 +83,7 @@ public class RunScenarioFlows {
     for (ScenarioStep scenarioStep : runScenario.getScenario().getFlows()) {
       if (ScenarioStep.Step.STARTEVENT.equals(scenarioStep.getType())) {
         if (!runScenario.getRunParameters().creation) {
-          logger.info("According configuration, STARTEVENT[" + scenarioStep.getProcessId() + "] Does not start");
+          logger.info("According configuration, STARTEVENT[" + scenarioStep.getProcessId() + "] is fully disabled");
         } else
           for (int i = 0; i < scenarioStep.getNbWorkers(); i++) {
             RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
@@ -95,13 +95,13 @@ public class RunScenarioFlows {
       }
       if (ScenarioStep.Step.SERVICETASK.equals(scenarioStep.getType())) {
         if (!runScenario.getRunParameters().servicetask) {
-          logger.info("According configuration, SERVICETASK[{}] Does not start", scenarioStep.getTopic());
+          logger.info("According configuration, SERVICETASK[{}] is fully disabled", scenarioStep.getTopic());
         } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
           logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
               scenarioStep.getTopic(), runScenario.getRunParameters().filterServiceTask);
         } else {
-          RunScenarioFlowServiceTask runStartEvent = new RunScenarioFlowServiceTask(scenarioStep, 0, runScenario,
-              new RunResult(runScenario));
+          RunScenarioFlowServiceTask runStartEvent = new RunScenarioFlowServiceTask(
+              serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
           runStartEvent.execute();
           listFlows.add(runStartEvent);
         }
@@ -178,22 +178,26 @@ public class RunScenarioFlows {
    *
    * @param listFlows                  list of flow
    * @param runResult                  runResult to populate
-   * @param processInstancesCreatedMap statistics
+   * @param recordCreationPIMap statistics
    */
   private void collectInformation(List<RunScenarioFlowBasic> listFlows,
                                   RunResult runResult,
-                                  Map<String, Long> processInstancesCreatedMap) {
+                                  Map<String, RunResult.RecordCreationPI> recordCreationPIMap) {
     // Collect information
     logger.info("Collect Data : listFlows[{}]", listFlows.size());
     for (RunScenarioFlowBasic flowBasic : listFlows) {
       RunResult runResultFlow = flowBasic.getRunResult();
       runResult.add(runResultFlow);
       if (flowBasic instanceof RunScenarioFlowStartEvent) {
-        String processId = flowBasic.getRunScenario().getScenario().getProcessId();
-        long processInstanceCreated = processInstancesCreatedMap.getOrDefault(processId, Long.valueOf(0));
-        processInstancesCreatedMap.put(processId, processInstanceCreated + runResultFlow.getNumberOfProcessInstances());
-        logger.info("Collect Data : Flow is Start Event, processId[{}] processInstanceCreated[{}]", processId,
-            processInstanceCreated);
+        String processId = flowBasic.getScenarioStep().getProcessId();
+        RunResult.RecordCreationPI recordFlow = runResultFlow.getRecordCreationPI().get(processId);
+        RunResult.RecordCreationPI recordCreationPI = recordCreationPIMap.getOrDefault(processId,
+            new RunResult.RecordCreationPI(processId));
+
+        recordCreationPI.add(recordFlow);
+        recordCreationPIMap.put(processId, recordCreationPI);
+        logger.info("Collect Data : StartEvent, processId[{}] PICreated[{}] PIFailed[{}]", processId,
+            recordFlow.nbCreated, recordFlow.nbFailed);
       }
     }
   }
@@ -209,7 +213,6 @@ public class RunScenarioFlows {
   private void checkObjectives(RunObjectives runObjectives,
                                Date startTestDate,
                                Date endTestDate,
-                               Map<String, Long> processInstancesCreatedMap,
                                RunResult runResult) {
 
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
@@ -225,7 +228,7 @@ public class RunScenarioFlows {
       if (checkResult.success) {
         logger.info("Objective: SUCCESS type {}  label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
             checkResult.objective.type, checkResult.objective.label, checkResult.objective.processId,
-            checkResult.realValue, checkResult.objective.value, checkResult.analysis);
+            checkResult.recordedSuccessValue, checkResult.objective.value, checkResult.analysis);
         // do not need to log the error, already done
 
       } else {
@@ -251,7 +254,7 @@ public class RunScenarioFlows {
       RunResult runResultFlow = flowBasic.getRunResult();
       int currentNumberOfThreads = flowBasic.getCurrentNumberOfThreads();
       // logs only flow with a result or currently active
-      if (runResultFlow.getNumberOfProcessInstances() + runResultFlow.getNumberOfSteps()
+      if (runResultFlow.getRecordCreationPIAllProcesses() + runResultFlow.getNumberOfSteps()
           + runResultFlow.getNumberOfErrorSteps() == 0 && currentNumberOfThreads == 0)
         continue;
       long previousValue = previousValueMap.getOrDefault(flowBasic.getId(), 0L);
@@ -260,15 +263,27 @@ public class RunScenarioFlows {
       String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " " + " currentNbThreads["
           + currentNumberOfThreads + "] ";
       key += switch (scenarioStep.getType()) {
-        case STARTEVENT -> "PI[" + runResultFlow.getNumberOfProcessInstances() + "] delta[" + (
-            runResultFlow.getNumberOfSteps() - previousValue) + "]";
+        case STARTEVENT -> "PI[" + runResultFlow.getRecordCreationPI() + "] delta[" + (
+            runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated
+                - previousValue) + "]";
         case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
-            runResultFlow.getNumberOfSteps() - previousValue) + "]StepsErrors["
-            + runResultFlow.getNumberOfErrorSteps() + "]";
+            runResultFlow.getNumberOfSteps() - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps()
+            + "]";
         default -> "]";
       };
       logger.info(key);
-      previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
+      switch (scenarioStep.getType()) {
+      case STARTEVENT -> {
+        previousValueMap.put(flowBasic.getId(),
+            (long) runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
+      }
+      case SERVICETASK -> {
+        previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
+      }
+      default -> {
+      }
+      }
+
     }
     int nbThreadsServiceTask = 0;
     int nbThreadsAutomator = 0;

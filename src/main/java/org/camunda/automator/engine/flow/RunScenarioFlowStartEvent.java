@@ -17,6 +17,9 @@ import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   private final TaskScheduler scheduler;
@@ -109,15 +112,23 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
         return;
       }
       long begin = System.currentTimeMillis();
-      try {
-        for (int i = 0; i < scenarioStep.getNumberOfExecutions(); i++) {
-          runScenario.getBpmnEngine()
+      int nbCreation=0;
+      int nbFailed=0;
+      List<String> listProcessInstances = new ArrayList<>();
+      for (int i = 0; i < scenarioStep.getNumberOfExecutions(); i++) {
+        try {
+          String processInstance = runScenario.getBpmnEngine()
               .createProcessInstance(scenarioStep.getProcessId(), scenarioStep.getTaskId(), // activityId
                   RunZeebeOperation.getVariablesStep(runScenario, scenarioStep));
-          runResult.registerAddProcessInstance();// resolve variables
+          if (listProcessInstances.size() < 21)
+            listProcessInstances.add(processInstance);
+          nbCreation++;
+          runResult.registerAddProcessInstance(scenarioStep.getProcessId(),true);
+        } catch (AutomatorException e) {
+          runResult.addError(scenarioStep, "Error at creation: [" + e.getMessage() + "]");
+          nbFailed++;
+          runResult.registerAddProcessInstance(scenarioStep.getProcessId(),false);
         }
-      } catch (AutomatorException e) {
-        runResult.addError(scenarioStep, "Error at creation: [" + e.getMessage() + "]");
       }
       long end = System.currentTimeMillis();
       Duration duration = Duration.parse(scenarioStep.getFrequency());
@@ -128,8 +139,12 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
       }
 
       if (runScenario.getRunParameters().isLevelMonitoring()) {
-        logger.info("[" + getId() + "] Create[" + scenarioStep.getNumberOfExecutions() + "] in " + (end - begin) + " ms"
-            + " Sleep[" + duration.getSeconds() + " s]");
+        logger.info("[" + getId() // id
+            + "] Create (real/scenario)[" + nbCreation+"/"+scenarioStep.getNumberOfExecutions() // creation/target
+            + "] Failed["+nbFailed // failed
+            + "] in " + (end - begin) + " ms" // time of operation
+            + " Sleep[" + duration.getSeconds() + " s] listPI(max20): " + listProcessInstances.stream()
+            .collect(Collectors.joining(",")));
       }
       scheduler.schedule(this, Instant.now().plusMillis(duration.toMillis()));
 

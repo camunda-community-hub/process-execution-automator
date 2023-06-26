@@ -222,6 +222,8 @@ public class ConfigurationBpmEngine {
 
   private int parseInt(String label, String value, int defaultValue) {
     try {
+      if (value.equals("''"))
+        return defaultValue;
       return Integer.parseInt(value);
     } catch (Exception e) {
       logger.error("Can't parse value [{}] at [{}]", value, label);

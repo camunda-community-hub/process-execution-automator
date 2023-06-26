@@ -17,10 +17,10 @@ import java.util.List;
 public class ConfigurationStartup {
   static Logger logger = LoggerFactory.getLogger(ConfigurationStartup.class);
 
-  @Value("#{'${automator.startup.scenarioAtStartup}'.split(';')}")
+  @Value("#{'${automator.startup.scenarioAtStartup:\'\'}'.split(';')}")
   public List<String> scenarioAtStartup;
 
-  @Value("#{'${automator.startup.filterService}'.split(';')}")
+  @Value("#{'${automator.startup.filterService:\'\'}'.split(';')}")
   public List<String> filterService;
 
   @Value("${automator.startup.scenarioPath}")
