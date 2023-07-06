@@ -135,6 +135,9 @@ public class AutomatorStartup {
                 logger.info("Connect to Bpmn Engine Type{}", scenario.getServerType());
               }
               bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+              if (! bpmnEngine.isReady()) {
+                bpmnEngine.connection();
+              }
             } catch (AutomatorException e) {
               pleaseTryAgain = true;
             }

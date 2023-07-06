@@ -29,17 +29,25 @@ import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.response.DeploymentEvent;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
+import io.camunda.zeebe.client.api.worker.JobHandler;
+import io.camunda.zeebe.client.api.worker.JobWorker;
+import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
 import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.flow.FixedBackoffSupplier;
+import org.camunda.automator.engine.flow.RunScenarioFlowServiceTask;
+import org.camunda.bpm.client.task.ExternalTaskHandler;
+import org.camunda.community.rest.client.invoker.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -130,7 +138,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   }
 
   @Override
-  public void init() throws AutomatorException {
+  public void init() {
+    // nothing to do there
+  }
+
+  public void connection() throws AutomatorException
+  {
 
     final String defaultAddress = "localhost:26500";
     final String envVarAddress = System.getenv("ZEEBE_ADDRESS");
@@ -216,8 +229,20 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       logger.info(analysis.toString());
 
     } catch (Exception e) {
+      zeebeClient=null;
       throw new AutomatorException("Can't connect to Zeebe " + e.getMessage() + " - Analysis:" + analysis);
     }
+  }
+
+  public void disconnection() throws AutomatorException {
+    // nothing to do here
+  }
+  /**
+   * Engine is ready. If not, a connection() method must be call
+   * @return
+   */
+  public boolean isReady(){
+    return zeebeClient!=null;
   }
 
   /* ******************************************************************** */
@@ -355,6 +380,33 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /*  Service tasks                                                       */
   /*                                                                      */
   /* ******************************************************************** */
+  @Override
+  public RegisteredTask registerServiceTask(String workerId,
+                                       String topic,
+                                       Duration lockTime,
+                                       Object jobHandler,
+                                       FixedBackoffSupplier backoffSupplier)
+  {
+    if (! (jobHandler instanceof JobHandler))
+    {
+      logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId, topic);
+      return null;
+    }
+    RegisteredTask registeredTask = new RegisteredTask();
+
+    JobWorkerBuilderStep1.JobWorkerBuilderStep3 step3 = zeebeClient.newWorker()
+        .jobType(topic)
+        .handler((JobHandler) jobHandler)
+        .timeout(lockTime)
+        .name(workerId);
+
+    if (backoffSupplier!=null) {
+      step3.backoffSupplier(backoffSupplier);
+    }
+    registeredTask.jobWorker = step3.open();
+    return registeredTask;
+  }
+
 
   @Override
   public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)

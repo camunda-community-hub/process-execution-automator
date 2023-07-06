@@ -24,7 +24,7 @@ public class BpmnEngineConfigurationInstance {
 
     ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = new ConfigurationBpmEngine.BpmnServerDefinition();
     serverDefinition.serverType = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7;
-    serverDefinition.serverUrl = serverUrl;
+    serverDefinition.camunda7ServerUrl = serverUrl;
 
     bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

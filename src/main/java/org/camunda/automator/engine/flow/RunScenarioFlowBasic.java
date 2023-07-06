@@ -38,8 +38,8 @@ public abstract class RunScenarioFlowBasic {
   public String getId() {
     String id = scenarioStep.getType() + " ";
     id += switch (scenarioStep.getType()) {
-      case STARTEVENT -> scenarioStep.getProcessId() + "-" + scenarioStep.getTaskId();
-      case SERVICETASK -> scenarioStep.getTopic();
+      case STARTEVENT -> scenarioStep.getProcessId() + "-" + scenarioStep.getTaskId()+"-"+Thread.currentThread().getName();
+      case SERVICETASK -> scenarioStep.getTopic()+"-"+Thread.currentThread().getName();
       default -> "";
     };
     return id + "#" + getIndex();

@@ -5,10 +5,12 @@ import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.flow.FixedBackoffSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,21 @@ public class BpmnEngineDummy implements BpmnEngine {
   @Override
   public void init() {
     logger.info("BpmnEngineDummy.Init:");
+  }
+
+  public void connection() throws AutomatorException {
+  }
+
+  public void disconnection() throws AutomatorException {
+  }
+
+  /**
+   * Engine is ready. If not, a connection() method must be call
+   *
+   * @return
+   */
+  public boolean isReady() {
+    return true;
   }
 
   @Override
@@ -50,6 +67,15 @@ public class BpmnEngineDummy implements BpmnEngine {
   public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
       throws AutomatorException {
     logger.info("BpmnEngineDummy.executeUserTask: activityId[" + userTaskId + "]");
+  }
+
+  @Override
+  public RegisteredTask registerServiceTask(String workerId,
+                                            String topic,
+                                            Duration lockTime,
+                                            Object jobHandler,
+                                            FixedBackoffSupplier backoffSupplier) {
+    return null;
   }
 
   @Override

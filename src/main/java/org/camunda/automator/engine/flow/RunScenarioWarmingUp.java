@@ -41,7 +41,7 @@ public class RunScenarioWarmingUp {
   public void warmingUp() {
     ScenarioWarmingUp warmingUp = runScenario.getScenario().getWarmingUp();
     if (warmingUp == null) {
-      logger.info("WarmingUp not present");
+      logger.info("WarmingUp not present in scenario");
       return;
     }
     if (!runScenario.getRunParameters().warmingUp) {

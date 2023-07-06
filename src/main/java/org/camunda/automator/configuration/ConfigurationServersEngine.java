@@ -1,17 +1,30 @@
 package org.camunda.automator.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 @Component
 @PropertySource("classpath:application.yaml")
+@Configuration
 public class ConfigurationServersEngine {
+
 
   @Value("${automator.servers.camunda7.url:''}")
   public String camunda7Url;
+
+  @Value("${automator.servers.camunda7.username:}")
+  public String camunda7UserName;
+
+  @Value("${automator.servers.camunda7.password:}")
+  public String camunda7Password;
+
   @Value("${automator.servers.camunda7.name:''}")
   public String camunda7Name;
+
+  @Value("${automator.servers.camunda7.workerMaxJobsActive:''}")
+  public String C7workerMaxJobsActive;
 
   @Value("${automator.servers.camunda8.name:''}")
   public String zeebeName;
@@ -50,7 +63,7 @@ public class ConfigurationServersEngine {
   public String workerExecutionThreads;
 
   @Value("${automator.servers.camunda8.workerMaxJobsActive:''}")
-  public String workerMaxJobsActive;
+  public String C8workerMaxJobsActive;
 
 }
 

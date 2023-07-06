@@ -73,6 +73,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
   public enum STATUS {RUNNING, STOPPING, STOPPED}
 
+  private int stepNumber=0;
   /**
    * StartEventRunnable
    */
@@ -85,6 +86,9 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     private final RunScenarioFlowStartEvent flowStartEvent;
 
     private int nbOverloaded = 0;
+    private int totalCreation = 0;
+    private int totalCreationGoal = 0;
+    private int totalFailed = 0;
 
     public StartEventRunnable(TaskScheduler scheduler,
                               ScenarioStep scenarioStep,
@@ -100,22 +104,35 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
     @Override
     public void run() {
+      stepNumber++;
       if (flowStartEvent.stopping) {
         if (runScenario.getRunParameters().isLevelMonitoring()) {
           logger.info("Stop now [" + getId() + "]");
           if (nbOverloaded > 0)
-            runResult.addError(scenarioStep, "Overloaded " + nbOverloaded + " Process[" + scenarioStep.getProcessId()
-                + "] Can't create PI at the required frequency");
+            runResult.addError(scenarioStep,
+                "Overloaded " + nbOverloaded + " TotalCreation " + totalCreation + " Goal " + totalCreationGoal
+                    + " Process[" + scenarioStep.getProcessId() + "] Can't create PI at the required frequency");
+          if (totalFailed > 0)
+            runResult.addError(scenarioStep,
+                "Failed " + totalFailed + " Process[" + scenarioStep.getProcessId() + "] Can't create PI ");
+
         }
         // notify my parent that I stop now
         flowStartEvent.isRunning = false;
         return;
       }
       long begin = System.currentTimeMillis();
-      int nbCreation=0;
-      int nbFailed=0;
+      int nbCreation = 0;
+      int nbFailed = 0;
+      boolean isOverloadSection = false;
+      Duration duration = Duration.parse(scenarioStep.getFrequency());
+
       List<String> listProcessInstances = new ArrayList<>();
+      totalCreationGoal += scenarioStep.getNumberOfExecutions();
+      boolean alreadyLoggedError = false;
       for (int i = 0; i < scenarioStep.getNumberOfExecutions(); i++) {
+
+        // operation
         try {
           String processInstance = runScenario.getBpmnEngine()
               .createProcessInstance(scenarioStep.getProcessId(), scenarioStep.getTaskId(), // activityId
@@ -123,31 +140,51 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
           if (listProcessInstances.size() < 21)
             listProcessInstances.add(processInstance);
           nbCreation++;
-          runResult.registerAddProcessInstance(scenarioStep.getProcessId(),true);
+          totalCreation++;
+          runResult.registerAddProcessInstance(scenarioStep.getProcessId(), true);
         } catch (AutomatorException e) {
-          runResult.addError(scenarioStep, "Error at creation: [" + e.getMessage() + "]");
+          if (!alreadyLoggedError)
+            runResult.addError(scenarioStep, "Step #"+stepNumber+"-"+getId()+" Error at creation: [" + e.getMessage() + "]");
+          alreadyLoggedError = true;
           nbFailed++;
-          runResult.registerAddProcessInstance(scenarioStep.getProcessId(),false);
+          totalFailed++;
+          runResult.registerAddProcessInstance(scenarioStep.getProcessId(), false);
         }
-      }
+
+        // do we have to stop the execution?
+        long currentTimeMillis = System.currentTimeMillis();
+        Duration durationCurrent = duration.minusMillis(currentTimeMillis - begin);
+        if (durationCurrent.isNegative()) {
+          // take too long to create the required process instance, so stop now.
+          logger.info("Step #"+stepNumber+"-"+getId()+" Take too long to created ProcessInstances: created {} when expected {}", nbCreation,
+              scenarioStep.getNumberOfExecutions());
+          isOverloadSection = true;
+          break;
+        }
+
+      } // end of loop getNumberOfExecutions()
+
+
       long end = System.currentTimeMillis();
-      Duration duration = Duration.parse(scenarioStep.getFrequency());
       duration = duration.minusMillis(end - begin);
       if (duration.isNegative()) {
         duration = Duration.ZERO;
+        isOverloadSection = true;
         nbOverloaded++;
       }
 
       if (runScenario.getRunParameters().isLevelMonitoring()) {
-        logger.info("[" + getId() // id
-            + "] Create (real/scenario)[" + nbCreation+"/"+scenarioStep.getNumberOfExecutions() // creation/target
-            + "] Failed["+nbFailed // failed
-            + "] in " + (end - begin) + " ms" // time of operation
-            + " Sleep[" + duration.getSeconds() + " s] listPI(max20): " + listProcessInstances.stream()
-            .collect(Collectors.joining(",")));
+        logger.info("Step #"+stepNumber+"-" + getId() // id
+            + "] Create (real/scenario)[" + nbCreation + "/" + scenarioStep.getNumberOfExecutions() // creation/target
+            + "] Failed[" + nbFailed // failed
+            + "] in " + (end - begin) + " ms " // time of operation
+            + (isOverloadSection ? "OVERLOAD" : "") + " Sleep[" + duration.getSeconds() + " s] listPI(max20): "
+            + listProcessInstances.stream().collect(Collectors.joining(",")));
       }
       scheduler.schedule(this, Instant.now().plusMillis(duration.toMillis()));
 
     }
   }
+
+
 }

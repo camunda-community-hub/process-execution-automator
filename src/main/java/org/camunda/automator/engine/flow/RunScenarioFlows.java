@@ -57,20 +57,20 @@ public class RunScenarioFlows {
 
     Date endTestDate = new Date();
     runObjectives.setEndDate(endTestDate);
-    logger.info("ScenarioFlow: ------ Stop Execution");
+    logger.info("ScenarioFlow: ------ Stop");
 
     stopExecution(listFlows);
 
-    logger.info("ScenarioFlow: ------ Collect Data");
+    logger.info("ScenarioFlow: ------ CollectData");
     collectInformation(listFlows, runResult, recordCreationPIMap);
 
     // Check with Objective now
-    logger.info("ScenarioFlow: ------ Check objectives");
+    logger.info("ScenarioFlow: ------ CheckObjectives");
     if (runScenario.getScenario().getFlowControl() != null
         && runScenario.getScenario().getFlowControl().getObjectives() != null) {
       checkObjectives(runObjectives, startTestDate, endTestDate, runResult);
     }
-    logger.info("ScenarioFlow: ------ The end");
+    logger.info("ScenarioFlow: ------ TheEnd");
   }
 
   /**
@@ -120,14 +120,19 @@ public class RunScenarioFlows {
     // Then wait the delay, and kill everything after
     Duration durationExecution = runScenario.getScenario().getFlowControl().getDuration();
     Duration durationWarmingUp = Duration.ZERO;
-    // if this server didn't do the warmingup, then other server did it: we have to keep this time into account
+    // if this server didn't do the warmingUp, then other server did it: we have to keep this time into account
     if (!runScenario.getRunParameters().warmingUp)
-      durationWarmingUp = runScenario.getScenario().getWarmingUp().getDuration();
+    {
+      // is the scenario has a warming up defined?
+      if (runScenario.getScenario().getWarmingUp()!=null)
+        durationWarmingUp = runScenario.getScenario().getWarmingUp().getDuration();
+    }
+
 
     long endTimeExpected =
         startTestDate.getTime() + durationExecution.getSeconds() * 1000 + durationWarmingUp.getSeconds() * 1000;
 
-    logger.info("RunScenarioFlows: start execution Fixed WarmingUp {} s ExecutionDuration {} s (total {} s)",
+    logger.info("Start: FixedWarmingUp {} s ExecutionDuration {} s (total {} s)",
         durationWarmingUp.getSeconds(), durationExecution.getSeconds(),
         durationWarmingUp.getSeconds() + durationExecution.getSeconds());
 
@@ -151,7 +156,7 @@ public class RunScenarioFlows {
    * @param listFlows list of flows to stop
    */
   private void stopExecution(List<RunScenarioFlowBasic> listFlows) {
-    logger.info("RunScenarioFlows: end of game - wait end FlowBasic");
+    logger.info("End - wait end FlowBasic");
     // now, stop all executions
     for (RunScenarioFlowBasic flowBasic : listFlows) {
       flowBasic.pleaseStop();
@@ -184,7 +189,7 @@ public class RunScenarioFlows {
                                   RunResult runResult,
                                   Map<String, RunResult.RecordCreationPI> recordCreationPIMap) {
     // Collect information
-    logger.info("Collect Data : listFlows[{}]", listFlows.size());
+    logger.info("CollectData : listFlows[{}]", listFlows.size());
     for (RunScenarioFlowBasic flowBasic : listFlows) {
       RunResult runResultFlow = flowBasic.getRunResult();
       runResult.add(runResultFlow);
@@ -196,7 +201,7 @@ public class RunScenarioFlows {
 
         recordCreationPI.add(recordFlow);
         recordCreationPIMap.put(processId, recordCreationPI);
-        logger.info("Collect Data : StartEvent, processId[{}] PICreated[{}] PIFailed[{}]", processId,
+        logger.info("CollectData : StartEvent, processId[{}] PICreated[{}] PIFailed[{}]", processId,
             recordFlow.nbCreated, recordFlow.nbFailed);
       }
     }
@@ -207,7 +212,6 @@ public class RunScenarioFlows {
    *
    * @param startTestDate              date when the test start
    * @param endTestDate                date when the test end
-   * @param processInstancesCreatedMap statistic
    * @param runResult                  result to populate
    */
   private void checkObjectives(RunObjectives runObjectives,
@@ -216,7 +220,7 @@ public class RunScenarioFlows {
                                RunResult runResult) {
 
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
-    logger.info("Collecting data...");
+    logger.info("CollectingData...");
     try {
       Thread.sleep(1000 * 60);
     } catch (InterruptedException e) {
@@ -226,7 +230,7 @@ public class RunScenarioFlows {
     List<RunObjectives.ObjectiveResult> listCheckResult = runObjectives.check();
     for (RunObjectives.ObjectiveResult checkResult : listCheckResult) {
       if (checkResult.success) {
-        logger.info("Objective: SUCCESS type {}  label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
+        logger.info("Objective: SUCCESS type {} label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
             checkResult.objective.type, checkResult.objective.label, checkResult.objective.processId,
             checkResult.recordedSuccessValue, checkResult.objective.value, checkResult.analysis);
         // do not need to log the error, already done
@@ -297,7 +301,7 @@ public class RunScenarioFlows {
       for (StackTraceElement ste : entry.getValue()) {
         if (ste.getClassName().contains("io.camunda"))
           isZeebe = true;
-        else if (ste.getClassName().contains(RunScenarioFlowServiceTask.SimpleDelayCompletionHandler.class.getName()))
+        else if (ste.getClassName().contains(RunScenarioFlowServiceTask.SimpleDelayHandler.class.getName()))
           isServiceTask = true;
         else if (ste.getClassName().contains(".automator."))
           isAutomator = true;
@@ -331,7 +335,7 @@ public class RunScenarioFlows {
     BpmnEngine bpmnEngine = runScenario.getBpmnEngine();
     int workerExecutionThreads = bpmnEngine.getWorkerExecutionThreads();
     if (nbThreadsServiceTask + nbThreadsTimeWaiting + nbThreadsWaiting + nbThreadsTimeRunnable + nbThreadsAutomator > 0)
-      logger.info("Threads: ServiceTaskExecution[{}/{}] {} % Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ",
+      logger.info("Threads: ServiceTaskExecution (ThreadService/maxJobActive) [{}/{}] {} % Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ",
           nbThreadsServiceTask, workerExecutionThreads,
           workerExecutionThreads == 0 ? 0 : (int) (100.0 * nbThreadsServiceTask / workerExecutionThreads),
           nbThreadsAutomator, nbThreadsTimeWaiting, nbThreadsWaiting, nbThreadsTimeRunnable);

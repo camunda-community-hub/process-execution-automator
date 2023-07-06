@@ -1,23 +1,36 @@
 package org.camunda.automator.bpmnengine;
 
 import io.camunda.operate.search.DateFilter;
+import io.camunda.zeebe.client.api.worker.JobWorker;
 import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.flow.FixedBackoffSupplier;
+import org.camunda.bpm.client.topic.TopicSubscription;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 public interface BpmnEngine {
 
   /**
-   * init or reinit the connection
+   * init the engine. This method will
    *
    * @throws Exception in case of error
    */
-  void init() throws AutomatorException;
+  void init();
+
+  public void connection() throws AutomatorException;
+
+  public void disconnection() throws AutomatorException;
+  /**
+   * Engine is ready. If not, a connection() method must be call
+   * @return
+   */
+  public boolean isReady();
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -75,6 +88,46 @@ public interface BpmnEngine {
   /*  Service tasks                                                       */
   /*                                                                      */
   /* ******************************************************************** */
+
+  public class RegisteredTask {
+    public TopicSubscription topicSubscription;
+    public JobWorker jobWorker;
+
+    public boolean isNull() {
+      return topicSubscription == null && jobWorker == null;
+    }
+
+    public boolean isClosed() {
+      if (jobWorker != null)
+        return jobWorker.isClosed();
+      if (topicSubscription != null)
+        return false;
+      return true;
+    }
+
+    public void close() {
+      if (jobWorker != null)
+        jobWorker.close();
+      if (topicSubscription != null) {
+        topicSubscription.close();
+        topicSubscription = null;
+      }
+    }
+  }
+
+  /**
+   * @param workerId        workerId
+   * @param topic           topic to register
+   * @param lockTime        lock time for the job
+   * @param jobHandler      C7: must implement ExternalTaskHandler. C8: must implement JobHandler
+   * @param backoffSupplier backOffStrategy
+   * @return
+   */
+  RegisteredTask registerServiceTask(String workerId,
+                                     String topic,
+                                     Duration lockTime,
+                                     Object jobHandler,
+                                     FixedBackoffSupplier backoffSupplier);
 
   /**
    * @param processInstanceId process instance ID

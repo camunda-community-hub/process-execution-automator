@@ -6,7 +6,12 @@ import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.flow.FixedBackoffSupplier;
+import org.camunda.bpm.client.ExternalTaskClient;
+import org.camunda.bpm.client.backoff.ExponentialBackoffStrategy;
+import org.camunda.bpm.client.task.ExternalTaskHandler;
 import org.camunda.community.rest.client.api.DeploymentApi;
+import org.camunda.community.rest.client.api.EngineApi;
 import org.camunda.community.rest.client.api.ExternalTaskApi;
 import org.camunda.community.rest.client.api.ProcessDefinitionApi;
 import org.camunda.community.rest.client.api.ProcessInstanceApi;
@@ -18,12 +23,15 @@ import org.camunda.community.rest.client.dto.DeploymentWithDefinitionsDto;
 import org.camunda.community.rest.client.dto.ExternalTaskDto;
 import org.camunda.community.rest.client.dto.ExternalTaskQueryDto;
 import org.camunda.community.rest.client.dto.LockExternalTaskDto;
+import org.camunda.community.rest.client.dto.ProcessEngineDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceQueryDto;
+import org.camunda.community.rest.client.dto.ProcessInstanceQueryDtoSorting;
 import org.camunda.community.rest.client.dto.ProcessInstanceWithVariablesDto;
 import org.camunda.community.rest.client.dto.StartProcessInstanceDto;
 import org.camunda.community.rest.client.dto.TaskDto;
 import org.camunda.community.rest.client.dto.TaskQueryDto;
+import org.camunda.community.rest.client.dto.TaskQueryDtoSorting;
 import org.camunda.community.rest.client.dto.UserIdDto;
 import org.camunda.community.rest.client.dto.VariableInstanceDto;
 import org.camunda.community.rest.client.dto.VariableInstanceQueryDto;
@@ -35,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,19 +59,28 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda7.class);
 
   private final String serverUrl;
-  private final boolean logDebug;
+  private final String userName;
+  private final String password;
 
-  ApiClient client = null;
+  private final int workerMaxJobsActive;
+  private final boolean logDebug;
+  public static final int SEARCH_MAX_SIZE = 100;
+
+  ApiClient apiClient = null;
   ProcessDefinitionApi processDefinitionApi;
   TaskApi taskApi;
   ExternalTaskApi externalTaskApi;
   ProcessInstanceApi processInstanceApi;
   VariableInstanceApi variableInstanceApi;
   DeploymentApi deploymentApi;
+  EngineApi engineApi;
 
   public BpmnEngineCamunda7(ConfigurationBpmEngine engineConfiguration,
                             ConfigurationBpmEngine.BpmnServerDefinition serverDefinition) {
-    this.serverUrl = serverDefinition.serverUrl;
+    this.serverUrl = serverDefinition.camunda7ServerUrl;
+    this.userName = serverDefinition.camunda7UserName;
+    this.password = serverDefinition.camunda7Password;
+    this.workerMaxJobsActive = serverDefinition.workerMaxJobsActive;
     this.logDebug = engineConfiguration.logDebug;
     init();
   }
@@ -72,24 +90,78 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
    *
    * @param serverUrl is  "http://localhost:8080/engine-rest"
    */
-  public BpmnEngineCamunda7(String serverUrl, boolean logDebug) {
+  public BpmnEngineCamunda7(String serverUrl, String userName, String password, boolean logDebug) {
     this.serverUrl = serverUrl;
+    this.userName = userName;
+    this.password = password;
+    this.workerMaxJobsActive = 1;
     this.logDebug = logDebug;
     init();
   }
 
   @Override
   public void init() {
-    client = new ApiClient();
-    client.setBasePath(serverUrl);
-    processDefinitionApi = new ProcessDefinitionApi();
-    taskApi = new TaskApi();
-    externalTaskApi = new ExternalTaskApi();
-    processInstanceApi = new ProcessInstanceApi();
-    variableInstanceApi = new VariableInstanceApi();
-    deploymentApi = new DeploymentApi();
+    apiClient = new ApiClient();
+    apiClient.setBasePath(serverUrl);
+    if (!userName.trim().isEmpty()) {
+      apiClient.setUsername(userName);
+      apiClient.setPassword(password);
+    } else {
+    }
+
+    processDefinitionApi = new ProcessDefinitionApi(apiClient);
+
+    taskApi = new TaskApi(apiClient);
+
+    externalTaskApi = new ExternalTaskApi(apiClient);
+
+    processInstanceApi = new ProcessInstanceApi(apiClient);
+
+    variableInstanceApi = new VariableInstanceApi(apiClient);
+
+    deploymentApi = new DeploymentApi(apiClient);
+
+    engineApi = new EngineApi(apiClient);
   }
 
+  private int count = 0;
+
+  public void connection() throws AutomatorException {
+    count++;
+    // we verify if we have the connection
+    // logger.info("Connection to Camunda7 server[{}] User[{}] password[***]", serverUrl, userName);
+    if (count > 2)
+      return;
+    try {
+      engineApi.getProcessEngineNames();
+      logger.info("Connection successfully to Camunda7 [{}] ", apiClient.getBasePath());
+    } catch (ApiException e) {
+      logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.toString());
+      throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e.toString());
+    }
+  }
+
+  public void disconnection() throws AutomatorException {
+    // nothing to do here
+  }
+
+  /**
+   * Engine is ready. If not, a connection() method must be call
+   *
+   * @return
+   */
+  public boolean isReady() {
+    if (count > 2)
+      return true;
+
+    try {
+      engineApi.getProcessEngineNames();
+    } catch (ApiException e) {
+      // no need to log, connect will be called
+      return false;
+    }
+    return true;
+  }
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -103,13 +175,15 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     if (logDebug) {
       logger.info("BpmnEngine7.CreateProcessInstance: Process[" + processId + "] StartEvent[" + starterEventId + "]");
     }
+    String dateString = dateToString(new Date());
+
     Map<String, VariableValueDto> variablesApi = new HashMap<>();
     for (Map.Entry<String, Object> entry : variables.entrySet()) {
       variablesApi.put(entry.getKey(), new VariableValueDto().value(entry.getValue()));
     }
     try {
       ProcessInstanceWithVariablesDto processInstanceDto = processDefinitionApi.startProcessInstanceByKey(processId,
-          new StartProcessInstanceDto().variables(variablesApi));
+          new StartProcessInstanceDto().variables(variablesApi).businessKey(dateString));
       return processInstanceDto.getId();
     } catch (ApiException e) {
       throw new AutomatorException(
@@ -177,12 +251,41 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
   }
 
-
   /* ******************************************************************** */
   /*                                                                      */
   /*  Service task                                                        */
   /*                                                                      */
   /* ******************************************************************** */
+  @Override
+  public RegisteredTask registerServiceTask(String workerId,
+                                            String topic,
+                                            Duration lockTime,
+                                            Object jobHandler,
+                                            FixedBackoffSupplier backoffSupplier) {
+
+    if (!(jobHandler instanceof ExternalTaskHandler)) {
+      logger.error("handler is not a externalTaskHandler implementation, can't register the worker [{}], topic [{}]",
+          workerId, topic);
+      return null;
+    }
+    RegisteredTask registeredTask = new RegisteredTask();
+
+    ExternalTaskClient client = ExternalTaskClient.create()
+        .baseUrl(serverUrl)
+        .workerId(workerId)
+        .maxTasks(workerMaxJobsActive < 1 ? 1 : workerMaxJobsActive)
+        .lockDuration(lockTime.toMillis())
+        .asyncResponseTimeout(20000)
+        .backoffStrategy(new ExponentialBackoffStrategy())
+        .build();
+
+    registeredTask.topicSubscription = client.subscribe(topic)
+        .lockDuration(10000)
+        .handler((ExternalTaskHandler) jobHandler)
+        .open();
+    return registeredTask;
+
+  }
 
   /**
    * Search service task
@@ -332,7 +435,37 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public long countNumberOfProcessInstancesCreated(String processName, DateFilter startDate, DateFilter endDate)
       throws AutomatorException {
-    throw new AutomatorException("Not yet implemented");
+
+    try {
+      int cumul = 0;
+      ProcessInstanceQueryDto processInstanceQuery = new ProcessInstanceQueryDto();
+      processInstanceQuery = processInstanceQuery.addProcessDefinitionKeyInItem(processName);
+      processInstanceQuery.addSortingItem(
+          new ProcessInstanceQueryDtoSorting().sortBy(ProcessInstanceQueryDtoSorting.SortByEnum.INSTANCEID)
+              .sortOrder(ProcessInstanceQueryDtoSorting.SortOrderEnum.ASC));
+
+      int maxLoop = 0;
+      int firstResult = 0;
+      List<ProcessInstanceDto> processInstanceDtos;
+      do {
+        maxLoop++;
+        processInstanceDtos = processInstanceApi.queryProcessInstances(firstResult, SEARCH_MAX_SIZE,
+            processInstanceQuery);
+        firstResult += processInstanceDtos.size();
+        cumul += processInstanceDtos.stream().filter(t -> {
+          Date datePI = stringToDate(t.getBusinessKey());
+          if (datePI == null)
+            return false;
+          return datePI.after(startDate.getDate());
+        }).count();
+
+      } while (processInstanceDtos.size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
+      return cumul;
+
+    } catch (Exception e) {
+      throw new AutomatorException("Error during countNumberOfProcessInstancesCreated");
+
+    }
   }
 
   @Override
@@ -342,7 +475,30 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   }
 
   public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
-    throw new AutomatorException("Not yet implemented");
+    try {
+      int cumul = 0;
+      TaskQueryDto taskQueryDto = new TaskQueryDto();
+      taskQueryDto = taskQueryDto.addProcessDefinitionKeyInItem(processId);
+      taskQueryDto.addSortingItem(new TaskQueryDtoSorting().sortBy(TaskQueryDtoSorting.SortByEnum.INSTANCEID)
+          .sortOrder(TaskQueryDtoSorting.SortOrderEnum.ASC));
+
+      int maxLoop = 0;
+      int firstResult = 0;
+      List<TaskDto> taskDtos;
+      do {
+        maxLoop++;
+        taskDtos = taskApi.queryTasks(firstResult, SEARCH_MAX_SIZE, taskQueryDto);
+
+        firstResult += taskDtos.size();
+        cumul += taskDtos.size();
+
+      } while (taskDtos.size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
+      return cumul;
+
+    } catch (Exception e) {
+      throw new AutomatorException("Error during countNumberOfTasks");
+
+    }
   }
 
   /* ******************************************************************** */
@@ -388,7 +544,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
   @Override
   public int getWorkerExecutionThreads() {
-    return 0;
+    return workerMaxJobsActive;
   }
 
   public void turnHighFlowMode(boolean hightFlowMode) {
@@ -447,5 +603,15 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
 
     public enum STATUS {WAIT, FAILURE, SUCCESS}
+  }
+
+  private String dateToString(Date date) {
+    return String.valueOf(date.getTime());
+  }
+
+  private Date stringToDate(String dateSt) {
+    if (dateSt == null)
+      return null;
+    return new Date(Long.valueOf(dateSt));
   }
 }
