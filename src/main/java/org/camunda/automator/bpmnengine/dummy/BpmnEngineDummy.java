@@ -1,28 +1,47 @@
 package org.camunda.automator.bpmnengine.dummy;
 
+import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.flow.FixedBackoffSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class BpmnEngineDummy implements BpmnEngine {
 
-  private final BpmnEngineConfiguration engineConfiguration;
+  private final ConfigurationBpmEngine engineConfiguration;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineDummy.class);
 
-  public BpmnEngineDummy(BpmnEngineConfiguration engineConfiguration) {
+  public BpmnEngineDummy(ConfigurationBpmEngine engineConfiguration) {
     this.engineConfiguration = engineConfiguration;
   }
 
   @Override
   public void init() {
     logger.info("BpmnEngineDummy.Init:");
+  }
+
+  public void connection() throws AutomatorException {
+  }
+
+  public void disconnection() throws AutomatorException {
+  }
+
+  /**
+   * Engine is ready. If not, a connection() method must be call
+   *
+   * @return
+   */
+  public boolean isReady() {
+    return true;
   }
 
   @Override
@@ -47,14 +66,22 @@ public class BpmnEngineDummy implements BpmnEngine {
   @Override
   public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
       throws AutomatorException {
-
     logger.info("BpmnEngineDummy.executeUserTask: activityId[" + userTaskId + "]");
+  }
+
+  @Override
+  public RegisteredTask registerServiceTask(String workerId,
+                                            String topic,
+                                            Duration lockTime,
+                                            Object jobHandler,
+                                            FixedBackoffSupplier backoffSupplier) {
+    return null;
   }
 
   @Override
   public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
@@ -65,22 +92,44 @@ public class BpmnEngineDummy implements BpmnEngine {
   @Override
   public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
       throws AutomatorException {
-    return null;
+    return Collections.emptyList();
   }
 
   @Override
   public List<ProcessDescription> searchProcessInstanceByVariable(String processId,
-                                                                  Map<String, Object> filterVariables, int maxResult) throws AutomatorException {
-    return null;
+                                                                  Map<String, Object> filterVariables,
+                                                                  int maxResult) throws AutomatorException {
+    return Collections.emptyList();
   }
 
   @Override
   public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
-    return null;
+    return Collections.emptyMap();
   }
 
 
 
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  CountInformation                                                    */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  @Override
+  public long countNumberOfProcessInstancesCreated(String processName, DateFilter startDate, DateFilter endDate)
+      throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
+
+  @Override
+  public long countNumberOfProcessInstancesEnded(String processName, DateFilter startDate, DateFilter endDate)
+      throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
+
+  public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
+    throw new AutomatorException("Not yet implemented");
+  }
 
   @Override
   public String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
@@ -88,8 +137,22 @@ public class BpmnEngineDummy implements BpmnEngine {
   }
 
   @Override
-  public BpmnEngineConfiguration.CamundaEngine getTypeCamundaEngine() {
-    return BpmnEngineConfiguration.CamundaEngine.DUMMY;
+  public ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine() {
+    return ConfigurationBpmEngine.CamundaEngine.DUMMY;
+  }
+
+  @Override
+  public String getSignature() {
+    return ConfigurationBpmEngine.CamundaEngine.DUMMY.toString();
+  }
+
+  @Override
+
+  public int getWorkerExecutionThreads() {
+    return 0;
+  }
+
+  public void turnHighFlowMode(boolean hightFlowMode) {
   }
 
 }

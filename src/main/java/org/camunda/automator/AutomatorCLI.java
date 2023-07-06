@@ -1,7 +1,7 @@
 package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.bpmnengine.BpmnEngineConfiguration;
+import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
@@ -27,7 +27,7 @@ public class AutomatorCLI implements CommandLineRunner {
   @Autowired
   AutomatorAPI automatorAPI;
   @Autowired
-  BpmnEngineConfiguration engineConfiguration;
+  ConfigurationBpmEngine engineConfiguration;
 
   public static void main(String[] args) {
     isRunningCLI = true;
@@ -89,7 +89,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
   }
 
-  private static BpmnEngineConfiguration decodeConfiguration(String propertiesFileName) throws Exception {
+  private static ConfigurationBpmEngine decodeConfiguration(String propertiesFileName) throws Exception {
     throw new Exception("Not yet implemented");
   }
 
@@ -106,6 +106,8 @@ public class AutomatorCLI implements CommandLineRunner {
   }
 
   public void run(String[] args) {
+    if (!isRunningCLI)
+      return;
     File scenarioFile = null;
     File folderRecursive = null;
 
@@ -142,14 +144,14 @@ public class AutomatorCLI implements CommandLineRunner {
         } else if ("-d".equals(args[i]) || "--deploy".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : -d TRUE|FALSE");
-          runParameters.allowDeployment = "TRUE".equalsIgnoreCase(args[i+1]);
+          runParameters.deploymentProcess = "TRUE".equalsIgnoreCase(args[i + 1]);
           i++;
         } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
           runParameters.execution = true;
         } else if ("-v".equals(args[i]) || "--verification".equals(args[i])) {
           runParameters.verification = true;
         } else if ("-f".equals(args[i]) || "--fullreport".equals(args[i])) {
-          runParameters.fullDetailsSythesis= true;
+          runParameters.fullDetailsSythesis = true;
         } else if ("run".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : run <scenarioFile>");
@@ -177,7 +179,7 @@ public class AutomatorCLI implements CommandLineRunner {
       }
 
       // get the correct server configuration
-      BpmnEngineConfiguration.BpmnServerDefinition serverDefinition = null;
+      ConfigurationBpmEngine.BpmnServerDefinition serverDefinition = null;
       if (serverName != null) {
         serverDefinition = engineConfiguration.getByServerName(serverName);
 
@@ -186,7 +188,7 @@ public class AutomatorCLI implements CommandLineRunner {
               + "] does not exist in the list of servers in application.yaml file");
         }
       } else {
-        List<BpmnEngineConfiguration.BpmnServerDefinition> listServers = engineConfiguration.decodeListServersConnection();
+        List<ConfigurationBpmEngine.BpmnServerDefinition> listServers = engineConfiguration.getListServers();
 
         serverDefinition = listServers.isEmpty() ? null : listServers.get(0);
       }
@@ -200,7 +202,9 @@ public class AutomatorCLI implements CommandLineRunner {
       switch (action) {
       case RUN -> {
         Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-        RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
+        BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+        RunResult scenarioExecutionResult = automatorAPI.executeScenario(
+            bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
 
         logger.info(scenarioExecutionResult.getSynthesis(runParameters.fullDetailsSythesis));
       }
@@ -208,7 +212,9 @@ public class AutomatorCLI implements CommandLineRunner {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);
         for (File scenarioFileIndex : listScenario) {
           Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
+          BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+          RunResult scenarioExecutionResult = automatorAPI.executeScenario(
+              bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
 
           logger.info(scenarioExecutionResult.getSynthesis(false));
         }

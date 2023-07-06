@@ -8,24 +8,20 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Execute an exection in a runscenario
+ * one ExecutionStep in a runScenario
  */
 public class RunScenarioExecution {
   private final Logger logger = LoggerFactory.getLogger(RunScenarioExecution.class);
-
-  private String agentName = "";
-
   private final RunScenario runScenario;
   private final ScenarioExecution scnExecution;
+  private String agentName = "";
 
   public RunScenarioExecution(RunScenario runScenario, ScenarioExecution scnExecution) {
     this.runScenario = runScenario;
@@ -88,9 +84,10 @@ public class RunScenarioExecution {
    */
   public RunResult startEvent(RunResult result, ScenarioStep step) {
     try {
-      result.addProcessInstanceId(runScenario.getBpmnEngine()
+      result.addProcessInstanceId(step.getScnExecution().getScnHead().getProcessId(),
+          runScenario.getBpmnEngine()
           .createProcessInstance(step.getScnExecution().getScnHead().getProcessId(), step.getTaskId(), // activityId
-              getVariablesStep(step))); // resolve variables
+              RunZeebeOperation.getVariablesStep(runScenario, step))); // resolve variables
     } catch (AutomatorException e) {
       result.addError(step, "Error at creation " + e.getMessage());
     }
@@ -105,7 +102,6 @@ public class RunScenarioExecution {
    * @return result completed
    */
   public RunResult executeUserTask(RunResult result, ScenarioStep step) {
-
 
     if (step.getDelay() != null) {
       Duration duration = Duration.parse(step.getDelay());
@@ -146,7 +142,9 @@ public class RunScenarioExecution {
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
-        runScenario.getBpmnEngine().executeUserTask(listActivities.get(0), step.getUserId(), getVariablesStep(step));
+        runScenario.getBpmnEngine()
+            .executeUserTask(listActivities.get(0), step.getUserId(),
+                RunZeebeOperation.getVariablesStep(runScenario, step));
       } catch (AutomatorException e) {
         result.addError(step, e.getMessage());
         return result;
@@ -203,7 +201,9 @@ public class RunScenarioExecution {
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
-        runScenario.getBpmnEngine().executeServiceTask(listActivities.get(0), step.getUserId(), getVariablesStep(step));
+        runScenario.getBpmnEngine()
+            .executeServiceTask(listActivities.get(0), step.getUserId(),
+                RunZeebeOperation.getVariablesStep(runScenario, step));
       } catch (AutomatorException e) {
         result.addError(step, e.getMessage());
         return result;
@@ -214,24 +214,7 @@ public class RunScenarioExecution {
 
   }
 
-  /**
-   * Resolve variables
-   */
-  private Map<String, Object> getVariablesStep(ScenarioStep step) throws AutomatorException {
-    Map<String, Object> variablesCompleted = new HashMap<>();
-    variablesCompleted.putAll(step.getVariables());
 
-    // execute all operations now
-    for (Map.Entry<String, String> entryOperation : step.getVariablesOperations().entrySet()) {
-      variablesCompleted.put(entryOperation.getKey(),
-          runScenario.getServiceAccess().serviceDataOperation.execute(entryOperation.getValue(), runScenario));
-    }
-
-    // Check if
-
-
-    return variablesCompleted;
-  }
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -265,13 +248,13 @@ public class RunScenarioExecution {
 
       // two uses case here:
       // Execution AND verifications: for each process Instance created, a verification is running
-      // Only VERIFICATION: the verification ojbnect define a filter to search existing process instance. Verification is perform againts this list
-      if (runParameters.verification && (scnExecution.getVerifications()!=null)) {
+      // Only VERIFICATION: the verification ojbect define a filter to search existing process instance. Verification is perform againts this list
+      if (runParameters.verification && (scnExecution.getVerifications() != null)) {
         if (runParameters.execution) {
           // we just finish executing process instance, so wait 30 S to let the engine finish
           try {
             Thread.sleep(30 * 1000);
-          }catch(Exception e) {
+          } catch (Exception e) {
             // nothing to do
           }
           runVerifications();
@@ -279,14 +262,13 @@ public class RunScenarioExecution {
           // use the search criteria
           if (scnExecution.getVerifications().getSearchProcessInstanceByVariable().isEmpty()) {
             scnRunResult.addVerification(null, false, "No Search Instance by Variable is defined");
-          }
-          else {
+          } else {
             List<BpmnEngine.ProcessDescription> listProcessInstances = runScenario.getBpmnEngine()
                 .searchProcessInstanceByVariable(scnExecution.getScnHead().getProcessId(),
                     scnExecution.getVerifications().getSearchProcessInstanceByVariable(), 100);
 
             for (BpmnEngine.ProcessDescription processInstance : listProcessInstances) {
-              scnRunResult.addProcessInstanceId(processInstance.processInstanceId);
+              scnRunResult.addProcessInstanceId(scnExecution.getScnHead().getProcessId(), processInstance.processInstanceId);
             }
             runVerifications();
           }
@@ -311,13 +293,12 @@ public class RunScenarioExecution {
 
         if (scnRunExecution.runScenario.getRunParameters().isLevelDebug())
           logger.info(
-              "ScnRunExecution.StartExecution.Execute [" + scnRunExecution.runScenario.getScenario().getName() + "."+step.getTaskId()+" agent["
-                  + agentName + "]");
-
+              "ScnRunExecution.StartExecution.Execute [" + scnRunExecution.runScenario.getScenario().getName() + "."
+                  + step.getTaskId() + " agent[" + agentName + "]");
 
         try {
           step.checkConsistence();
-        } catch(AutomatorException e) {
+        } catch (AutomatorException e) {
           scnRunResult.addError(step, e.getMessage());
           continue;
         }
@@ -328,15 +309,18 @@ public class RunScenarioExecution {
         }
         switch (step.getType()) {
         case STARTEVENT -> {
-          scnRunResult = scnRunExecution.startEvent(scnRunResult, step);
+          if (scnRunExecution.runScenario.getRunParameters().creation)
+            scnRunResult = scnRunExecution.startEvent(scnRunResult, step);
         }
         case USERTASK -> {
           // wait for the user Task
-          scnRunResult = scnRunExecution.executeUserTask(scnRunResult, step);
+          if (scnRunExecution.runScenario.getRunParameters().usertask)
+            scnRunResult = scnRunExecution.executeUserTask(scnRunResult, step);
         }
         case SERVICETASK -> {
           // wait for the user Task
-          scnRunResult = scnRunExecution.executeServiceTask(scnRunResult, step);
+          if (scnRunExecution.runScenario.getRunParameters().servicetask)
+            scnRunResult = scnRunExecution.executeServiceTask(scnRunResult, step);
         }
 
         case ENDEVENT -> {

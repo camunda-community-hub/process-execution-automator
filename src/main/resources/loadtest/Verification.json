@@ -1,0 +1,123 @@
+{
+  "name": "Verification",
+  "processId": "Verification",
+  "modeVerification": "NO",
+  "type": "FLOW",
+  "serverType": "Camunda_8",
+  "deployments": [
+    {
+      "serverType": "CAMUNDA_8",
+      "type": "PROCESS",
+      "processFile": "Verification.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
+  "flowControl": {
+    "duration": "PT10M",
+    "objectives": [
+      {
+        "label": "Creation Verification",
+        "processId": "Verification",
+        "type": "CREATED",
+        "value": 20820,
+        "real": "Frequency: 347 PI/10s Duration(warmup): 2mn42 ==> CREATION 10MN: 20820, Ended 10 MN: 15198"
+      },
+      {
+        "label": "Ended (UserTask TheEnd) Verification",
+        "processId": "Verification",
+        "type" : "USERTASK",
+        "taskId" : "Activity_Verification_TheEnd",
+        "value": 20820
+      },
+      {
+        "label": "Flow per minutes",
+        "processId": "Verification",
+        "type" : "FLOWRATEUSERTASKMN",
+        "taskId" : "Activity_Verification_TheEnd",
+        "standardDeviation": 10,
+        "value": 2082
+      }
+    ]
+  },
+  "warmingUp" : {
+    "duration": "PT4M",
+    "operations": [
+      {
+        "type": "STARTEVENT",
+        "taskId": "StartEvent_1",
+        "processId": "Verification",
+        "variables": {},
+        "frequency": "PT10S",
+        "numberOfExecutions": "347",
+        "endWarmingUp": "UserTaskThreshold(Activity_Verification_TheEnd,10)"
+      }
+    ]
+  },
+  "flows": [
+    {
+      "type": "STARTEVENT",
+      "taskId": "StartEvent_1",
+      "processId": "Verification",
+      "variables": {},
+      "frequency": "PT10S",
+      "numberOfExecutions": "347",
+      "nbWorkers": "1",
+      "label" : "347 /1 worker"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-retrieve",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-checkurl",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT5S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-updateitem",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-download",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT30S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-fingerprint",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1M"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-getresult",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1M"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-obtaindescription",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT3S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-thresoldcheck",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1S"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "verification-createpotentialclaim",
+      "modeExecution": "WAIT",
+      "waitingTime": "PT1S"
+    }
+  ]
+}
+

@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ScenarioTool {
 
-  public static File loadFile(String fileName, RunScenario runScenario)  throws AutomatorException {
+  public static File loadFile(String fileName, RunScenario runScenario) throws AutomatorException {
     File file = new File(fileName);
     if (file.exists())
       return file;

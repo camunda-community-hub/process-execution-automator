@@ -63,20 +63,22 @@ public class RunScenarioVerification {
       }
       // check the type for each taskDescription
       List<BpmnEngine.TaskDescription> listNotExpected = listTaskDescriptions.stream()
-          .filter(t -> !(verificationActivity.getType() != null && verificationActivity.getType().toString().equalsIgnoreCase(t.type.toString())))
-          .filter(t-> (
-              (t.isCompleted && ScenarioVerificationTask.StepState.COMPLETED.toString().equals(verificationActivity.state.toString()))
-                  || (!t.isCompleted && ScenarioVerificationTask.StepState.ACTIVE.toString().equals(verificationActivity.state.toString()))))
+          .filter(t -> !(verificationActivity.getType() != null && verificationActivity.getType()
+              .toString()
+              .equalsIgnoreCase(t.type.toString())))
+          .filter(t -> ((t.isCompleted && ScenarioVerificationTask.StepState.COMPLETED.toString()
+              .equals(verificationActivity.state.toString())) || (!t.isCompleted
+              && ScenarioVerificationTask.StepState.ACTIVE.toString().equals(verificationActivity.state.toString()))))
           .toList();
       if (!listNotExpected.isEmpty()) {
         message.append("CheckTask: FAILED_BADTYPE PID[");
-        message.append( processInstanceId );
+        message.append(processInstanceId);
         message.append("] Task[");
-        message.append( verificationActivity.taskId);
-        message.append( "] type expected [");
-        message.append( verificationActivity.type.toString());
+        message.append(verificationActivity.taskId);
+        message.append("] type expected [");
+        message.append(verificationActivity.type.toString());
         message.append("] FAILED, received ");
-        message.append( listNotExpected.stream().map(t -> t.taskId + ":" + t.type.toString()).toList());
+        message.append(listNotExpected.stream().map(t -> t.taskId + ":" + t.type.toString()).toList());
       }
       result.addVerification(verificationActivity, message.isEmpty(), message.toString());
 

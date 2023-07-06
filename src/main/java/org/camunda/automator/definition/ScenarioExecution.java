@@ -9,9 +9,8 @@ import java.util.List;
  */
 public class ScenarioExecution {
 
-  private Scenario scnHead;
   private final List<ScenarioStep> steps = new ArrayList<>();
-
+  private Scenario scnHead;
   private ScenarioVerification verifications;
 
   /**
@@ -27,14 +26,7 @@ public class ScenarioExecution {
    * Number of thread in parallel to execute all process instances. Default is 1
    */
   private Integer numberOfThreads;
-
-  /**
-   * Decide what to do when an error is find: stop or continue?
-   * default is STOPATFIRSTERROR
-   */
-  public enum Policy { STOPATFIRSTERROR, CONTINUE}
   private Policy policy;
-
   /**
    * if set to false, this execution is skipped
    */
@@ -49,6 +41,10 @@ public class ScenarioExecution {
     this.scnHead = scenario;
   }
 
+  public static ScenarioExecution createExecution(Scenario scnHead) {
+    return new ScenarioExecution(scnHead);
+  }
+
 
 
   /* ******************************************************************** */
@@ -56,10 +52,6 @@ public class ScenarioExecution {
   /*  Creator and setter to help the API                                  */
   /*                                                                      */
   /* ******************************************************************** */
-
-  public static ScenarioExecution createExecution(Scenario scnHead) {
-    return new ScenarioExecution(scnHead);
-  }
 
   /**
    * After UnSerialize, all link to parent are not restored
@@ -83,15 +75,13 @@ public class ScenarioExecution {
     steps.add(step);
     return this;
   }
-  /**
-   * Ask this execution to execute a number of process instance.
-   *
-   * @param numberProcessInstances number of process instance to execute
-   * @return this object
-   */
-  public ScenarioExecution setNumberProcessInstances(int numberProcessInstances) {
-    this.numberProcessInstances = numberProcessInstances;
-    return this;
+
+  public List<ScenarioStep> getSteps() {
+    return steps == null ? Collections.emptyList() : steps;
+  }
+
+  public ScenarioVerification getVerifications() {
+    return verifications;
   }
 
 
@@ -102,16 +92,19 @@ public class ScenarioExecution {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public List<ScenarioStep> getSteps() {
-    return steps==null? Collections.emptyList(): steps;
-  }
-
-  public ScenarioVerification getVerifications() {
-    return verifications;
-  }
-
   public int getNumberProcessInstances() {
-    return numberProcessInstances==null? 1 : numberProcessInstances;
+    return numberProcessInstances == null ? 1 : numberProcessInstances;
+  }
+
+  /**
+   * Ask this execution to execute a number of process instance.
+   *
+   * @param numberProcessInstances number of process instance to execute
+   * @return this object
+   */
+  public ScenarioExecution setNumberProcessInstances(int numberProcessInstances) {
+    this.numberProcessInstances = numberProcessInstances;
+    return this;
   }
 
   public Scenario getScnHead() {
@@ -128,15 +121,20 @@ public class ScenarioExecution {
   }
 
   public int getNumberOfThreads() {
-    return (numberOfThreads ==null ? 1: numberOfThreads<=0? 1 : numberOfThreads);
+    return (numberOfThreads == null ? 1 : numberOfThreads <= 0 ? 1 : numberOfThreads);
   }
 
-
   public Policy getPolicy() {
-    return (policy==null? Policy.STOPATFIRSTERROR : policy);
+    return (policy == null ? Policy.STOPATFIRSTERROR : policy);
   }
 
   public boolean isExecution() {
-    return execution==null || Boolean.TRUE.equals(execution);
+    return execution == null || Boolean.TRUE.equals(execution);
   }
+
+  /**
+   * Decide what to do when an error is find: stop or continue?
+   * default is STOPATFIRSTERROR
+   */
+  public enum Policy {STOPATFIRSTERROR, CONTINUE}
 }

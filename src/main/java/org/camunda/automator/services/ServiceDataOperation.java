@@ -25,9 +25,7 @@ public class ServiceDataOperation {
       if (dataOperation.match(value))
         return dataOperation.execute(value, runScenario);
     }
-    throw new AutomatorException("No operation for ["+value+"]");
+    throw new AutomatorException("No operation for [" + value + "]");
   }
-
-
 
 }

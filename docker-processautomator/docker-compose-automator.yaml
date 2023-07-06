@@ -1,0 +1,60 @@
+version: "3"
+services:
+
+  processautomatorDiscovery:
+    image: pierreyvesmonnet/processautomator:1.0.0
+    container_name: processautomatorDiscovery
+    ports:
+      - "8380:8380"
+    environment:
+      - automator.servers.camunda8.zeebeGatewayAddress=zeebe:26500
+      - automator.servers.camunda8.operateUserName=demo
+      - automator.servers.camunda8.operateUserPassword=demo
+      - automator.servers.camunda8.operateUrl=http://operate:8080
+      - automator.servers.camunda8.taskListUrl=
+      - automator.servers.camunda8.workerExecutionThreads=500
+      - automator.startup.scenarioPath=/app/processautomator/src/main/resources/loadtest
+      - automator.startup.scenarioAtStartup=DiscoverySeedExtraction.json
+      - automator.startup.waitWarmup=PT1M
+      - automator.startup.policyExecution=CREATION|SERVICETASK|USERTASK
+      - automator.startup.loglevel=MAIN
+      - ZEEBE_CLIENT_SECURITY_PLAINTEXT=true
+#      - ZEEBE_CLIENT_CLOUD_REGION=
+#      - ZEEBE_CLIENT_CLOUD_CLUSTERID=
+#      - ZEEBE_CLIENT_CLOUD_CLIENTID=
+#      - ZEEBE_CLIENT_CLOUD_CLIENTSECRET=
+      - LOGGING_LEVEL_ROOT=INFO
+    volumes:
+      - ../:/app/processautomator
+    networks:
+      - camunda-platform
+    depends_on:
+      - zeebe
+      - operate
+
+  processautomatorVerification:
+    image: pierreyvesmonnet/processautomator:1.0.0
+    container_name: processautomatorVerification
+    ports:
+      - "8381:8380"
+    environment:
+      - automator.servers.camunda8.zeebeGatewayAddress=zeebe:26500
+      - automator.servers.camunda8.operateUserName=demo
+      - automator.servers.camunda8.operateUserPassword=demo
+      - automator.servers.camunda8.operateUrl=http://operate:8080
+      - automator.servers.camunda8.taskListUrl=
+      - automator.servers.camunda8.workerExecutionThreads=500
+      - automator.startup.scenarioPath=/app/processautomator/src/main/resources/loadtest
+      - automator.startup.scenarioAtStartup=Verification.json
+      - automator.startup.waitWarmup=PT1M
+      - automator.startup.policyExecution=CREATION|SERVICETASK|USERTASK
+      - automator.startup.logLevel=MAIN
+    volumes:
+      - ../:/app/processautomator
+    networks:
+      - camunda-platform
+    depends_on:
+      - zeebe
+      - operate
+networks:
+  camunda-platform:

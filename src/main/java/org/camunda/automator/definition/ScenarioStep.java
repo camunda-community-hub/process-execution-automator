@@ -9,11 +9,28 @@ package org.camunda.automator.definition;
 
 import org.camunda.automator.engine.AutomatorException;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 
 public class ScenarioStep {
 
+  /**
+   * each component contains an operations, to fulfill variables
+   * operations; stringtodate()
+   */
+  private final Map<String, String> variablesOperation = Collections.emptyMap();
+  /**
+   * In case of a Flow Step, the number of workers to execute this tasks
+   */
+  private final Integer nbWorkers = Integer.valueOf(1);
+  private final Long fixedBackOffDelay = Long.valueOf(0);
+  /**
+   * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
+   * Expression is
+   * UserTaskThreashold(<taskId>,<numberOfTaskExpected>)
+   */
+  public String endWarmingUp;
   private ScenarioExecution scnExecution;
   private Step type;
   private String taskId;
@@ -22,29 +39,42 @@ public class ScenarioStep {
    */
   private String topic;
   private Map<String, Object> variables = Collections.emptyMap();
-
-  /**
-   * each component contains an operations, to fulfill variables
-   * operations; stringtodate()
-   */
-  private final Map<String, String> variablesOperation = Collections.emptyMap();
-
   private String userId;
-
   /**
    * ISO 8601: PT10S
    */
   private String delay;
-
   /**
    * ISO 8601: PT10S
    */
   private String waitingTime;
-
   /**
-   * Optional, may not b
+   * Optional, may not be set
    */
   private Integer numberOfExecutions;
+  /**
+   * In case of a Flow step, the frequency to execute this step, for example PT10S every 10 seconds
+   */
+  private String frequency;
+  /**
+   * In case of FlowStep, the processId to execute the step
+   */
+  private String processId;
+
+  /**
+   * MODE EXECUTION
+   * WAIT: the worker wait the waitingTime time
+   * ASYNCHRONOUS: the worker release the method, wait asynchrously the waiting time and send back the answer
+   * ASYNCHRONOUSLIMITED: same as ASYNCHRONOUS, but use the maxClient information to not accept more than this number
+   * In ASYNCHRONOUS, the method can potentially having millions of works in parallel (it accept <NumberOfClients> works,
+   * but because it finish the method, then Zeebe Client will accept more works. So, with a waiting time of 1 mn, it may have a lot
+   * of works in progress in the client.
+   * This mode limit the number of current execution on the worker. it redeem immediately the method, but when we reach this
+   * limitation, it froze the worker, waiting for a slot.
+   */
+  public enum MODEEXECUTION {WAIT, ASYNCHRONOUS, ASYNCHRONOUSLIMITED}
+
+  private MODEEXECUTION modeExecution = MODEEXECUTION.WAIT;
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -92,8 +122,9 @@ public class ScenarioStep {
     return userId;
   }
 
-  public String getTopic() {
-    return topic;
+  public ScenarioStep setUserId(String userId) {
+    this.userId = userId;
+    return this;
   }
 
   /* ******************************************************************** */
@@ -102,9 +133,8 @@ public class ScenarioStep {
   /*                                                                      */
   /* ******************************************************************** */
 
-  public ScenarioStep setUserId(String userId) {
-    this.userId = userId;
-    return this;
+  public String getTopic() {
+    return topic;
   }
 
   public Map<String, String> getVariablesOperations() {
@@ -129,10 +159,6 @@ public class ScenarioStep {
     return this;
   }
 
-  public void setScnExecution(ScenarioExecution scnExecution) {
-    this.scnExecution = scnExecution;
-  }
-
   public String getWaitingTime() {
     return waitingTime;
   }
@@ -141,8 +167,25 @@ public class ScenarioStep {
     this.waitingTime = waitingTime;
   }
 
+  /**
+   * Return the waiting time in Duration
+   *
+   * @return Duration, defaultDuration if error
+   */
+  public Duration getWaitingTimeDuration(Duration defaultDuration) {
+    try {
+      return Duration.parse(waitingTime);
+    } catch (Exception e) {
+      return defaultDuration;
+    }
+  }
+
   public ScenarioExecution getScnExecution() {
     return scnExecution;
+  }
+
+  public void setScnExecution(ScenarioExecution scnExecution) {
+    this.scnExecution = scnExecution;
   }
 
   public int getNumberOfExecutions() {
@@ -153,17 +196,25 @@ public class ScenarioStep {
     this.numberOfExecutions = numberOfExecutions;
   }
 
+  public String getFrequency() {
+    return frequency;
+  }
+
+  public int getNbWorkers() {
+    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
+  }
+
+  public String getProcessId() {
+    return processId;
+  }
+
+  public long getFixedBackOffDelay() {
+    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay;
+  }
+
   protected void afterUnSerialize(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
-
-  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY}
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Check consistence                                                              */
-  /*                                                                      */
-  /* ******************************************************************** */
 
   public void checkConsistence() throws AutomatorException {
     if (getTaskId() == null || getTaskId().trim().isEmpty())
@@ -173,7 +224,25 @@ public class ScenarioStep {
       if (getTopic() == null || getTopic().trim().isEmpty())
         throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " topic is mandatory");
     }
+    default -> {
+    }
     }
   }
+
+  public String getEndWarmingUp() {
+    return endWarmingUp;
+  }
+
+  public MODEEXECUTION getModeExecution() {
+    return modeExecution==null? MODEEXECUTION.WAIT : modeExecution;
+  }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Check consistence                                                              */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY}
 
 }

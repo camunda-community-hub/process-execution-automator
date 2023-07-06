@@ -12,12 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RunResult {
-  Logger logger = LoggerFactory.getLogger(RunResult.class);
-
   /**
    * Scenario attached to this execution
    */
@@ -27,25 +27,20 @@ public class RunResult {
    */
   private final List<ErrorDescription> listErrors = new ArrayList<>();
   private final List<StepExecution> listDetailsSteps = new ArrayList<>();
-
-  public class VerificationStatus {
-    public ScenarioVerificationBasic verification;
-    public boolean isSuccess;
-    public String message;
-  }
-
-
   private final List<VerificationStatus> listVerifications = new ArrayList<>();
-
   /**
    * process instance started for this execution. The executionResult stand for only one process instance
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
-
   private final List<String> listProcessIdDeployed = new ArrayList<>();
-
-  private int numberOfProcessInstances = 0;
+  Logger logger = LoggerFactory.getLogger(RunResult.class);
+  /**
+   * Keep a photo of process instance created/failed per processid
+   */
+  private Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
   private int numberOfSteps = 0;
+  private int numberOfErrorSteps = 0;
+
   /**
    * Time to execute it
    */
@@ -56,6 +51,19 @@ public class RunResult {
 
   }
 
+  /**
+   * Add the process instance - this is mandatory to
+   *
+   * @param processInstanceId processInstanceId to add
+   */
+  public void addProcessInstanceId(String processId, String processInstanceId) {
+    this.listProcessInstancesId.add(processInstanceId);
+
+    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    create.nbCreated++;
+    recordCreationPIMap.put(processId, create);
+  }
+
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -64,13 +72,15 @@ public class RunResult {
   /* ******************************************************************** */
 
   /**
-   * Add the process instance - this is mandatory to
-   *
-   * @param processInstanceId processInstanceId to add
+   * large flow: just register the number of PI
    */
-  public void addProcessInstanceId(String processInstanceId) {
-    this.listProcessInstancesId.add(processInstanceId);
-    numberOfProcessInstances++;
+  public void registerAddProcessInstance(String processId, boolean withSuccess) {
+    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    if (withSuccess)
+      create.nbCreated++;
+    else
+      create.nbFailed++;
+    recordCreationPIMap.put(processId, create);
   }
 
   public void addTimeExecution(long timeToAdd) {
@@ -87,24 +97,44 @@ public class RunResult {
     }
   }
 
+  /**
+   * large flow: just register the number of execution
+   */
+  public void registerAddStepExecution() {
+    numberOfSteps++;
+  }
+
+  public void registerAddErrorStepExecution() {
+    numberOfErrorSteps++;
+
+  }
+
+  public List<ErrorDescription> getListErrors() {
+    return listErrors;
+  }
+
   /* ******************************************************************** */
   /*                                                                      */
   /*  Errors                                                              */
   /*                                                                      */
   /* ******************************************************************** */
 
-  public List<ErrorDescription> getListErrors() {
-    return listErrors;
-  }
-
   public void addError(ScenarioStep step, String explanation) {
     this.listErrors.add(new ErrorDescription(step, explanation));
-    logger.error("scnResult: " + (step == null ? "" : step.getType().toString()) + " error " + explanation);
+    logger.error((step == null ? "" : step.getType().toString()) + " " + explanation);
 
   }
 
   public void addError(ScenarioStep step, AutomatorException e) {
     this.listErrors.add(new ErrorDescription(step, e.getMessage()));
+  }
+
+  public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
+    VerificationStatus verificationStatus = new VerificationStatus();
+    verificationStatus.verification = verification;
+    verificationStatus.isSuccess = isSuccess;
+    verificationStatus.message = message;
+    this.listVerifications.add(verificationStatus);
   }
 
 
@@ -115,24 +145,9 @@ public class RunResult {
   /*                                                                      */
   /* ******************************************************************** */
 
-
-  public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
-    VerificationStatus verificationStatus = new VerificationStatus();
-    verificationStatus.verification = verification;
-    verificationStatus.isSuccess = isSuccess;
-    verificationStatus.message = message;
-    this.listVerifications.add(verificationStatus);
-  }
-
   public List<VerificationStatus> getListVerifications() {
     return listVerifications;
   }
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  merge                                                               */
-  /*                                                                      */
-  /* ******************************************************************** */
 
   /**
    * Merge the result in this result
@@ -143,10 +158,18 @@ public class RunResult {
     addTimeExecution(result.getTimeExecution());
     listErrors.addAll(result.listErrors);
     listVerifications.addAll(result.listVerifications);
-    numberOfProcessInstances += result.numberOfProcessInstances;
+    for (Map.Entry<String, RecordCreationPI> entry : result.recordCreationPIMap.entrySet()) {
+      RecordCreationPI currentReference = recordCreationPIMap.getOrDefault(entry.getKey(), new RecordCreationPI(
+          entry.getKey()));
+      currentReference.nbFailed += entry.getValue().nbFailed;
+      currentReference.nbCreated += entry.getValue().nbCreated;
+
+      recordCreationPIMap.put(entry.getKey(), currentReference);
+    }
     numberOfSteps += result.numberOfSteps;
+    numberOfErrorSteps += result.numberOfErrorSteps;
     // we collect the list only if the level is low
-    if (runScenario.getRunParameters()!=null && runScenario.getRunParameters().isLevelInfo()) {
+    if (runScenario.getRunParameters() != null && runScenario.getRunParameters().isLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }
@@ -154,7 +177,7 @@ public class RunResult {
 
   /* ******************************************************************** */
   /*                                                                      */
-  /*  method to get information                                           */
+  /*  merge                                                               */
   /*                                                                      */
   /* ******************************************************************** */
 
@@ -162,6 +185,12 @@ public class RunResult {
     long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
     return listErrors.isEmpty() && nbVerificationErrors == 0;
   }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  method to get information                                           */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   public String getFirstProcessInstanceId() {
     return listProcessInstancesId.isEmpty() ? null : listProcessInstancesId.get(0);
@@ -187,6 +216,25 @@ public class RunResult {
     this.listProcessIdDeployed.add(processId);
   }
 
+  public Map<String, RecordCreationPI> getRecordCreationPI() {
+    return recordCreationPIMap;
+  }
+
+  public long getRecordCreationPIAllProcesses() {
+    long sum = 0;
+    for (RecordCreationPI value : recordCreationPIMap.values())
+      sum += value.nbCreated;
+    return sum;
+  }
+
+  public int getNumberOfSteps() {
+    return numberOfSteps;
+  }
+
+  public int getNumberOfErrorSteps() {
+    return numberOfErrorSteps;
+  }
+
   /**
    * @return a synthesis
    */
@@ -200,10 +248,14 @@ public class RunResult {
 
     synthesis.append(timeExecution);
     synthesis.append(" timeExecution(ms), ");
-    synthesis.append(numberOfProcessInstances);
-    synthesis.append(" processInstancesCreated, ");
+    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbCreated);
+    synthesis.append(" PICreated, ");
+    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbFailed);
+    synthesis.append(" PIFailed, ");
     synthesis.append(numberOfSteps);
     synthesis.append(" stepsExecuted, ");
+    synthesis.append(numberOfErrorSteps);
+    synthesis.append(" errorStepsExecuted, ");
 
     StringBuilder errorMessage = new StringBuilder();
     // add errors
@@ -223,8 +275,8 @@ public class RunResult {
       synthesis.append(verificationMessage);
     }
     // add full details
-    if (fullDetail && numberOfProcessInstances == listProcessInstancesId.size()) {
-      synthesis.append(" ListOfProcessInstancesCreated: ");
+    if (fullDetail) {
+      synthesis.append(" ListOfPICreated: ");
 
       synthesis.append(listProcessInstancesId.stream() // stream
           .collect(Collectors.joining(",")));
@@ -233,17 +285,11 @@ public class RunResult {
 
   }
 
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  local class                                                         */
-  /*                                                                      */
-  /* ******************************************************************** */
-
   public static class StepExecution {
     public final List<ErrorDescription> listErrors = new ArrayList<>();
+    private final RunResult scenarioExecutionResult;
     public ScenarioStep step;
     public long timeExecution;
-    private final RunResult scenarioExecutionResult;
 
     public StepExecution(RunResult scenarioExecutionResult) {
       this.scenarioExecutionResult = scenarioExecutionResult;
@@ -253,6 +299,12 @@ public class RunResult {
       listErrors.add(error);
     }
   }
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  local class                                                         */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   public static class ErrorDescription {
     public ScenarioStep step;
@@ -270,4 +322,25 @@ public class RunResult {
     }
   }
 
+  public class VerificationStatus {
+    public ScenarioVerificationBasic verification;
+    public boolean isSuccess;
+    public String message;
+  }
+
+  public static class RecordCreationPI {
+    public String processId;
+    public long nbCreated=0;
+    public long nbFailed=0;
+    public RecordCreationPI(String processId) {
+      this.processId = processId;
+    }
+
+    public void add(RecordCreationPI record) {
+      if (record==null)
+        return;
+      nbCreated+= record.nbCreated;
+      nbFailed += record.nbFailed;
+    }
+  }
 }

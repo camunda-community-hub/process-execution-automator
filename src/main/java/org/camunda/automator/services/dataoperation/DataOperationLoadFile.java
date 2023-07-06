@@ -19,13 +19,11 @@ public class DataOperationLoadFile extends DataOperation {
 
   @Override
   public Object execute(String value, RunScenario runScenario) throws AutomatorException {
-    File fileLoad = loadFile(value,runScenario);
-    if (fileLoad==null)
+    File fileLoad = loadFile(value, runScenario);
+    if (fileLoad == null)
       return null;
 
-    FileValue typedFileValue = Variables
-        .fileValue(fileLoad.getName())
-        .file(fileLoad)
+    FileValue typedFileValue = Variables.fileValue(fileLoad.getName()).file(fileLoad)
         // .mimeType("text/plain")
         // .encoding("UTF-8")
         .create();
@@ -33,8 +31,7 @@ public class DataOperationLoadFile extends DataOperation {
 
   }
 
-
-  private File loadFile(String value, RunScenario runScenario)  throws AutomatorException {
+  private File loadFile(String value, RunScenario runScenario) throws AutomatorException {
     List<String> args = extractArgument(value, true);
 
     File fileToLoad = null;
@@ -43,7 +40,7 @@ public class DataOperationLoadFile extends DataOperation {
     }
     String formatArgs = args.get(0);
 
-    return ScenarioTool.loadFile( formatArgs, runScenario);
+    return ScenarioTool.loadFile(formatArgs, runScenario);
 
   }
 }

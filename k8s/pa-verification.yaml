@@ -1,0 +1,469 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-creation
+  labels:
+    app: pa-verification-creation
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-creation
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pa-verification-creation
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-creation
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-retrieve
+  labels:
+    app: pa-verification-retrieve
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-retrieve
+  # 34
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pa-verification-retrieve
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-retrieve
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=50
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-retrieve
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-checkurl
+  labels:
+    app: pa-verification-checkurl
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-checkurl
+  # 173
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pa-verification-checkurl
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-checkurl
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=300
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-checkurl
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-updateitem
+  labels:
+    app: pa-verification-updateitem
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-updateitem
+  # 34
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pa-verification-updateitem
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-updateitem
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=50
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-updateitem
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-download
+  labels:
+    app: pa-verification-download
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-download
+  # 1042
+  replicas: 10
+  template:
+    metadata:
+      labels:
+        app: pa-verification-download
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-download
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-download
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-fingerprint
+  labels:
+    app: pa-verification-fingerprint
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-fingerprint
+  # 2083
+  replicas: 12
+  template:
+    metadata:
+      labels:
+        app: pa-verification-fingerprint
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-fingerprint
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-fingerprint
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-getresult
+  labels:
+    app: pa-verification-getresult
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-getresult
+  # 2083
+  replicas: 12
+  template:
+    metadata:
+      labels:
+        app: pa-verification-getresult
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-getresult
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-getresult
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-obtaindescription
+  labels:
+    app: pa-verification-obtaindescription
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-obtaindescription
+  # 104
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: pa-verification-obtaindescription
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-obtaindescription
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-obtaindescription
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-thresoldcheck
+  labels:
+    app: pa-verification-thresoldcheck
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-thresoldcheck
+  # 34
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: pa-verification-thresoldcheck
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-thresoldcheck
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.servers.camunda8.workerMaxJobsActive=15
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.waitWarmup=PT10S
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-thresoldcheck
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pa-verification-potentialclaim
+  labels:
+    app: pa-verification-potentialclaim
+spec:
+  selector:
+    matchLabels:
+      app: pa-verification-potentialclaim
+  # 34
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pa-verification-potentialclaim
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pa-verification-createpotentialclaim
+          image: pierreyvesmonnet/processautomator:1.0.3
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=200
+                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
+                -Dautomator.startup.scenarioAtStartup=Verification.json
+                -Dautomator.startup.policyExecution=SERVICETASK|USERTASK
+                -Dautomator.startup.filterService=verification-createpotentialclaim
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: 1
+              memory: 1Gi
+            requests:
+              cpu: 1
+              memory: 1Gi

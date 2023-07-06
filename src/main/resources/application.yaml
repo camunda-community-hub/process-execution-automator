@@ -1,18 +1,26 @@
 automator:
 
+
+
   scheduler:
-    runAtStartup: true
-    server: camunda7LocalBlue
-    scenarioPath: D:\dev\intellij\community\process-execution-automator\src\test\ressources\simpleusertask
-    exam: a,b,c,d
 
-    colors:
-      - blue
-      - green
-      - red
+  startup:
+    scenarioPath: ./src/main/resources/loadtest
+    # list of scenario separate by ;
+    scenarioAtStartup: C7SimpleTask.json;
+    # DEBUG, INFO, MONITORING, MAIN, NOTHING
+    logLevel: MAIN
+    # string composed with DEPLOYPROCESS, WARMINGUP, CREATION, SERVICETASK (ex: "CREATION", "DEPLOYPROCESS|CREATION|SERVICETASK")
+    policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION
+    policyExecution2: SERVICETASK|CREATION
+    # list of topice separate by ;. If empty, all services task in the scenario are started, else only the list here
+    filterService3: discovery-seedextraction-retrieve;discovery-seedextraction-crawl
+    filterService2: discovery-seedextraction-crawl
+    filterService: simple-task
 
+    deepTracking: false
 
-  logdebug: true
+  logdebug: false
 
   # servers connection is a list of connection separate by ;
   # each connection contains a name and a type. then, other parameters depends on the type
@@ -20,19 +28,38 @@ automator:
   # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl
   # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,clientSecret,OperateUserName,OperateUserPassword,OperateUrl
 
-  serversconnection: camunda7Local,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Local,CAMUNDA_8,127.0.0.1:26500,http://localhost:8081,demo,demo,http://localhost:8082
+  serversconnection:
 
   # other way to provide the list of server connection
+
   servers:
-    - name: camunda7Local
-      type: Camunda_7
+    camunda7:
+      name: "camunda7Local"
       url: "http://localhost:8080/engine-rest"
-    - name: Camunda8Local
-      type: Camunda_8
-      zeebeGatewayAddress: "http://127.0.0.1:26500"
-      operateUserName: demo
-      operateUserPassword: demo
-      operateUrl: http://localhost:8081/
+      workerMaxJobsActive: 20
+
+    camunda8:
+      name: "Camunda8Local"
+      zeebeGatewayAddress: "127.0.0.1:26500"
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+      operateUrl: "http://localhost:8081"
+      taskListUrl: ""
+      workerExecutionThreads: 500
+      workerMaxJobsActive2: 500
 
 
-server.port: 8089
+
+
+
+
+      zeebeCloudRegister:
+      zeebeCloudRegion:
+      clientSecret:
+      zeebeCloudClusterId:
+      zeebeCloudClientId:
+
+
+
+server.port: 8380
+scheduler.poolSize: 10

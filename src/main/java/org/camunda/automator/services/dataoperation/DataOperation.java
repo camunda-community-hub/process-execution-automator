@@ -28,7 +28,7 @@ public abstract class DataOperation {
       throw new AutomatorException("Format must be function(args), received [" + value + "]");
     String args = value.substring(pos);
     args = args.substring(1, args.length() - 1);
-    StringTokenizer st = new StringTokenizer(args,",");
+    StringTokenizer st = new StringTokenizer(args, ",");
     while (st.hasMoreTokens())
       listResult.add(st.nextToken());
 
