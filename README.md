@@ -1,4 +1,7 @@
-./reb	
+
+![Compatible with: Camunda Platform 7] ![Compatible with: Camunda Platform 8] [![](https://img.shields.io/badge/Lifecycle-Incubating-blue)](https://github.com/Camunda-Community-Hub/community/blob/main/extension-lifecycle.md#incubating-)
+
+
 # process-execution-automator
 
 Create scenarios to automate any execution of processes. Objectives are A unit test, load test,
