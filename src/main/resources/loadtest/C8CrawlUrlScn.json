@@ -1,0 +1,127 @@
+{
+  "name": "C8CrawlUrl",
+  "processId": "CrawlUrl",
+  "type": "FLOW",
+  "serverType": "Camunda_8",
+  "deployments": [
+    {
+      "serverType": "CAMUNDA_8",
+      "type": "PROCESS",
+      "processFile": "C8CrawlUrl.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
+  "flowControl": {
+    "duration": "PT10M",
+    "objectives": [
+      {
+        "label": "Creation",
+        "processId": "CrawlUrl",
+        "type": "CREATED",
+        "value": 4000,
+        "comment": "100/30 s. Duration=10M => 2000"
+      },
+      {
+        "label": "Ended",
+        "processId": "CrawlUrl",
+        "type" : "ENDED",
+        "value": 4000,
+        "comment": "Same as creation"
+      }
+    ]
+  },
+  "warmingUp" : {
+    "duration": "PT2M",
+    "useServiceTasks" : true,
+    "useUserTasks" : true,
+    "operations": [
+      {
+        "type": "STARTEVENT",
+        "taskId": "StartEvent",
+        "processId": "CrawlUrl",
+        "variables": {"urlNotFound": false},
+        "variablesOperation": {
+          "loopcrawl": "generaterandomlist(10)"
+        },
+        "frequency": "PT30S",
+        "numberOfExecutions": "200",
+        "endWarmingUp": "EndEventThreshold(EndEvent,1)"
+      }
+    ]
+  },
+  "flows": [
+    {
+      "name": "Start event normal 200/30s",
+      "type": "STARTEVENT",
+      "taskId": "StartEvent",
+      "processId": "CrawlUrl",
+      "frequency": "PT30S",
+      "numberOfExecutions": "200",
+      "nbWorkers": "1",
+      "variables": {"urlNotFound": false},
+      "variablesOperation": {
+        "loopcrawl": "generaterandomlist(10)"
+      }
+    },
+    {
+      "name": "Start event error 1/1mn",
+      "type": "STARTEVENT",
+      "taskId": "StartEvent",
+      "processId": "CrawlUrl",
+      "frequency": "PT1M",
+      "numberOfExecutions": "1",
+      "nbWorkers": "1",
+      "variables": {"urlNotFound": true},
+      "variablesOperation": {
+        "loopcrawl": "generaterandomlist(5)"
+      },
+      "modeExecution": "CLASSICAL"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-retrieve",
+      "waitingTime": "PT2S",
+      "modeExecution": "ASYNCHRONOUS"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-search",
+      "waitingTime": "PT10S",
+      "modeExecution": "ASYNCHRONOUS"
+    },
+    {
+      "type": "USERTASK",
+      "taskId": "Activity_Verify",
+      "waitingTime": "PT10S",
+      "modeExecution": "ASYNCHRONOUS",
+      "variables" : {
+        "processAcceptable": true
+      }
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-add",
+      "waitingTime": "PT5S",
+      "modeExecution": "ASYNCHRONOUS"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-message",
+      "waitingTime": "PT0S",
+      "modeExecution": "ASYNCHRONOUS"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-filter",
+      "waitingTime": "PT1S",
+      "modeExecution": "ASYNCHRONOUS"
+    },
+    {
+      "type": "SERVICETASK",
+      "topic": "crawl-store",
+      "waitingTime": "PT1S",
+      "modeExecution": "ASYNCHRONOUS"
+    }
+
+  ]
+}

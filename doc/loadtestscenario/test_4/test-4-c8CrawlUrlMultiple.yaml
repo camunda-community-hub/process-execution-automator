@@ -32,16 +32,17 @@ spec:
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=1
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -75,19 +76,20 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=20
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-retrieve
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -99,7 +101,7 @@ spec:
   selector:
     matchLabels:
       app: ku-processautomator-search
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
@@ -121,19 +123,20 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=320
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-search
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -167,19 +170,20 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=90
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-message
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 
 ---
 apiVersion: apps/v1
@@ -213,19 +217,20 @@ spec:
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
-                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.taskListUrl=http://camunda-tasklist:80
                 -Dautomator.servers.camunda8.workerExecutionThreads=1
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=USERTASK
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -237,7 +242,7 @@ spec:
   selector:
     matchLabels:
       app: ku-processautomator-add
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       labels:
@@ -259,19 +264,21 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=190
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-add
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -305,19 +312,20 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=100
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-filter
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -351,16 +359,16 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.servers.camunda8.workerExecutionThreads=100
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
+                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn250.json
                 -Dautomator.startup.policyExecution=SERVICETASK
                 -Dautomator.startup.filterService=crawl-store
                 -Dautomator.startup.logLevel=MONITORING
           resources:
             limits:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"
             requests:
-              cpu: "500m"
-              memory: "512m"
+              cpu: "100m"
+              memory: "512M"

@@ -1,0 +1,105 @@
+# Chart values for the Camunda Platform 8 Helm chart.
+# This file deliberately contains only the values that differ from the defaults.
+# For changes and documentation, use your favorite diff tool to compare it with:
+# https://github.com/camunda/camunda-platform-helm/blob/main/charts/camunda-platform/values.yaml
+
+# This is a very small cluster useful for running locally and for development
+
+global:
+  image:
+    tag: 8.3.0-alpha2
+  identity:
+    auth:
+      # Disable the Identity authentication
+      # it will fall back to basic-auth: demo/demo as default user
+      enabled: false
+
+identity:
+  enabled: true
+
+operate:
+  # default is 3
+  env:
+    - name: CAMUNDA_OPERATE_IMPORTER_THREADSCOUNT
+      value: "5"
+    - name: CAMUNDA_OPERATE_IMPORTER_READERTHREADSCOUNT
+      value: "5"
+
+optimize:
+  enabled: true
+
+connectors:
+  enabled: false
+  inbound:
+    mode: credentials
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512M"
+    limits:
+      cpu: "100m"
+      memory: "512M"
+  env:
+    - name: CAMUNDA_OPERATE_CLIENT_USERNAME
+      value: demo
+    - name: CAMUNDA_OPERATE_CLIENT_PASSWORD
+      value: demo
+
+
+prometheusServiceMonitor:
+  enabled: true
+
+
+#     - name: ZEEBE_BROKER_PROCESSING_MAXCOMMANDSINBATCH
+#       value: "100"
+zeebe:
+  clusterSize: 10
+  partitionCount: 10
+  replicationFactor: 3
+  pvcSize: 5Gi
+  env:
+    - name: ZEEBE_BROKER_EXECUTION_METRICS_EXPORTER_ENABLED
+      value: "true"
+    - name: ZEEBE_BROKER_PROCESSING_MAXCOMMANDSINBATCH
+      value: "5000"
+  resources:
+    requests:
+      cpu: "1"
+      memory: "512M"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+zeebe-gateway:
+  replicas: 1
+  env:
+    - name: ZEEBE_GATEWAY_MONITORING_ENABLED
+      value: "true"
+    - name: ZEEBE_GATEWAY_THREADS_MANAGEMENTTHREADS
+      value: "3"
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "512m"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  logLevel: ERROR
+
+elasticsearch:
+  enabled: true
+  #  imageTag: 7.17.3
+  replicas: 1
+  minimumMasterNodes: 1
+  # Allow no backup for single node setups
+  clusterHealthCheckParams: "wait_for_status=yellow&timeout=1s"
+
+  resources:
+    requests:
+      cpu: "5"
+      memory: "512M"
+    limits:
+      cpu: "5"
+      memory: "2Gi"
