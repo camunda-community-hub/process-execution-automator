@@ -1,0 +1,48 @@
+{
+  "name": "C7SimpleTaskDelegate",
+  "processId": "C7SimpleTaskDelegate",
+  "modeVerification": "NO",
+  "type": "FLOW",
+  "serverType": "Camunda_7",
+  "deployments": [
+    {
+      "serverType": "CAMUNDA_7",
+      "type": "PROCESS",
+      "processFile": "C7SimpleTaskDelegate.bpmn",
+      "policy": "ONLYNOTEXIST"
+    }
+  ],
+  "flowControl": {
+    "duration": "PT1M",
+    "objectives": [
+      {
+        "label": "Creation SimpleTask",
+        "processId": "SimpleTaskDelegate",
+        "type": "CREATED",
+        "value": 60000,
+        "comment": "1000/second "
+      },
+      {
+        "label": "Ended (UserTask TheEnd) Verification",
+        "processId": "SimpleTaskDelegate",
+        "type" : "USERTASK",
+        "taskId" : "CheckTask",
+        "value": 60000
+      }
+    ]
+  },
+
+  "flows": [
+    {
+      "type": "STARTEVENT",
+      "taskId": "Start_SimpleTask",
+      "processId": "SimpleTaskDelegate",
+      "frequency": "PT1S",
+      "numberOfExecutions": "25",
+      "nbWorkers": "40",
+      "variablesOperation": {
+        "loopcrawl": "generaterandomlist(1000)"
+      }
+    }
+    ]
+  }
