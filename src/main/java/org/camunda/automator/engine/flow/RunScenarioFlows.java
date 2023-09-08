@@ -24,8 +24,8 @@ import java.util.Map;
 public class RunScenarioFlows {
   private final ServiceAccess serviceAccess;
   private final RunScenario runScenario;
-  Logger logger = LoggerFactory.getLogger(RunScenarioFlows.class);
   private final Map<String, Long> previousValueMap = new HashMap<>();
+  Logger logger = LoggerFactory.getLogger(RunScenarioFlows.class);
 
   public RunScenarioFlows(ServiceAccess serviceAccess, RunScenario runScenario) {
     this.serviceAccess = serviceAccess;
@@ -45,7 +45,7 @@ public class RunScenarioFlows {
         runScenario.getBpmnEngine(), recordCreationPIMap);
 
     logger.info("ScenarioFlow: ------ WarmingUp");
-    runScenarioWarmingUp.warmingUp();
+    runScenarioWarmingUp.warmingUp(runResult);
 
     Date startTestDate = new Date();
     runObjectives.setStartDate(startTestDate);
@@ -81,8 +81,9 @@ public class RunScenarioFlows {
   private List<RunScenarioFlowBasic> startExecution() {
     List<RunScenarioFlowBasic> listFlows = new ArrayList<>();
     for (ScenarioStep scenarioStep : runScenario.getScenario().getFlows()) {
-      if (ScenarioStep.Step.STARTEVENT.equals(scenarioStep.getType())) {
-        if (!runScenario.getRunParameters().creation) {
+      switch (scenarioStep.getType()) {
+      case STARTEVENT -> {
+        if (!runScenario.getRunParameters().isCreation()) {
           logger.info("According configuration, STARTEVENT[" + scenarioStep.getProcessId() + "] is fully disabled");
         } else
           for (int i = 0; i < scenarioStep.getNbWorkers(); i++) {
@@ -93,18 +94,31 @@ public class RunScenarioFlows {
             listFlows.add(runStartEvent);
           }
       }
-      if (ScenarioStep.Step.SERVICETASK.equals(scenarioStep.getType())) {
-        if (!runScenario.getRunParameters().servicetask) {
+
+      case SERVICETASK -> {
+        if (!runScenario.getRunParameters().isServicetask()) {
           logger.info("According configuration, SERVICETASK[{}] is fully disabled", scenarioStep.getTopic());
         } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
           logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
-              scenarioStep.getTopic(), runScenario.getRunParameters().filterServiceTask);
+              scenarioStep.getTopic(), runScenario.getRunParameters().getFilterServiceTask());
         } else {
-          RunScenarioFlowServiceTask runStartEvent = new RunScenarioFlowServiceTask(
+          RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
               serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
-          runStartEvent.execute();
-          listFlows.add(runStartEvent);
+          runServiceTask.execute();
+          listFlows.add(runServiceTask);
         }
+      }
+
+      case USERTASK -> {
+        if (!runScenario.getRunParameters().isUsertask()) {
+          logger.info("According configuration, USERTASK[{}] is fully disabled", scenarioStep.getTaskId());
+        } else {
+          RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"),
+              scenarioStep, 0, runScenario, new RunResult(runScenario));
+          runUserTask.execute();
+          listFlows.add(runUserTask);
+        }
+      }
       }
     }
     return listFlows;
@@ -121,20 +135,17 @@ public class RunScenarioFlows {
     Duration durationExecution = runScenario.getScenario().getFlowControl().getDuration();
     Duration durationWarmingUp = Duration.ZERO;
     // if this server didn't do the warmingUp, then other server did it: we have to keep this time into account
-    if (!runScenario.getRunParameters().warmingUp)
-    {
+    if (!runScenario.getRunParameters().isWarmingUp()) {
       // is the scenario has a warming up defined?
-      if (runScenario.getScenario().getWarmingUp()!=null)
+      if (runScenario.getScenario().getWarmingUp() != null)
         durationWarmingUp = runScenario.getScenario().getWarmingUp().getDuration();
     }
-
 
     long endTimeExpected =
         startTestDate.getTime() + durationExecution.getSeconds() * 1000 + durationWarmingUp.getSeconds() * 1000;
 
-    logger.info("Start: FixedWarmingUp {} s ExecutionDuration {} s (total {} s)",
-        durationWarmingUp.getSeconds(), durationExecution.getSeconds(),
-        durationWarmingUp.getSeconds() + durationExecution.getSeconds());
+    logger.info("Start: FixedWarmingUp {} s ExecutionDuration {} s (total {} s)", durationWarmingUp.getSeconds(),
+        durationExecution.getSeconds(), durationWarmingUp.getSeconds() + durationExecution.getSeconds());
 
     while (System.currentTimeMillis() < endTimeExpected) {
       long currentTime = System.currentTimeMillis();
@@ -181,8 +192,8 @@ public class RunScenarioFlows {
   /**
    * Collect multiple information
    *
-   * @param listFlows                  list of flow
-   * @param runResult                  runResult to populate
+   * @param listFlows           list of flow
+   * @param runResult           runResult to populate
    * @param recordCreationPIMap statistics
    */
   private void collectInformation(List<RunScenarioFlowBasic> listFlows,
@@ -210,14 +221,11 @@ public class RunScenarioFlows {
   /**
    * Check the objective of the scenario
    *
-   * @param startTestDate              date when the test start
-   * @param endTestDate                date when the test end
-   * @param runResult                  result to populate
+   * @param startTestDate date when the test start
+   * @param endTestDate   date when the test end
+   * @param runResult     result to populate
    */
-  private void checkObjectives(RunObjectives runObjectives,
-                               Date startTestDate,
-                               Date endTestDate,
-                               RunResult runResult) {
+  private void checkObjectives(RunObjectives runObjectives, Date startTestDate, Date endTestDate, RunResult runResult) {
 
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
     logger.info("CollectingData...");
@@ -237,8 +245,8 @@ public class RunScenarioFlows {
 
       } else {
         runResult.addError(null,
-            "Objective: FAIL " + checkResult.objective.label + " type " + checkResult.objective.type + " processId ["
-                + checkResult.objective.processId + "] " + checkResult.analysis);
+            "Objective: FAIL " + checkResult.objective.getInformation() + " type " + checkResult.objective.type
+                + " processId [" + checkResult.objective.processId + "] " + checkResult.analysis);
       }
     }
   }
@@ -273,15 +281,22 @@ public class RunScenarioFlows {
         case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
             runResultFlow.getNumberOfSteps() - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps()
             + "]";
+        case USERTASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
+            runResultFlow.getNumberOfSteps() - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps()
+            + "]";
+
         default -> "]";
       };
       logger.info(key);
       switch (scenarioStep.getType()) {
       case STARTEVENT -> {
         previousValueMap.put(flowBasic.getId(),
-            (long) runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
+            runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
       }
       case SERVICETASK -> {
+        previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
+      }
+      case USERTASK -> {
         previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
       }
       default -> {
@@ -335,7 +350,8 @@ public class RunScenarioFlows {
     BpmnEngine bpmnEngine = runScenario.getBpmnEngine();
     int workerExecutionThreads = bpmnEngine.getWorkerExecutionThreads();
     if (nbThreadsServiceTask + nbThreadsTimeWaiting + nbThreadsWaiting + nbThreadsTimeRunnable + nbThreadsAutomator > 0)
-      logger.info("Threads: ServiceTaskExecution (ThreadService/maxJobActive) [{}/{}] {} % Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ",
+      logger.info(
+          "Threads: ServiceTaskExecution (ThreadService/maxJobActive) [{}/{}] {} % Automator[{}] TIME_WAITING[{}] WAITING[{}] RUNNABLE[{}] ",
           nbThreadsServiceTask, workerExecutionThreads,
           workerExecutionThreads == 0 ? 0 : (int) (100.0 * nbThreadsServiceTask / workerExecutionThreads),
           nbThreadsAutomator, nbThreadsTimeWaiting, nbThreadsWaiting, nbThreadsTimeRunnable);

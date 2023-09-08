@@ -43,4 +43,6 @@ public abstract class DataOperation {
     }
     return listResult;
   }
+
+  public abstract String getHelp();
 }

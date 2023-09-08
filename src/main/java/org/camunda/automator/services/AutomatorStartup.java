@@ -76,14 +76,14 @@ public class AutomatorStartup {
     public void run() {
 
       RunParameters runParameters = new RunParameters();
-      runParameters.execution = true;
-      runParameters.logLevel = configurationStartup.getLogLevelEnum();
-      runParameters.creation = configurationStartup.isPolicyExecutionCreation();
-      runParameters.servicetask = configurationStartup.isPolicyExecutionServiceTask();
-      runParameters.usertask = configurationStartup.isPolicyExecutionUserTask();
-      runParameters.warmingUp = configurationStartup.isPolicyExecutionWarmingUp();
-      runParameters.deploymentProcess = configurationStartup.isPolicyDeployProcess();
-      runParameters.deepTracking = configurationStartup.deepTracking();
+      runParameters.setExecution(true)
+          .setLogLevel(configurationStartup.getLogLevelEnum())
+          .setCreation(configurationStartup.isPolicyExecutionCreation())
+          .setServicetask(configurationStartup.isPolicyExecutionServiceTask())
+          .setUsertask(configurationStartup.isPolicyExecutionUserTask())
+          .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
+          .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
+          .setDeepTracking(configurationStartup.deepTracking());
       List<String> filterService = configurationStartup.getFilterService();
       if (filterService != null) {
         runParameters.setFilterExecutionServiceTask(filterService);
@@ -91,8 +91,8 @@ public class AutomatorStartup {
 
       logger.info(
           "AutomatorStartup parameters warmingUp[{}] creation:[{}] serviceTask:[{}] userTask:[{}] ScenarioPath[{}] logLevel[{}] waitWarmingUpServer[{} s]",
-          runParameters.warmingUp, runParameters.creation, runParameters.servicetask, runParameters.usertask,
-          configurationStartup.scenarioPath, configurationStartup.logLevel,
+          runParameters.isWarmingUp(), runParameters.isCreation(), runParameters.isServicetask(),
+          runParameters.isUsertask(), configurationStartup.scenarioPath, configurationStartup.logLevel,
           configurationStartup.getWarmingUpServer().toMillis() / 1000);
 
       try {
@@ -112,7 +112,7 @@ public class AutomatorStartup {
       if (configurationStartup.getWarmingUpServer().getSeconds() > 30)
         logger.info("Warmup: start now");
 
-      for (String scenarioFileName : configurationStartup.scenarioAtStartup) {
+      for (String scenarioFileName : configurationStartup.getScenarioAtStartup()) {
         File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
         if (!scenarioFile.exists()) {
           logger.error("Can't find [{}/{}]", configurationStartup.scenarioPath, scenarioFileName);
@@ -126,25 +126,28 @@ public class AutomatorStartup {
           // BpmnEngine: find the correct one referenced in the scenario
           int countEngineIsNotReady = 0;
           BpmnEngine bpmnEngine = null;
-          boolean pleaseTryAgain = false;
+          boolean pleaseTryAgain;
           do {
+            pleaseTryAgain = false;
             countEngineIsNotReady++;
-
+            String message = "";
             try {
               if (runParameters.isLevelMonitoring()) {
                 logger.info("Connect to Bpmn Engine Type{}", scenario.getServerType());
               }
               bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
-              if (! bpmnEngine.isReady()) {
+              if (!bpmnEngine.isReady()) {
                 bpmnEngine.connection();
               }
             } catch (AutomatorException e) {
               pleaseTryAgain = true;
+              message = e.getMessage();
             }
             if (pleaseTryAgain && countEngineIsNotReady < 10) {
               logger.info(
-                  "Scenario [{}] file[{}] No BPM ENGINE running Sleep 30s. Scenario reference serverName[{}] serverType[{}]",
-                  scenario.getName(), scenarioFile.getName(), scenario.getServerName(), scenario.getServerType());
+                  "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}] serverType[{}]",
+                  message, countEngineIsNotReady, scenario.getName(), scenarioFile.getName(), scenario.getServerName(),
+                  scenario.getServerType());
               try {
                 Thread.sleep(((long) 1000) * 30);
               } catch (InterruptedException e) {

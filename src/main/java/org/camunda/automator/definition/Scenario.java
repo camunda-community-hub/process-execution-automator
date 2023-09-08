@@ -32,7 +32,6 @@ public class Scenario {
   private String version;
   private String processName;
   private String processId;
-  private String modeVerification;
 
   /**
    * Server to run the scenario
@@ -152,10 +151,6 @@ public class Scenario {
       return null;
     }
 
-  }
-
-  public String getModeVerification() {
-    return modeVerification;
   }
 
   private void afterUnSerialize() {

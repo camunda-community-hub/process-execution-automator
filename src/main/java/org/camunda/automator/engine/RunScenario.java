@@ -7,12 +7,15 @@ import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioTool;
 import org.camunda.automator.engine.flow.RunScenarioFlows;
+import org.camunda.automator.engine.unit.RunScenarioUnit;
+import org.camunda.automator.engine.unit.RunScenarioVerification;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -61,8 +64,8 @@ public class RunScenario {
    */
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
-    logger.info("RunScenario: ------ Deployment ({})", runParameters.deploymentProcess);
-    if (runParameters.deploymentProcess)
+    logger.info("RunScenario: ------ Deployment ({})", runParameters.isDeploymentProcess());
+    if (runParameters.isDeploymentProcess())
       result.add(runDeployment());
     logger.info("RunScenario: ------ End deployment ");
 
@@ -100,8 +103,7 @@ public class RunScenario {
           } catch (AutomatorException e) {
             result.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
           }
-        }
-        else {
+        } else {
           logger.info("RunScenario: can't Deploy ({}), not the same server", deployment.processFile);
 
         }
@@ -119,6 +121,7 @@ public class RunScenario {
    */
   public RunResult runExecutions() {
     RunResult result = new RunResult(this);
+    result.setStartDate(new Date());
     // each execution is run in a different thread
     ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
 
@@ -217,7 +220,7 @@ public class RunScenario {
 
     @Override
     public Object call() {
-      RunScenarioExecution scnRunExecution = new RunScenarioExecution(runScenario, scnExecution);
+      RunScenarioUnit scnRunExecution = new RunScenarioUnit(runScenario, scnExecution);
       scnRunExecution.setAgentName(agentName);
 
       /**

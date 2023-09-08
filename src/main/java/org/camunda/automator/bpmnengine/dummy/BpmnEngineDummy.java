@@ -57,9 +57,15 @@ public class BpmnEngineDummy implements BpmnEngine {
   }
 
   @Override
-  public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
+  public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     logger.info("BpmnEngineDummy.searchForActivity: Process[" + processInstanceId + "] taskName[" + userTaskId + "]");
+    return List.of("5555");
+  }
+
+  @Override
+  public List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException {
+    logger.info("BpmnEngineDummy.searchForActivity: taskName[" + userTaskId + "]");
     return List.of("5555");
   }
 

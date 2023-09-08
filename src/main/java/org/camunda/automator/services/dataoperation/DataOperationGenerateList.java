@@ -15,6 +15,11 @@ public class DataOperationGenerateList extends DataOperation {
   }
 
   @Override
+  public String getHelp() {
+    return "generaterandomlist(<sizeOfTheList-integer>)";
+  }
+
+  @Override
   public Object execute(String value, RunScenario runScenario) throws AutomatorException {
     List<String> args = extractArgument(value, true);
     List<String> listValues = new ArrayList<>();
@@ -25,7 +30,7 @@ public class DataOperationGenerateList extends DataOperation {
       }
     } catch (Exception e) {
       throw new AutomatorException(
-          "can't generate a list second parameters must be a Integer[" + args + "] : " + e.getMessage());
+          "can't generate a list: second parameters must be a Integer[" + args + "] : " + e.getMessage());
 
     }
     return listValues;

@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ServiceDataOperation {
@@ -20,12 +21,24 @@ public class ServiceDataOperation {
   private ServiceDataOperation() {
   }
 
-  public Object execute(String value, RunScenario runScenario) throws AutomatorException {
+  /**
+   * Execute the DataOperation
+   *
+   * @param value       value to process
+   * @param runScenario scenario to get information
+   * @param context     give context in the exception in case of error
+   * @return the value calculated
+   * @throws AutomatorException
+   */
+  public Object execute(String value, RunScenario runScenario, String context) throws AutomatorException {
     for (DataOperation dataOperation : listDataOperation) {
       if (dataOperation.match(value))
         return dataOperation.execute(value, runScenario);
     }
-    throw new AutomatorException("No operation for [" + value + "]");
+
+    String helpOperations = listDataOperation.stream().map(DataOperation::getHelp).collect(Collectors.joining(", "));
+
+    throw new AutomatorException(context + "No operation for [" + value + "] - operationExpected " + helpOperations);
   }
 
 }

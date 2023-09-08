@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: camunda-8-processautomator-service
-  replicas: 1
+  replicas: 462
   template:
     metadata:
       labels:
@@ -32,9 +32,10 @@ spec:
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=2000
                 -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=Discovery.json
+                -Dautomator.startup.scenarioAtStartup=Takedown.json
                 -Dautomator.startup.waitWarmup=PT10S
-                -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
+                -Dautomator.startup.policyExecution=SERVICETASK
+                 -Dautomator.startup.topic=takedown-create
                 -Dautomator.startup.logLevel=MAIN
           resources:
             limits:

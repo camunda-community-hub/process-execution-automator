@@ -9,6 +9,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -16,30 +17,23 @@ import java.util.List;
 @Configuration
 public class ConfigurationStartup {
   static Logger logger = LoggerFactory.getLogger(ConfigurationStartup.class);
-
-  @Value("#{'${automator.startup.scenarioAtStartup:\'\'}'.split(';')}")
-  public List<String> scenarioAtStartup;
-
-  @Value("#{'${automator.startup.filterService:\'\'}'.split(';')}")
-  public List<String> filterService;
-
   @Value("${automator.startup.scenarioPath}")
   public String scenarioPath;
-
   @Value("${automator.startup.logLevel:MONITORING}")
   public String logLevel;
-
   @Value("${automator.startup.deeptracking:false}")
   public boolean deepTracking;
-
   @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}")
   public String policyExecution;
-
   /**
    * it may be necessary to wait the other component to warm up
    */
   @Value("${automator.startup.waitWarmUpServer:PT0S}")
   public String waitWarmupServer;
+  @Value("#{'${automator.startup.scenarioAtStartup:}'.split(';')}")
+  private List<String> scenarioAtStartup;
+  @Value("#{'${automator.startup.filterService:}'.split(';')}")
+  private List<String> filterService;
 
   public void setLogLevel(String logLevel) {
     this.logLevel = logLevel;
@@ -83,8 +77,12 @@ public class ConfigurationStartup {
     return policyExtended.contains("|DEPLOYPROCESS|");
   }
 
+  public List<String> getScenarioAtStartup() {
+    return recalibrateAfterSplit(scenarioAtStartup);
+  }
+
   public List<String> getFilterService() {
-    return filterService;
+    return recalibrateAfterSplit(filterService);
   }
 
   public Duration getWarmingUpServer() {
@@ -94,5 +92,11 @@ public class ConfigurationStartup {
       logger.error("Can't parse warmup [{}]", waitWarmupServer);
       return Duration.ZERO;
     }
+  }
+
+  private List<String> recalibrateAfterSplit(List<String> originalList) {
+    if (originalList.size() == 1 && originalList.get(0).isEmpty())
+      return Collections.emptyList();
+    return originalList;
   }
 }

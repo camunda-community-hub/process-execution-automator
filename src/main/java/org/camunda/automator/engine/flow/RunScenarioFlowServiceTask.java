@@ -11,12 +11,9 @@ import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.worker.JobClient;
 import io.camunda.zeebe.client.api.worker.JobHandler;
-import io.camunda.zeebe.client.api.worker.JobWorker;
 import io.camunda.zeebe.spring.client.jobhandling.CommandWrapper;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.bpmnengine.camunda7.BpmnEngineCamunda7;
 import org.camunda.automator.bpmnengine.camunda8.BenchmarkCompleteJobExceptionHandlingStrategy;
-import org.camunda.automator.bpmnengine.camunda8.BpmnEngineCamunda8;
 import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunResult;
@@ -35,18 +32,15 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
-  private final TaskScheduler scheduler;
-
   private static final TrackActiveWorker trackActiveWorkers = new TrackActiveWorker();
   private static final TrackActiveWorker trackAsynchronousWorkers = new TrackActiveWorker();
-
+  private final TaskScheduler scheduler;
+  private final Semaphore semaphore;
   Logger logger = LoggerFactory.getLogger(RunScenarioFlowServiceTask.class);
   private BpmnEngine.RegisteredTask registeredTask;
   private boolean stopping;
   @Autowired
   private BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy;
-
-  private Semaphore semaphore;
 
   public RunScenarioFlowServiceTask(TaskScheduler scheduler,
                                     ScenarioStep scenarioStep,
@@ -68,12 +62,12 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
   public void pleaseStop() {
     logger.info("Ask Stopping [" + getId() + "]");
     stopping = true;
-    if (registeredTask==null || (registeredTask.isNull()) )
+    if (registeredTask == null || (registeredTask.isNull()))
       return;
     if (registeredTask.isClosed()) {
-        return;
+      return;
     }
-registeredTask.close();
+    registeredTask.close();
 
     Duration durationSleep = getScenarioStep().getWaitingTimeDuration(Duration.ZERO);
     long expectedEndTime = System.currentTimeMillis() + durationSleep.toMillis();
@@ -115,9 +109,9 @@ registeredTask.close();
     durationSleep = durationSleep.plusSeconds(10);
 
     registeredTask = bpmnEngine.registerServiceTask(getId(), // workerId
-          getScenarioStep().getTopic(), // topic
-          durationSleep, // lock time
-          new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
+        getScenarioStep().getTopic(), // topic
+        durationSleep, // lock time
+        new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
     /*
     // calculate the lock duration: this is <numberOfThreads> *
     ZeebeClient zeebeClient = ((BpmnEngineCamunda8) getRunScenario().getBpmnEngine()).getZeebeClient();
@@ -165,9 +159,11 @@ registeredTask.close();
     public void execute(org.camunda.bpm.client.task.ExternalTask externalTask,
                         ExternalTaskService externalTaskService) {
       switch (getScenarioStep().getModeExecution()) {
-      case WAIT -> manageWaitExecution(externalTask, externalTaskService, null, null, durationSleep.toMillis());
-      case ASYNCHRONOUS -> manageAsynchronousExecution(externalTask, externalTaskService, null, null);
-      case ASYNCHRONOUSLIMITED -> manageAsynchronousLimitedExecution(externalTask, externalTaskService,null,null);
+      case CLASSICAL, WAIT -> manageWaitExecution(externalTask, externalTaskService, null, null,
+          durationSleep.toMillis());
+      case THREAD, ASYNCHRONOUS -> manageAsynchronousExecution(externalTask, externalTaskService, null, null);
+      case THREADTOKEN, ASYNCHRONOUSLIMITED -> manageAsynchronousLimitedExecution(externalTask, externalTaskService,
+          null, null);
       }
     }
 
@@ -175,19 +171,20 @@ registeredTask.close();
     @Override
     public void handle(JobClient jobClient, ActivatedJob activatedJob) throws Exception {
       switch (getScenarioStep().getModeExecution()) {
-      case WAIT -> manageWaitExecution(null, null, jobClient, activatedJob, durationSleep.toMillis());
-      case ASYNCHRONOUS -> manageAsynchronousExecution(null, null, jobClient, activatedJob);
-      case ASYNCHRONOUSLIMITED -> manageAsynchronousLimitedExecution(null, null,jobClient, activatedJob);
+      case CLASSICAL, WAIT -> manageWaitExecution(null, null, jobClient, activatedJob, durationSleep.toMillis());
+      case THREAD, ASYNCHRONOUS -> manageAsynchronousExecution(null, null, jobClient, activatedJob);
+      case THREADTOKEN, ASYNCHRONOUSLIMITED -> manageAsynchronousLimitedExecution(null, null, jobClient, activatedJob);
       }
     }
 
     private void manageWaitExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                      ExternalTaskService externalTaskService,
-                                     JobClient jobClient, ActivatedJob activatedJob,
+                                     JobClient jobClient,
+                                     ActivatedJob activatedJob,
                                      long waitTimeInMs) {
       long begin = System.currentTimeMillis();
       try {
-        if (getRunScenario().getRunParameters().deepTracking)
+        if (getRunScenario().getRunParameters().isDeepTracking())
           trackActiveWorkers.movement(1);
 
         if (waitTimeInMs > 0)
@@ -196,11 +193,11 @@ registeredTask.close();
         Map<String, Object> variables = new HashMap<>();
 
         /* C7 */
-        if (externalTask!=null) {
+        if (externalTask != null) {
           externalTaskService.complete(externalTask, variables);
         }
         /* C8 */
-        if (jobClient!=null) {
+        if (jobClient != null) {
           CompleteJobCommandStep1 completeCommand = jobClient.newCompleteCommand(activatedJob.getKey());
           CommandWrapper command = new RefactoredCommandWrapper((FinalCommandStep) completeCommand,
               activatedJob.getDeadline(), activatedJob.toString(), exceptionHandlingStrategy);
@@ -219,26 +216,31 @@ registeredTask.close();
       }
       long end = System.currentTimeMillis();
 
-      if (getRunScenario().getRunParameters().deepTracking)
+      if (getRunScenario().getRunParameters().isDeepTracking())
         trackActiveWorkers.movement(-1);
 
       if (getRunScenario().getRunParameters().isLevelMonitoring()) {
+        logger.info("Executed task[{}] in {} ms Sleep [{} s]", getId(), end - begin, durationSleep.getSeconds());
+        /*
         logger.info(
             "Executed task[" + getId() + "] in " + (end - begin) + " ms" + " Sleep [" + durationSleep.getSeconds()
                 + " s]");
+                */
+
       }
     }
 
     private void manageAsynchronousExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                              ExternalTaskService externalTaskService,
-                                             JobClient jobClient, ActivatedJob activatedJob) {
-      if (getRunScenario().getRunParameters().deepTracking)
+                                             JobClient jobClient,
+                                             ActivatedJob activatedJob) {
+      if (getRunScenario().getRunParameters().isDeepTracking())
         trackAsynchronousWorkers.movement(1);
       flowServiceTask.scheduler.schedule(new Runnable() {
         @Override
         public void run() {
-          manageWaitExecution(externalTask, externalTaskService, jobClient, activatedJob,0);
-          if (getRunScenario().getRunParameters().deepTracking)
+          manageWaitExecution(externalTask, externalTaskService, jobClient, activatedJob, 0);
+          if (getRunScenario().getRunParameters().isDeepTracking())
             trackAsynchronousWorkers.movement(-1);
         }
       }, Instant.now().plusMillis(durationSleep.toMillis()));
@@ -246,7 +248,8 @@ registeredTask.close();
 
     private void manageAsynchronousLimitedExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                                     ExternalTaskService externalTaskService,
-                                                    JobClient jobClient, ActivatedJob activatedJob) {
+                                                    JobClient jobClient,
+                                                    ActivatedJob activatedJob) {
       // we register
       try {
         flowServiceTask.semaphore.acquire();

@@ -188,11 +188,11 @@ public class ConfigurationBpmEngine {
       camunda7.camunda7UserName = configurationServersEngine.camunda7UserName;
       camunda7.camunda7Password = configurationServersEngine.camunda7Password;
 
-      camunda7.workerMaxJobsActive =  parseInt("Camunda7.workerMaxJobsActive",
-          configurationServersEngine.C7workerMaxJobsActive, -1);;
+      camunda7.workerMaxJobsActive = parseInt("Camunda7.workerMaxJobsActive",
+          configurationServersEngine.C7WorkerMaxJobsActive, -1);
       list.add(camunda7);
-      logger.info("Configuration: Camunda7 Name[{}] url[{}] MaxJobsActive[{}]", camunda7.name, camunda7.camunda7ServerUrl,
-          camunda7.workerMaxJobsActive);
+      logger.info("Configuration: Camunda7 Name[{}] url[{}] MaxJobsActive[{}]", camunda7.name,
+          camunda7.camunda7ServerUrl, camunda7.workerMaxJobsActive);
     }
     if (hasValue(configurationServersEngine.zeebeGatewayAddress)) {
       BpmnServerDefinition camunda8 = new BpmnServerDefinition();
@@ -202,18 +202,15 @@ public class ConfigurationBpmEngine {
       camunda8.workerExecutionThreads = parseInt("Camunda8.workerExecutionThreads",
           configurationServersEngine.workerExecutionThreads, 101);
       camunda8.workerMaxJobsActive = parseInt("Camunda8.workerMaxJobsActive",
-          configurationServersEngine.C8workerMaxJobsActive, -1);
+          configurationServersEngine.C8WorkerMaxJobsActive, -1);
       camunda8.operateUrl = configurationServersEngine.operateUrl;
       camunda8.operateUserName = configurationServersEngine.operateUserName;
       camunda8.operateUserPassword = configurationServersEngine.operateUserPassword;
       camunda8.taskListUrl = configurationServersEngine.taskListUrl;
       list.add(camunda8);
-      logger.info("Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] "
-              + "OperateURL[{}]",
-          camunda8.name,
-          camunda8.camunda7ServerUrl,
-          camunda8.workerMaxJobsActive,
-          camunda8.workerExecutionThreads,
+      logger.info(
+          "Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] " + "OperateURL[{}]",
+          camunda8.name, camunda8.camunda7ServerUrl, camunda8.workerMaxJobsActive, camunda8.workerExecutionThreads,
           camunda8.operateUrl);
 
     }

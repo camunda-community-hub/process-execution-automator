@@ -18,6 +18,11 @@ public class DataOperationLoadFile extends DataOperation {
   }
 
   @Override
+  public String getHelp() {
+    return "loadfile(<CompletePathToTheFile>)";
+  }
+
+  @Override
   public Object execute(String value, RunScenario runScenario) throws AutomatorException {
     File fileLoad = loadFile(value, runScenario);
     if (fileLoad == null)
@@ -34,7 +39,6 @@ public class DataOperationLoadFile extends DataOperation {
   private File loadFile(String value, RunScenario runScenario) throws AutomatorException {
     List<String> args = extractArgument(value, true);
 
-    File fileToLoad = null;
     if (args.size() != 1) {
       throw new AutomatorException("Bad argument: loadfile(<fileName>)");
     }

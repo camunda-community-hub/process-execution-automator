@@ -4,49 +4,171 @@ import java.util.Collections;
 import java.util.List;
 
 public class RunParameters {
-  public LOGLEVEL logLevel = LOGLEVEL.MONITORING;
+  private LOGLEVEL logLevel = LOGLEVEL.MONITORING;
 
-  public int numberOfThreadsPerScenario = 10;
+  private int numberOfThreadsPerScenario = 10;
 
   /**
    * Execute the scenario (execution part): create process instance, execute user & service task
    */
-  public boolean execution = false;
+  private boolean execution = false;
 
   /**
    * On execution, it's possible to pilot each item, one by one
    */
-  public boolean creation = true;
-  public boolean servicetask = true;
-  public boolean usertask = true;
+  private boolean creation = true;
+  private boolean servicetask = true;
+  private boolean usertask = true;
   /**
    * Verify the scenario (verification part) : check that tasks exist
    */
-  public boolean verification = false;
+  private boolean verification = false;
 
   /**
    * After the execution, clean the processInstance
    */
-  public boolean clearAllAfter = false;
+  private boolean clearAllAfter = false;
 
   /**
    * Allow any deployment
    */
-  public boolean deploymentProcess = true;
+  private boolean deploymentProcess = true;
 
-  public boolean fullDetailsSythesis = false;
-  public List<String> filterServiceTask = Collections.emptyList();
+  private boolean fullDetailsSynthesis = false;
+  private List<String> filterServiceTask = Collections.emptyList();
 
-  public boolean deepTracking = true;
+  private boolean deepTracking = true;
   /**
    * Load the scenario path here. Some functions may be relative to this path
    */
-  public String scenarioPath;
+  private String scenarioPath;
 
-  public boolean warmingUp = true;
+  private boolean warmingUp = true;
+
+  public LOGLEVEL getLogLevel() {
+    return logLevel;
+  }
+
+  public RunParameters setLogLevel(LOGLEVEL logLevel) {
+    this.logLevel = logLevel;
+    return this;
+  }
+
+  public boolean isExecution() {
+    return execution;
+  }
+
+  public RunParameters setExecution(boolean execution) {
+    this.execution = execution;
+    return this;
+  }
+
+  public boolean isCreation() {
+    return creation;
+  }
+
+  public RunParameters setCreation(boolean creation) {
+    this.creation = creation;
+    return this;
+  }
+
+  public boolean isServicetask() {
+    return servicetask;
+  }
+
+  public RunParameters setServicetask(boolean servicetask) {
+    this.servicetask = servicetask;
+    return this;
+  }
+
+  public boolean isUsertask() {
+    return usertask;
+  }
+
+  public RunParameters setUsertask(boolean usertask) {
+    this.usertask = usertask;
+    return this;
+  }
+
+  public boolean isVerification() {
+    return verification;
+  }
+
+  public RunParameters setVerification(boolean verification) {
+    this.verification = verification;
+    return this;
+  }
+
+  public boolean isClearAllAfter() {
+    return clearAllAfter;
+  }
+
+  public RunParameters setClearAllAfter(boolean clearAllAfter) {
+    this.clearAllAfter = clearAllAfter;
+    return this;
+  }
+
+  public boolean isDeploymentProcess() {
+    return deploymentProcess;
+  }
+
+  public RunParameters setDeploymentProcess(boolean deploymentProcess) {
+    this.deploymentProcess = deploymentProcess;
+    return this;
+  }
+
+  public boolean isFullDetailsSynthesis() {
+    return fullDetailsSynthesis;
+  }
+
+  public RunParameters setFullDetailsSynthesis(boolean fullDetailsSynthesis) {
+    this.fullDetailsSynthesis = fullDetailsSynthesis;
+    return this;
+  }
+
+  public List<String> getFilterServiceTask() {
+    return filterServiceTask;
+  }
+
+  public RunParameters setFilterServiceTask(List<String> filterServiceTask) {
+    this.filterServiceTask = filterServiceTask;
+    return this;
+  }
+
+  public boolean isDeepTracking() {
+    return deepTracking;
+  }
+
+  public RunParameters setDeepTracking(boolean deepTracking) {
+    this.deepTracking = deepTracking;
+    return this;
+  }
+
+  public String getScenarioPath() {
+    return scenarioPath;
+  }
+
+  public RunParameters setScenarioPath(String scenarioPath) {
+    this.scenarioPath = scenarioPath;
+    return this;
+  }
+
+  public boolean isWarmingUp() {
+    return warmingUp;
+  }
+
+  public RunParameters setWarmingUp(boolean warmingUp) {
+    this.warmingUp = warmingUp;
+    return this;
+  }
 
   public int getNumberOfThreadsPerScenario() {
     return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
+  }
+
+  public RunParameters setNumberOfThreadsPerScenario(int numberOfThreadsPerScenario) {
+    this.numberOfThreadsPerScenario = numberOfThreadsPerScenario;
+    return this;
   }
 
   public boolean isLevelDebug() {
@@ -74,24 +196,14 @@ public class RunParameters {
   }
 
   private int getLogLevelAsNumber() {
-    switch (logLevel) {
-    case NOTHING -> {
-      return 0;
-    }
-    case MAIN -> {
-      return 1;
-    }
-    case MONITORING -> {
-      return 2;
-    }
-    case INFO -> {
-      return 3;
-    }
-    case DEBUG -> {
-      return 4;
-    }
-    }
-    return 0;
+    return switch (logLevel) {
+    case NOTHING -> 0;
+    case MAIN -> 1;
+    case MONITORING -> 2;
+    case INFO -> 3;
+    case DEBUG -> 4;
+      default -> 0;
+    };
   }
 
   public enum LOGLEVEL {DEBUG, INFO, MONITORING, MAIN, NOTHING}

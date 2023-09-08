@@ -20,6 +20,9 @@ public class ScenarioWarmingUp {
   public String duration;
   public List<ScenarioStep> operations;
 
+  public boolean useServiceTasks = false;
+  public boolean useUserTasks = false;
+
   public Duration getDuration() {
     return duration == null ? Duration.ZERO : Duration.parse(duration);
   }
@@ -27,4 +30,5 @@ public class ScenarioWarmingUp {
   public List<ScenarioStep> getOperations() {
     return operations == null ? Collections.emptyList() : operations;
   }
+
 }

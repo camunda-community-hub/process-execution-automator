@@ -134,7 +134,7 @@ public class AutomatorCLI implements CommandLineRunner {
         } else if ("-l".equals(args[i]) || "--level".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : -l <DEBUG|MONITORING|MAIN|NOTHING>");
-          runParameters.logLevel = RunParameters.LOGLEVEL.valueOf(args[i + 1]);
+          runParameters.setLogLevel(RunParameters.LOGLEVEL.valueOf(args[i + 1]));
           i++;
         } else if ("-n".equals(args[i]) || "--numberofexecution".equals(args[i])) {
           if (args.length < i + 1)
@@ -144,14 +144,14 @@ public class AutomatorCLI implements CommandLineRunner {
         } else if ("-d".equals(args[i]) || "--deploy".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : -d TRUE|FALSE");
-          runParameters.deploymentProcess = "TRUE".equalsIgnoreCase(args[i + 1]);
+          runParameters.setDeploymentProcess("TRUE".equalsIgnoreCase(args[i + 1]));
           i++;
         } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
-          runParameters.execution = true;
+          runParameters.setExecution(true);
         } else if ("-v".equals(args[i]) || "--verification".equals(args[i])) {
-          runParameters.verification = true;
+          runParameters.setVerification(true);
         } else if ("-f".equals(args[i]) || "--fullreport".equals(args[i])) {
-          runParameters.fullDetailsSythesis = true;
+          runParameters.setFullDetailsSynthesis(true);
         } else if ("run".equals(args[i])) {
           if (args.length < i + 1)
             throw new Exception("Bad usage : run <scenarioFile>");
@@ -174,8 +174,8 @@ public class AutomatorCLI implements CommandLineRunner {
       if (action == null) {
         throw new Exception("Bad usage : missing action (" + ACTION.RUN + ")");
       }
-      if (!runParameters.execution && !runParameters.verification) {
-        runParameters.execution = true; // default
+      if (!runParameters.isExecution() && !runParameters.isVerification()) {
+        runParameters.setExecution(true); // default
       }
 
       // get the correct server configuration
@@ -199,6 +199,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
       long beginTime = System.currentTimeMillis();
       BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(engineConfiguration, serverDefinition);
+
       switch (action) {
       case RUN -> {
         Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
@@ -206,7 +207,7 @@ public class AutomatorCLI implements CommandLineRunner {
         RunResult scenarioExecutionResult = automatorAPI.executeScenario(
             bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
 
-        logger.info(scenarioExecutionResult.getSynthesis(runParameters.fullDetailsSythesis));
+        logger.info(scenarioExecutionResult.getSynthesis(runParameters.isFullDetailsSynthesis()));
       }
       case RECURSIVE -> {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);

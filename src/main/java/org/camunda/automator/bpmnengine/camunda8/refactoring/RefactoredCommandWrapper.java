@@ -37,20 +37,22 @@ public class RefactoredCommandWrapper extends CommandWrapper {
   @Override
   public void executeAsync() {
     ++this.invocationCounter;
-    this.command.send().exceptionally(t -> {
-      this.commandExceptionHandlingStrategy.handleCommandError(this, t);
-      return null;
-    });
+    ZeebeFuture<Void> zeebeFuture = this.command.send();
+    if (commandExceptionHandlingStrategy != null)
+      zeebeFuture.exceptionally(t -> {
+        this.commandExceptionHandlingStrategy.handleCommandError(this, t);
+        return null;
+      });
   }
 
   public Object executeSync() {
     ++this.invocationCounter;
     ZeebeFuture<Void> zeebeFutur = this.command.send();
-
-    zeebeFutur.exceptionally(t -> {
-      this.commandExceptionHandlingStrategy.handleCommandError(this, t);
-      return null;
-    });
+    if (commandExceptionHandlingStrategy != null)
+      zeebeFutur.exceptionally(t -> {
+        this.commandExceptionHandlingStrategy.handleCommandError(this, t);
+        return null;
+      });
     return zeebeFutur.join();
   }
 
