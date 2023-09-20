@@ -31,10 +31,9 @@ spec:
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=1
-                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=C8CrawlUrlScn.json
-                -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
-                -Dautomator.startup.logLevel=MONITORING
+                -Dautomator.startup.scenarioResourceAtStartup=file:/C8CrawlUrlScn.json
+                -Dautomator.startup.policyExecution=WARMINGUP|CREATION|SERVICETASK|USERTASK
+                -Dautomator.startup.logLevel=DASHBOARD
           resources:
             limits:
               cpu: "1"
@@ -42,3 +41,12 @@ spec:
             requests:
               cpu: "1"
               memory: 1Gi
+          volumeMounts:
+            - name: scenario
+              mountPath: C8CrawlUrlScn.json
+              subPath: C8CrawlUrlScn.json
+              readOnly: true
+      volumes:
+        - name: scenario
+          configMap:
+            name: crawurlscnmap

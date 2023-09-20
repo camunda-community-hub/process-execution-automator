@@ -1,6 +1,6 @@
 # Load Test scenario
 
-A load test scenario is different than a unit test. In a load test, the goal is to mimic the production:
+A load test scenario is different from a unit test. In a load test, the goal is to mimic the production:
 
 * in term on process instance creation
 * in term of service task, using the real service task or simulate it
