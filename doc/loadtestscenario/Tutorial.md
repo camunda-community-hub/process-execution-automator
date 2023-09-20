@@ -436,7 +436,7 @@ throughput.
 ![Job Completion per second ](images/ThroughputJobCompletionPerSecond.png)
 
 **CPU Usage**
-CPU and Memory usage is part of the excellent health of the platform. Elastic Search is, in general, the most consumer for the CPU.
+CPU and Memory usage is part of the excellent health of the platform. Elasticsearch is, in general, the most consumer for the CPU.
 If Zeebe is close to the value allocated, it's time to increase it or create new partitions.
 
 ![CPU Usage](images/CPU.png)
@@ -476,9 +476,9 @@ for a new job. The Zeebe Gateway will connect all partitions. When there are too
 
 Zeebe maintains a stream to execute a process instance. In this stream, two pointers are running:
 * one for the next job to execute (execute a gateway, execute a worker submission)
-* one for the exporter to Elastic Search
+* one for the exporter to Elasticsearch
 
-Where there is a lot of data to process, the Elastic search pointer may be late behind the execution:
+Where there is a lot of data to process, the Elasticsearch pointer may be late behind the execution:
 The stream grows up. This may not be a big deal if, at one moment, the flow slows down, then the second pointer
 will catch up. But if this is not the situation, the stream may reach the PVC limit. If this happens, then
 the first pointer will slow down, and the Zeebe Engine will stop to accept new jobs: the speed will be then the slowest limit.
@@ -557,11 +557,11 @@ There are more workers now, putting more pressure on the engine.
 The number of jobs per second is better now, close to 200.
 ![Job Per seconds](test_2/test-2-JobsPerSecond.png)
 
-The CPU is at 1 for Elastic Search (which is the maximum limit in the cluster definition)
+The CPU is at 1 for Elasticsearch (which is the maximum limit in the cluster definition)
 and 512 for Zeebe (the maximum limit too).
 ![CPU](test_2/test-2-CPU.png)
 
-Note that Elastic Search is not a bottleneck for Zeebe. To verify that, the "latest position exported" is compared to the
+Note that Elasticsearch is not a bottleneck for Zeebe. To verify that, the "latest position exported" is compared to the
 "latest position executed", and they are close.
 But the issue will be in Operate: the dashboard may be late regarding the reality
 ![Exporter position](test_2/test-2-ExporterPosition.png)
@@ -581,7 +581,7 @@ The next move consists of increasing the number of partitions.
 ## Increase the platform (test 3)
 
 **What's change**
-A ten-partition platform is used. Elastic Search will have 5 CPUs to run.
+A ten-partition platform is used. Elasticsearch will have 5 CPUs to run.
 There is no change in the application cluster.
 
 ````yaml
