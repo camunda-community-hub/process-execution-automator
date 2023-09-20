@@ -24,8 +24,8 @@ public class DataOperationStringToDate extends DataOperation {
   public static final String FCT_LOCALDATE = "LOCALDATE";
   // visit https://docs.camunda.io/docs/components/modeler/bpmn/timer-events/#time-date
   // 2019-10-01T12:00:00Z
-  public static String ISO_8601_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
-  public static String ISO_8601_DATE_FORMAT = "yyyy-MM-dd";
+  public static final String ISO_8601_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+  public static final String ISO_8601_DATE_FORMAT = "yyyy-MM-dd";
 
   @Override
   public boolean match(String value) {
@@ -33,13 +33,17 @@ public class DataOperationStringToDate extends DataOperation {
   }
 
   @Override
+  public String getHelp() {
+    return "stringtodate(" + FCT_LOCALDATETIME + "|" + FCT_DATETIME + "|" + FCT_DATE + "|" + FCT_ZONEDATETIME + "|"
+        + FCT_LOCALDATE + ", dateSt)";
+  }
+
+  @Override
   public Object execute(String value, RunScenario runScenario) throws AutomatorException {
     List<String> args = extractArgument(value, true);
 
     if (args.size() != 2) {
-      throw new AutomatorException(
-          "Bad argument: stringtodate(" + FCT_LOCALDATETIME + "|" + FCT_DATETIME + "|" + FCT_DATE + "|"
-              + FCT_ZONEDATETIME + "|" + FCT_LOCALDATE + ", dateSt");
+      throw new AutomatorException("Bad argument: " + getHelp());
     }
     String formatArgs = args.get(0).toUpperCase(Locale.ROOT);
     String valueArgs = args.get(1);

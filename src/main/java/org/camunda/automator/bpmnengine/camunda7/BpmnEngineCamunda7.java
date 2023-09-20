@@ -23,7 +23,6 @@ import org.camunda.community.rest.client.dto.DeploymentWithDefinitionsDto;
 import org.camunda.community.rest.client.dto.ExternalTaskDto;
 import org.camunda.community.rest.client.dto.ExternalTaskQueryDto;
 import org.camunda.community.rest.client.dto.LockExternalTaskDto;
-import org.camunda.community.rest.client.dto.ProcessEngineDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceQueryDto;
 import org.camunda.community.rest.client.dto.ProcessInstanceQueryDtoSorting;
@@ -56,16 +55,13 @@ import java.util.Map;
  */
 public class BpmnEngineCamunda7 implements BpmnEngine {
 
+  public static final int SEARCH_MAX_SIZE = 100;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda7.class);
-
   private final String serverUrl;
   private final String userName;
   private final String password;
-
   private final int workerMaxJobsActive;
   private final boolean logDebug;
-  public static final int SEARCH_MAX_SIZE = 100;
-
   ApiClient apiClient = null;
   ProcessDefinitionApi processDefinitionApi;
   TaskApi taskApi;
@@ -74,6 +70,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   VariableInstanceApi variableInstanceApi;
   DeploymentApi deploymentApi;
   EngineApi engineApi;
+  private int count = 0;
 
   public BpmnEngineCamunda7(ConfigurationBpmEngine engineConfiguration,
                             ConfigurationBpmEngine.BpmnServerDefinition serverDefinition) {
@@ -124,8 +121,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     engineApi = new EngineApi(apiClient);
   }
 
-  private int count = 0;
-
   public void connection() throws AutomatorException {
     count++;
     // we verify if we have the connection
@@ -137,7 +132,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       logger.info("Connection successfully to Camunda7 [{}] ", apiClient.getBasePath());
     } catch (ApiException e) {
       logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.toString());
-      throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e.toString());
+      throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e);
     }
   }
 
@@ -204,7 +199,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /* ******************************************************************** */
 
   @Override
-  public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
+  public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     if (logDebug) {
       logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + userTaskId + "]");
@@ -219,6 +214,23 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       taskQueryDto.addProcessInstanceIdInItem(subProcessInstance);
 
     }
+    taskQueryDto.addTaskDefinitionKeyInItem(userTaskId);
+    List<TaskDto> taskDtos = null;
+    try {
+      taskDtos = taskApi.queryTasks(0, maxResult, taskQueryDto);
+    } catch (ApiException e) {
+      throw new AutomatorException("Can't searchTask", e);
+    }
+    return taskDtos.stream().map(TaskDto::getId).toList();
+  }
+
+  @Override
+  public List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException {
+    if (logDebug) {
+      logger.info("BpmnEngine7.searchForActivity: taskName[" + userTaskId + "]");
+    }
+
+    TaskQueryDto taskQueryDto = new TaskQueryDto();
     taskQueryDto.addTaskDefinitionKeyInItem(userTaskId);
     List<TaskDto> taskDtos = null;
     try {
@@ -573,6 +585,16 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     return processInstanceDtos.stream().map(ProcessInstanceDto::getId).toList();
   }
 
+  private String dateToString(Date date) {
+    return String.valueOf(date.getTime());
+  }
+
+  private Date stringToDate(String dateSt) {
+    if (dateSt == null)
+      return null;
+    return new Date(Long.valueOf(dateSt));
+  }
+
   /**
    * Call back asynchronous
    */
@@ -603,15 +625,5 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
 
     public enum STATUS {WAIT, FAILURE, SUCCESS}
-  }
-
-  private String dateToString(Date date) {
-    return String.valueOf(date.getTime());
-  }
-
-  private Date stringToDate(String dateSt) {
-    if (dateSt == null)
-      return null;
-    return new Date(Long.valueOf(dateSt));
   }
 }

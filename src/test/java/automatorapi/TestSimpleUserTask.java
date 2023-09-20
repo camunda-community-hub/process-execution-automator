@@ -35,7 +35,7 @@ public class TestSimpleUserTask {
 
     execution.addStep(ScenarioStep.createStepCreate(execution, "StartEvent_Review"));
     RunParameters runParameters = new RunParameters();
-    runParameters.logLevel = RunParameters.LOGLEVEL.DEBUG;
+    runParameters.setLogLevel( RunParameters.LOGLEVEL.DEBUG);
     try {
 
       ConfigurationBpmEngine engineConfiguration = BpmnEngineConfigurationInstance.getDummy();

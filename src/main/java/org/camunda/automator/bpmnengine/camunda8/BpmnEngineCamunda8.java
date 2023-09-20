@@ -30,7 +30,6 @@ import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.response.DeploymentEvent;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
 import io.camunda.zeebe.client.api.worker.JobHandler;
-import io.camunda.zeebe.client.api.worker.JobWorker;
 import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
@@ -39,9 +38,6 @@ import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.flow.FixedBackoffSupplier;
-import org.camunda.automator.engine.flow.RunScenarioFlowServiceTask;
-import org.camunda.bpm.client.task.ExternalTaskHandler;
-import org.camunda.community.rest.client.invoker.ApiException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +70,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   private CamundaTaskListClient taskClient;
   @Autowired
   private BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy;
-  private ConfigurationBpmEngine.CamundaEngine typeCamundaEngine;
+  // Default
+  private ConfigurationBpmEngine.CamundaEngine typeCamundaEngine = ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8;
 
   /**
    * Constructor from existing object
@@ -142,8 +139,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     // nothing to do there
   }
 
-  public void connection() throws AutomatorException
-  {
+  public void connection() throws AutomatorException {
 
     final String defaultAddress = "localhost:26500";
     final String envVarAddress = System.getenv("ZEEBE_ADDRESS");
@@ -200,12 +196,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       analysis.append("] MaxJobsActive[");
       analysis.append(serverDefinition.workerMaxJobsActive);
       analysis.append("] ");
-      if (serverDefinition.workerMaxJobsActive==-1) {
-        serverDefinition.workerMaxJobsActive=serverDefinition.workerExecutionThreads;
+      if (serverDefinition.workerMaxJobsActive == -1) {
+        serverDefinition.workerMaxJobsActive = serverDefinition.workerExecutionThreads;
         analysis.append("No MaxJobsActive defined, align to the number of threads, ");
       }
-      if (serverDefinition.workerExecutionThreads < serverDefinition.workerMaxJobsActive) {
-        logger.error("Incorrect definition: the number of threads must be >= number Jobs Active, else ZeebeClient will not fetch enough jobs to feed threads");
+      if (serverDefinition.workerExecutionThreads > serverDefinition.workerMaxJobsActive) {
+        logger.error(
+            "Camunda8 [{}] Incorrect definition: the number of threads {} must be <= number Jobs Active {} , else ZeebeClient will not fetch enough jobs to feed threads",
+            serverDefinition.name, serverDefinition.workerExecutionThreads, serverDefinition.workerMaxJobsActive);
       }
 
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);
@@ -229,20 +227,23 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       logger.info(analysis.toString());
 
     } catch (Exception e) {
-      zeebeClient=null;
-      throw new AutomatorException("Can't connect to Zeebe " + e.getMessage() + " - Analysis:" + analysis);
+      zeebeClient = null;
+      throw new AutomatorException(
+          "Can't connect to Zeebe/operate/tasklist " + e.getMessage() + " - Analysis:" + analysis);
     }
   }
 
   public void disconnection() throws AutomatorException {
     // nothing to do here
   }
+
   /**
    * Engine is ready. If not, a connection() method must be call
+   *
    * @return
    */
-  public boolean isReady(){
-    return zeebeClient!=null;
+  public boolean isReady() {
+    return zeebeClient != null;
   }
 
   /* ******************************************************************** */
@@ -335,7 +336,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   }
 
   @Override
-  public List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult)
+  public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
       throws AutomatorException {
     try {
       // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
@@ -363,7 +364,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             }).map(Task::getId) // Task to ID
             .toList());
 
-        tasksList = taskClient.after(tasksList);
+        if (tasksList.size() > 0)
+          tasksList = taskClient.after(tasksList);
       } while (tasksList.size() > 0);
 
       return listTasksResult;
@@ -373,7 +375,33 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     }
   }
 
+  @Override
+  public List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException {
+    try {
+      // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
 
+      TaskSearch taskSearch = new TaskSearch();
+      taskSearch.setState(TaskState.CREATED);
+      taskSearch.setAssigned(Boolean.FALSE);
+      taskSearch.setWithVariables(true);
+      taskSearch.setPagination(new Pagination().setPageSize(maxResult));
+
+      TaskList tasksList = taskClient.getTasks(taskSearch);
+      List<String> listTasksResult = new ArrayList<>();
+      do {
+        listTasksResult.addAll(tasksList.getItems().stream().map(Task::getId) // Task to ID
+            .toList());
+
+        if (tasksList.size() > 0)
+          tasksList = taskClient.after(tasksList);
+      } while (tasksList.size() > 0);
+
+      return listTasksResult;
+
+    } catch (TaskListException e) {
+      throw new AutomatorException("Can't search users task " + e.getMessage());
+    }
+  }
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -382,15 +410,19 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
   @Override
   public RegisteredTask registerServiceTask(String workerId,
-                                       String topic,
-                                       Duration lockTime,
-                                       Object jobHandler,
-                                       FixedBackoffSupplier backoffSupplier)
-  {
-    if (! (jobHandler instanceof JobHandler))
-    {
-      logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId, topic);
+                                            String topic,
+                                            Duration lockTime,
+                                            Object jobHandler,
+                                            FixedBackoffSupplier backoffSupplier) {
+    if (!(jobHandler instanceof JobHandler)) {
+      logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId,
+          topic);
       return null;
+    }
+    if (topic == null) {
+      logger.error("topic must not be null, can't register the worker [{}]", workerId);
+      return null;
+
     }
     RegisteredTask registeredTask = new RegisteredTask();
 
@@ -400,13 +432,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         .timeout(lockTime)
         .name(workerId);
 
-    if (backoffSupplier!=null) {
+    if (backoffSupplier != null) {
       step3.backoffSupplier(backoffSupplier);
     }
     registeredTask.jobWorker = step3.open();
     return registeredTask;
   }
-
 
   @Override
   public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)

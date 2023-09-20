@@ -13,6 +13,10 @@ import java.util.Map;
 
 public class RunZeebeOperation {
 
+  // Static method only
+  private RunZeebeOperation() {
+  }
+
   /**
    * Resolve variables
    */
@@ -24,7 +28,8 @@ public class RunZeebeOperation {
     // execute all operations now
     for (Map.Entry<String, String> entryOperation : step.getVariablesOperations().entrySet()) {
       variablesCompleted.put(entryOperation.getKey(),
-          runScenario.getServiceAccess().serviceDataOperation.execute(entryOperation.getValue(), runScenario));
+          runScenario.getServiceAccess().serviceDataOperation.execute(entryOperation.getValue(), runScenario,
+              "Step " + step.getInformation()));
     }
 
     return variablesCompleted;

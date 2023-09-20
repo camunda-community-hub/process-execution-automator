@@ -12,30 +12,50 @@ import org.camunda.automator.bpmnengine.dummy.BpmnEngineDummy;
 import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.engine.AutomatorException;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 /**
  * This can't be a Component, to be used in AutomatorAPI
  */
 public class BpmnEngineFactory {
 
+  private static final BpmnEngineFactory bpmnEngineFactory = new BpmnEngineFactory();
+  Map<ConfigurationBpmEngine.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(
+      ConfigurationBpmEngine.CamundaEngine.class);
+
   public static BpmnEngineFactory getInstance() {
-    return new BpmnEngineFactory();
+    return bpmnEngineFactory;
   }
 
   public BpmnEngine getEngineFromConfiguration(ConfigurationBpmEngine engineConfiguration,
                                                ConfigurationBpmEngine.BpmnServerDefinition serverDefinition)
       throws AutomatorException {
-    BpmnEngine engine = switch (serverDefinition.serverType) {
-      case CAMUNDA_7 -> new BpmnEngineCamunda7(engineConfiguration, serverDefinition);
+    BpmnEngine engine = cacheEngine.get(serverDefinition.serverType);
+    if (engine != null)
+      return engine;
 
-      case CAMUNDA_8 -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
+    // instantiate and initialize the engine now
+    synchronized (this) {
+      engine = cacheEngine.get(serverDefinition.serverType);
+      if (engine != null)
+        return engine;
 
-      case CAMUNDA_8_SAAS -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
+      engine = switch (serverDefinition.serverType) {
+        case CAMUNDA_7 -> new BpmnEngineCamunda7(engineConfiguration, serverDefinition);
 
-      case DUMMY -> new BpmnEngineDummy(engineConfiguration);
+        case CAMUNDA_8 -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
 
-    };
+        case CAMUNDA_8_SAAS -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
 
-    engine.init();
+        case DUMMY -> new BpmnEngineDummy(engineConfiguration);
+
+      };
+
+      engine.init();
+      engine.connection();
+      cacheEngine.put(serverDefinition.serverType, engine);
+    }
     return engine;
   }
 }

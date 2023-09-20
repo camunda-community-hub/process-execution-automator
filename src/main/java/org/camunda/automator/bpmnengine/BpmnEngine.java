@@ -23,14 +23,16 @@ public interface BpmnEngine {
    */
   void init();
 
-  public void connection() throws AutomatorException;
+  void connection() throws AutomatorException;
 
-  public void disconnection() throws AutomatorException;
+  void disconnection() throws AutomatorException;
+
   /**
    * Engine is ready. If not, a connection() method must be call
+   *
    * @return
    */
-  public boolean isReady();
+  boolean isReady();
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -72,7 +74,18 @@ public interface BpmnEngine {
    * @return list of taskId
    * @throws AutomatorException in case of error
    */
-  List<String> searchUserTasks(String processInstanceId, String userTaskId, int maxResult) throws AutomatorException;
+  List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
+      throws AutomatorException;
+
+  /**
+   * Return a list of task
+   *
+   * @param userTaskId userTaskId
+   * @param maxResult  maxResult returned
+   * @return list of TaskId
+   * @throws AutomatorException
+   */
+  List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException;
 
   /**
    * @param userTaskId BPMN Id (Review)
@@ -88,32 +101,6 @@ public interface BpmnEngine {
   /*  Service tasks                                                       */
   /*                                                                      */
   /* ******************************************************************** */
-
-  public class RegisteredTask {
-    public TopicSubscription topicSubscription;
-    public JobWorker jobWorker;
-
-    public boolean isNull() {
-      return topicSubscription == null && jobWorker == null;
-    }
-
-    public boolean isClosed() {
-      if (jobWorker != null)
-        return jobWorker.isClosed();
-      if (topicSubscription != null)
-        return false;
-      return true;
-    }
-
-    public void close() {
-      if (jobWorker != null)
-        jobWorker.close();
-      if (topicSubscription != null) {
-        topicSubscription.close();
-        topicSubscription = null;
-      }
-    }
-  }
 
   /**
    * @param workerId        workerId
@@ -151,12 +138,6 @@ public interface BpmnEngine {
   void executeServiceTask(String serviceTaskId, String workerId, Map<String, Object> variables)
       throws AutomatorException;
 
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Generic tasks                                                       */
-  /*                                                                      */
-  /* ******************************************************************** */
-
   /**
    * Search task.
    *
@@ -168,6 +149,12 @@ public interface BpmnEngine {
    */
   List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
       throws AutomatorException;
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Generic tasks                                                       */
+  /*                                                                      */
+  /* ******************************************************************** */
 
   /**
    * Search process instance by a variable content
@@ -204,12 +191,6 @@ public interface BpmnEngine {
 
   long countNumberOfTasks(String processId, String taskId) throws AutomatorException;
 
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Deployment                                                          */
-  /*                                                                      */
-  /* ******************************************************************** */
-
   /**
    * Deploy a BPMN file (may contains multiple processes)
    *
@@ -220,14 +201,20 @@ public interface BpmnEngine {
    */
   String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException;
 
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Deployment                                                          */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine();
+
 
   /* ******************************************************************** */
   /*                                                                      */
   /*  get server definition                                               */
   /*                                                                      */
   /* ******************************************************************** */
-
-  ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine();
 
   /**
    * return the signature of the engine, to log it for example
@@ -237,6 +224,30 @@ public interface BpmnEngine {
   String getSignature();
 
   int getWorkerExecutionThreads();
+
+  class RegisteredTask {
+    public TopicSubscription topicSubscription;
+    public JobWorker jobWorker;
+
+    public boolean isNull() {
+      return topicSubscription == null && jobWorker == null;
+    }
+
+    public boolean isClosed() {
+      if (jobWorker != null)
+        return jobWorker.isClosed();
+      return topicSubscription == null;
+    }
+
+    public void close() {
+      if (jobWorker != null)
+        jobWorker.close();
+      if (topicSubscription != null) {
+        topicSubscription.close();
+        topicSubscription = null;
+      }
+    }
+  }
 
   class TaskDescription {
     public String processInstanceId;

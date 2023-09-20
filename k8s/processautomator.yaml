@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: camunda-8-processautomator-service
-  replicas: 1
+  replicas: 462
   template:
     metadata:
       labels:
@@ -31,15 +31,28 @@ spec:
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=2000
-                -Dautomator.startup.scenarioPath=/app/scenarii/loadtest
-                -Dautomator.startup.scenarioAtStartup=Discovery.json
+                -Dautomator.startup.scenarioPath=/scenarii
+                -Dautomator.startup.scenarioAtStartup=file:/MyScenario.json
                 -Dautomator.startup.waitWarmup=PT10S
-                -Dautomator.startup.policyExecution=DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
+                -Dautomator.startup.policyExecution=SERVICETASK
+                 -Dautomator.startup.topic=takedown-create
                 -Dautomator.startup.logLevel=MAIN
           resources:
             limits:
-              cpu: 1
+              cpu: "1"
               memory: 2Gi
             requests:
-              cpu: 1
+              cpu: "1"
               memory: 1Gi
+          volumeMounts:
+            - name: scenarii
+              mountPath: MyScenario.json
+              subPath: MyScenario.json
+              readOnly: true
+      volumes:
+        - name: scenarii
+          configMap:
+            name: scenarii
+
+# Upload your scenario in this config map
+# kubectl create configmap scenarii --from-file=$(root)/MyScenario.json   -n $(namespace)

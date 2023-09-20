@@ -10,10 +10,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.engine.AutomatorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,6 +27,7 @@ import java.util.List;
  * the Scenario Head group a scenario definition
  */
 public class Scenario {
+  static Logger logger = LoggerFactory.getLogger(Scenario.class);
 
   private final List<ScenarioExecution> executions = new ArrayList<>();
   private final List<ScenarioDeployment> deployments = new ArrayList<>();
@@ -32,7 +39,6 @@ public class Scenario {
   private String version;
   private String processName;
   private String processId;
-  private String modeVerification;
 
   /**
    * Server to run the scenario
@@ -46,35 +52,58 @@ public class Scenario {
    */
   private String scenarioFile = null;
 
-  public static Scenario createFromJson(String jsonFile) {
+  public static Scenario createFromJson(String jsonContent) {
     GsonBuilder builder = new GsonBuilder();
     builder.setPrettyPrinting();
 
     Gson gson = builder.create();
-    Scenario scnHead = gson.fromJson(jsonFile, Scenario.class);
+    Scenario scnHead = gson.fromJson(jsonContent, Scenario.class);
+    if (scnHead == null) {
+      logger.error("Scenario: Can't build scenario from content [{}]", jsonContent);
+      return null;
+    }
     scnHead.afterUnSerialize();
     return scnHead;
+  }
+
+  public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
+    try {
+
+      Scenario scenario = createFromInputStream(new FileInputStream(scenarioFile), scenarioFile.getAbsolutePath());
+      scenario.scenarioFile = scenarioFile.getAbsolutePath();
+      return scenario;
+
+    } catch (FileNotFoundException e) {
+      throw new AutomatorException("Can't access file [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
+    } catch (AutomatorException e) {
+      throw e;
+    }
   }
 
   /**
    * Load the scenario from a File
    *
-   * @param scenarioFile file to read
+   * @param scenarioInput InputStream to read
    * @return the scenario
    * @throws AutomatorException if file cannot be read or it's not a Json file
    */
-  public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
-    try (BufferedReader br = new BufferedReader(new FileReader(scenarioFile))) {
+  public static Scenario createFromInputStream(InputStream scenarioInput, String origin) throws AutomatorException {
+    logger.info("Load Scenario [{}] from InputStream", origin);
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(scenarioInput))) {
       StringBuilder jsonContent = new StringBuilder();
       String st;
       while ((st = br.readLine()) != null)
         jsonContent.append(st);
 
       Scenario scnHead = createFromJson(jsonContent.toString());
-      scnHead.scenarioFile = scenarioFile.getAbsolutePath();
+      if (scnHead == null) {
+        throw new AutomatorException("Scenario: can't load from JSON [" + jsonContent + "] ");
+
+      }
       return scnHead;
-    } catch (Exception e) {
-      throw new AutomatorException("Can't interpret JSON [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
+    } catch (IOException e) {
+      logger.error("CreateScenarioFromInputString: origin[{}] error {} : {} ", origin, e.getMessage(), e.toString());
+      throw new AutomatorException("Can't load content from [" + origin + "] " + e.getMessage());
     }
 
   }
@@ -136,7 +165,12 @@ public class Scenario {
   }
 
   public File getScenarioFile() {
-    return new File(scenarioFile);
+    try {
+      return new File(scenarioFile);
+    } catch (Exception e) {
+      logger.error("Can't access file [{}] ", scenarioFile);
+      return null;
+    }
   }
 
   public String getServerName() {
@@ -152,10 +186,6 @@ public class Scenario {
       return null;
     }
 
-  }
-
-  public String getModeVerification() {
-    return modeVerification;
   }
 
   private void afterUnSerialize() {

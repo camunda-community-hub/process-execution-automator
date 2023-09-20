@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +34,11 @@ public class RunResult {
    */
   private final List<String> listProcessInstancesId = new ArrayList<>();
   private final List<String> listProcessIdDeployed = new ArrayList<>();
-  Logger logger = LoggerFactory.getLogger(RunResult.class);
   /**
    * Keep a photo of process instance created/failed per processid
    */
-  private Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
+  private final Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
+  Logger logger = LoggerFactory.getLogger(RunResult.class);
   private int numberOfSteps = 0;
   private int numberOfErrorSteps = 0;
 
@@ -46,9 +47,28 @@ public class RunResult {
    */
   private long timeExecution;
 
+  private Date startDate;
+  private Date endDate;
+
   public RunResult(RunScenario runScenario) {
     this.runScenario = runScenario;
 
+  }
+
+  public Date getStartDate() {
+    return this.startDate;
+  }
+
+  public void setStartDate(Date date) {
+    this.startDate = date;
+  }
+
+  public Date getEndDate() {
+    return this.endDate;
+  }
+
+  public void setEndDate(Date date) {
+    this.endDate = date;
   }
 
   /**
@@ -59,7 +79,7 @@ public class RunResult {
   public void addProcessInstanceId(String processId, String processInstanceId) {
     this.listProcessInstancesId.add(processInstanceId);
 
-    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    RecordCreationPI create = recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
     create.nbCreated++;
     recordCreationPIMap.put(processId, create);
   }
@@ -75,7 +95,7 @@ public class RunResult {
    * large flow: just register the number of PI
    */
   public void registerAddProcessInstance(String processId, boolean withSuccess) {
-    RecordCreationPI create= recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
+    RecordCreationPI create = recordCreationPIMap.getOrDefault(processId, new RecordCreationPI(processId));
     if (withSuccess)
       create.nbCreated++;
     else
@@ -159,8 +179,8 @@ public class RunResult {
     listErrors.addAll(result.listErrors);
     listVerifications.addAll(result.listVerifications);
     for (Map.Entry<String, RecordCreationPI> entry : result.recordCreationPIMap.entrySet()) {
-      RecordCreationPI currentReference = recordCreationPIMap.getOrDefault(entry.getKey(), new RecordCreationPI(
-          entry.getKey()));
+      RecordCreationPI currentReference = recordCreationPIMap.getOrDefault(entry.getKey(),
+          new RecordCreationPI(entry.getKey()));
       currentReference.nbFailed += entry.getValue().nbFailed;
       currentReference.nbCreated += entry.getValue().nbCreated;
 
@@ -322,25 +342,26 @@ public class RunResult {
     }
   }
 
-  public class VerificationStatus {
-    public ScenarioVerificationBasic verification;
-    public boolean isSuccess;
-    public String message;
-  }
-
   public static class RecordCreationPI {
     public String processId;
-    public long nbCreated=0;
-    public long nbFailed=0;
+    public long nbCreated = 0;
+    public long nbFailed = 0;
+
     public RecordCreationPI(String processId) {
       this.processId = processId;
     }
 
     public void add(RecordCreationPI record) {
-      if (record==null)
+      if (record == null)
         return;
-      nbCreated+= record.nbCreated;
+      nbCreated += record.nbCreated;
       nbFailed += record.nbFailed;
     }
+  }
+
+  public class VerificationStatus {
+    public ScenarioVerificationBasic verification;
+    public boolean isSuccess;
+    public String message;
   }
 }

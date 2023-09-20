@@ -12,11 +12,13 @@ import org.camunda.automator.engine.RunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -49,6 +51,63 @@ public class AutomatorStartup {
 
   }
 
+  private void runFixedWarmup() {
+    // Fixed Warmup
+    if (configurationStartup.getWarmingUpServer().getSeconds() > 30) {
+      logger.info("WarmupFixedTime: wait.... {} s", configurationStartup.getWarmingUpServer().getSeconds());
+
+      try {
+        Thread.sleep(configurationStartup.getWarmingUpServer().toMillis());
+      } catch (Exception e) {
+        // do nothing
+      }
+      logger.info("WarmupFixedTime: end");
+    }
+  }
+
+  /**
+   * Load all scenario. List of File or Resource
+   *
+   * @return list of scenario
+   */
+  private List<Object> registerScenario() {
+    List<Object> scenarioList = new ArrayList<>();
+    // File
+    if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
+      logger.info("No scenario [File] from variable {} given", configurationStartup.getScenarioFileAtStartupName());
+    } else {
+      logger.info("Detect {} scenario [File] from variable {}", configurationStartup.getScenarioFileAtStartup().size(),
+          configurationStartup.getScenarioFileAtStartupName());
+
+      for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
+        logger.info("Register scenario [File] [{}]", scenarioFileName);
+
+        File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
+        if (!scenarioFile.exists()) {
+          logger.error("ScenarioFile: Can't find [{}/{}]", configurationStartup.scenarioPath, scenarioFileName);
+          continue;
+        }
+        scenarioList.add(scenarioFile);
+      }
+    }
+    // Resource
+    if (configurationStartup.getScenarioResourceAtStartup().isEmpty()) {
+      logger.info("No scenario [Resource] from variable {} given",
+          configurationStartup.getScenarioResourceAtStartupName());
+    } else {
+      logger.info("Detect {} scenario [Resource] from variable {}",
+          configurationStartup.getScenarioResourceAtStartup().size(),
+          configurationStartup.getScenarioResourceAtStartupName());
+
+      for (Resource resource : configurationStartup.getScenarioResourceAtStartup()) {
+        logger.info("Load scenario [Resource] from [{}]", resource.getDescription());
+        scenarioList.add(resource);
+      }
+    }
+
+    return scenarioList;
+  }
+
   /**
    * AutomatorSetupRunnable - run in parallel
    */
@@ -76,14 +135,14 @@ public class AutomatorStartup {
     public void run() {
 
       RunParameters runParameters = new RunParameters();
-      runParameters.execution = true;
-      runParameters.logLevel = configurationStartup.getLogLevelEnum();
-      runParameters.creation = configurationStartup.isPolicyExecutionCreation();
-      runParameters.servicetask = configurationStartup.isPolicyExecutionServiceTask();
-      runParameters.usertask = configurationStartup.isPolicyExecutionUserTask();
-      runParameters.warmingUp = configurationStartup.isPolicyExecutionWarmingUp();
-      runParameters.deploymentProcess = configurationStartup.isPolicyDeployProcess();
-      runParameters.deepTracking = configurationStartup.deepTracking();
+      runParameters.setExecution(true)
+          .setLogLevel(configurationStartup.getLogLevelEnum())
+          .setCreation(configurationStartup.isPolicyExecutionCreation())
+          .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
+          .setUserTask(configurationStartup.isPolicyExecutionUserTask())
+          .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
+          .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
+          .setDeepTracking(configurationStartup.deepTracking());
       List<String> filterService = configurationStartup.getFilterService();
       if (filterService != null) {
         runParameters.setFilterExecutionServiceTask(filterService);
@@ -91,8 +150,8 @@ public class AutomatorStartup {
 
       logger.info(
           "AutomatorStartup parameters warmingUp[{}] creation:[{}] serviceTask:[{}] userTask:[{}] ScenarioPath[{}] logLevel[{}] waitWarmingUpServer[{} s]",
-          runParameters.warmingUp, runParameters.creation, runParameters.servicetask, runParameters.usertask,
-          configurationStartup.scenarioPath, configurationStartup.logLevel,
+          runParameters.isWarmingUp(), runParameters.isCreation(), runParameters.isServiceTask(),
+          runParameters.isUserTask(), configurationStartup.scenarioPath, configurationStartup.logLevel,
           configurationStartup.getWarmingUpServer().toMillis() / 1000);
 
       try {
@@ -101,78 +160,85 @@ public class AutomatorStartup {
       } catch (Exception e) {
         logger.error("Can't access Local Path : {} ", e.getMessage());
       }
-      if (configurationStartup.getWarmingUpServer().getSeconds() > 30)
-        logger.info("Warmup: wait.... {} s", configurationStartup.getWarmingUpServer().getSeconds());
 
-      try {
-        Thread.sleep(configurationStartup.getWarmingUpServer().toMillis());
-      } catch (Exception e) {
-        // do nothing
-      }
-      if (configurationStartup.getWarmingUpServer().getSeconds() > 30)
-        logger.info("Warmup: start now");
+      runFixedWarmup();
 
-      for (String scenarioFileName : configurationStartup.scenarioAtStartup) {
-        File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
-        if (!scenarioFile.exists()) {
-          logger.error("Can't find [{}/{}]", configurationStartup.scenarioPath, scenarioFileName);
+      // Load scenario
+      List<Object> scenarioList = registerScenario();
+
+      // now proceed all scenario
+      for (Object scenarioObject : scenarioList) {
+        Scenario scenario = null;
+        if (scenarioObject instanceof File scenarioFile)
+          try {
+            scenario = automatorAPI.loadFromFile(scenarioFile);
+          } catch (Exception e) {
+            logger.error("Error during accessing InputStream from File [{}]: {}",
+                scenarioFile.getAbsolutePath(), e.getMessage());
+          }
+        else if (scenarioObject instanceof Resource scenarioResource) {
+          try {
+            scenario = automatorAPI.loadFromInputStream(scenarioResource.getInputStream(),
+                scenarioResource.getDescription());
+          } catch (Exception e) {
+            logger.error("Error during accessing InputStream from resource [{}]: {}", scenarioResource.getDescription(),
+                e.getMessage());
+          }
+        }
+        if (scenario==null)
+          continue;
+        logger.info("Start scenario [{}]", scenario.getName());
+
+        // BpmnEngine: find the correct one referenced in the scenario
+        int countEngineIsNotReady = 0;
+        BpmnEngine bpmnEngine = null;
+        boolean pleaseTryAgain;
+        do {
+          pleaseTryAgain = false;
+          countEngineIsNotReady++;
+          String message = "";
+          try {
+            if (runParameters.isLevelDashboard()) {
+              logger.info("Connect to Bpmn Engine Type [{}] for scenario [{}]", scenario.getServerType(),
+                  scenario.getName());
+            }
+            bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+            if (!bpmnEngine.isReady()) {
+              bpmnEngine.connection();
+            }
+          } catch (AutomatorException e) {
+            pleaseTryAgain = true;
+            message = e.getMessage();
+          }
+          if (pleaseTryAgain && countEngineIsNotReady < 10) {
+            logger.info(
+                "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}] serverType[{}]",
+                message, countEngineIsNotReady, scenario.getName(), scenario.getName(), scenario.getServerName(),
+                scenario.getServerType());
+            try {
+              Thread.sleep(((long) 1000) * 30);
+            } catch (InterruptedException e) {
+              // nothing to do
+            }
+          }
+        } while (pleaseTryAgain && countEngineIsNotReady < 10);
+
+        if (bpmnEngine == null) {
+          logger.error("Scenario [{}] file[{}] No BPM ENGINE running. Scenario reference serverName[{}] serverType[{}]",
+              scenario.getName(), scenario.getName(), scenario.getServerName(), scenario.getServerType());
           continue;
         }
 
-        try {
-          Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-          logger.info("Start scenario [{}]", scenario.getName());
+        bpmnEngine.turnHighFlowMode(true);
+        logger.info("Scenario [{}] file[{}] use BpmnEngine {}", scenario.getName(), scenario.getName(),
+            bpmnEngine.getSignature());
+        RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
+        logger.info("AutomatorStartup: end scenario [{}] in {} ms", scenario.getName(),
+            scenarioExecutionResult.getTimeExecution());
+        bpmnEngine.turnHighFlowMode(false);
 
-          // BpmnEngine: find the correct one referenced in the scenario
-          int countEngineIsNotReady = 0;
-          BpmnEngine bpmnEngine = null;
-          boolean pleaseTryAgain = false;
-          do {
-            countEngineIsNotReady++;
-
-            try {
-              if (runParameters.isLevelMonitoring()) {
-                logger.info("Connect to Bpmn Engine Type{}", scenario.getServerType());
-              }
-              bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
-              if (! bpmnEngine.isReady()) {
-                bpmnEngine.connection();
-              }
-            } catch (AutomatorException e) {
-              pleaseTryAgain = true;
-            }
-            if (pleaseTryAgain && countEngineIsNotReady < 10) {
-              logger.info(
-                  "Scenario [{}] file[{}] No BPM ENGINE running Sleep 30s. Scenario reference serverName[{}] serverType[{}]",
-                  scenario.getName(), scenarioFile.getName(), scenario.getServerName(), scenario.getServerType());
-              try {
-                Thread.sleep(((long) 1000) * 30);
-              } catch (InterruptedException e) {
-                // nothing to do
-              }
-            }
-          } while (pleaseTryAgain && countEngineIsNotReady < 10);
-
-          if (bpmnEngine == null) {
-            logger.error(
-                "Scenario [{}] file[{}] No BPM ENGINE running. Scenario reference serverName[{}] serverType[{}]",
-                scenario.getName(), scenarioFile.getName(), scenario.getServerName(), scenario.getServerType());
-            continue;
-          }
-
-          bpmnEngine.turnHighFlowMode(true);
-          logger.info("Scenario [{}] file[{}] use BpmnEngine {}", scenario.getName(), scenarioFile.getName(),
-              bpmnEngine.getSignature());
-          RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
-          logger.info("AutomatorStartup: end scenario [{}] in {} ms", scenario.getName(),
-              scenarioExecutionResult.getTimeExecution());
-          bpmnEngine.turnHighFlowMode(false);
-
-        } catch (AutomatorException e) {
-          logger.error("Error during execution [{}]: {}", scenarioFileName, e.getMessage());
-        }
       }
     }
   }
-
 }
+

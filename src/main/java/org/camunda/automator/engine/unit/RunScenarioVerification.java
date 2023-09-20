@@ -1,10 +1,13 @@
-package org.camunda.automator.engine;
+package org.camunda.automator.engine.unit;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioVerification;
 import org.camunda.automator.definition.ScenarioVerificationTask;
 import org.camunda.automator.definition.ScenarioVerificationVariable;
+import org.camunda.automator.engine.AutomatorException;
+import org.camunda.automator.engine.RunResult;
+import org.camunda.automator.engine.RunScenario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +17,7 @@ public class RunScenarioVerification {
   private final ScenarioExecution scnExecution;
   private final Logger logger = LoggerFactory.getLogger(RunScenarioVerification.class);
 
-  RunScenarioVerification(ScenarioExecution scnExecution) {
+  public RunScenarioVerification(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
 
@@ -83,8 +86,8 @@ public class RunScenarioVerification {
       result.addVerification(verificationActivity, message.isEmpty(), message.toString());
 
       if (runScenario.getRunParameters().isLevelDebug())
-        logger.info("ScnScenarioVerification.CheckActivity [" + verificationActivity.getTaskId() + "] Success "
-            + message.isEmpty() + " - " + message);
+        logger.info("ScnScenarioVerification.CheckActivity [{}] Success {} ", verificationActivity.getTaskId(),
+            message.isEmpty() + " - " + message);
     } catch (AutomatorException e) {
       result.addVerification(verificationActivity, false, "Error " + e.getMessage());
     }

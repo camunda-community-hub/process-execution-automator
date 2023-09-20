@@ -34,6 +34,7 @@ public class ScenarioFlowControl {
 
   public static class Objective {
     public int index;
+    public String name;
     public String label;
     public TYPEOBJECTIVE type;
     public String processId;
@@ -44,6 +45,13 @@ public class ScenarioFlowControl {
 
     public int getStandardDeviation() {
       return standardDeviation == null ? 0 : standardDeviation;
+    }
+
+    public String getInformation() {
+      String information = (name == null ? "" : name + "-") + (label == null ? "" : label);
+      if (information.length() > 0)
+        return information;
+      return (type == null ? "NoType" : type.toString()) + " period[" + period + "] value:[" + value + "]";
     }
 
     public enum TYPEOBJECTIVE {CREATED, ENDED, USERTASK, FLOWRATEUSERTASKMN}

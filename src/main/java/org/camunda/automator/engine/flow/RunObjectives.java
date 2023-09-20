@@ -76,8 +76,8 @@ public class RunObjectives {
         listValues.add(currentPhoto);
         flowRateMnObjective.put(objective.index, listValues);
         logger.info("heartBeat: FlowRateUserTaskMn [{}] prev [{}} current [{}] delta [{}] expected [{}] in {} s",
-            objective.label, previousPhoto.nbOfTasks, currentPhoto.nbOfTasks, currentPhoto.delta, objective.value,
-            (currentTime - lastHeartBeat) / 1000);
+            objective.getInformation(), previousPhoto.nbOfTasks, currentPhoto.nbOfTasks, currentPhoto.delta,
+            objective.value, (currentTime - lastHeartBeat) / 1000);
       }
     }
     lastHeartBeat = currentTime;
@@ -91,6 +91,14 @@ public class RunObjectives {
   public List<ObjectiveResult> check() {
     List<ObjectiveResult> listCheck = new ArrayList<>();
     for (ScenarioFlowControl.Objective objective : listObjectives) {
+      if (objective.type == null) {
+        logger.error("Objective {} does not have a type", objective.getInformation());
+        ObjectiveResult objectiveResult = new ObjectiveResult(objective);
+        objectiveResult.success = false;
+        objectiveResult.analysis = "Error: Objective " + objective.getInformation() + " does not have a type";
+        listCheck.add(objectiveResult);
+        continue;
+      }
       listCheck.add(switch (objective.type) {
         case CREATED -> checkObjectiveCreated(objective);
         case ENDED -> checkObjectiveEnded(objective);
@@ -127,8 +135,8 @@ public class RunObjectives {
       int percent = (int) (100.0 * objectiveResult.recordedSuccessValue / (objective.value == 0 ? 1 : objective.value));
 
       objectiveResult.analysis +=
-          "Objective " + objective.label + ": ObjectiveCreation[" + objective.value // objective
-              + "] Created(zeebeAPI)["       + processInstancesCreatedAPI // Value by the API, not really accurate
+          "Objective " + objective.getInformation() + ": ObjectiveCreation[" + objective.value // objective
+              + "] Created(zeebeAPI)[" + processInstancesCreatedAPI // Value by the API, not really accurate
               + "] Create(AutomatorRecord)[" + objectiveResult.recordedSuccessValue // value recorded by automator
               + " (" + percent + " % )" // percent based on the recorded value
               + " CreateFail(AutomatorRecord)[" + objectiveResult.recordedFailValue + "]";
@@ -161,9 +169,10 @@ public class RunObjectives {
       objectiveResult.recordedSuccessValue = bpmnEngine.countNumberOfProcessInstancesEnded(objective.processId,
           startDateFilter, endDateFilter);
       if (objectiveResult.recordedSuccessValue < objective.value) {
-        objectiveResult.analysis += "Fail: " + objective.label + " : " + objective.value + " ended expected, "
-            + objectiveResult.recordedSuccessValue + " created (" + (int) (100.0 * objectiveResult.recordedSuccessValue
-            / objective.value) + " %), ";
+        objectiveResult.analysis +=
+            "Fail: " + objective.getInformation() + " : " + objective.value + " ended expected, "
+                + objectiveResult.recordedSuccessValue + " created (" + (int) (
+                100.0 * objectiveResult.recordedSuccessValue / objective.value) + " %), ";
         objectiveResult.success = false;
       }
 
@@ -191,7 +200,8 @@ public class RunObjectives {
     try {
       objectiveResult.recordedSuccessValue = bpmnEngine.countNumberOfTasks(objective.processId, objective.taskId);
       if (objectiveResult.recordedSuccessValue < objective.value) {
-        objectiveResult.analysis += "Fail: " + objective.label + " : [" + objective.value + "] tasks expected, ";
+        objectiveResult.analysis +=
+            "Fail: " + objective.getInformation() + " : [" + objective.value + "] tasks expected, ";
         objectiveResult.analysis +=
             objectiveResult.recordedSuccessValue + " found (" + (int) (100.0 * objectiveResult.recordedSuccessValue
                 / objective.value) + " %), ";

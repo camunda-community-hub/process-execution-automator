@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ku-processautomator
+  labels:
+    app: ku-processautomator
+spec:
+  selector:
+    matchLabels:
+      app: ku-processautomator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: ku-processautomator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: ku-processautomator
+          image: pierreyvesmonnet/processautomator:1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=1
+                -Dautomator.startup.scenarioResourceAtStartup=file:/C8CrawlUrlScn.json
+                -Dautomator.startup.policyExecution=WARMINGUP|CREATION|SERVICETASK|USERTASK
+                -Dautomator.startup.logLevel=DASHBOARD
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: scenario
+              mountPath: C8CrawlUrlScn.json
+              subPath: C8CrawlUrlScn.json
+              readOnly: true
+      volumes:
+        - name: scenario
+          configMap:
+            name: crawurlscnmap

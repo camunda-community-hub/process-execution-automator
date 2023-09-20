@@ -26,6 +26,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   Logger logger = LoggerFactory.getLogger(RunScenarioFlowStartEvent.class);
   private boolean stopping;
   private boolean isRunning;
+  private int stepNumber = 0;
 
   public RunScenarioFlowStartEvent(TaskScheduler scheduler,
                                    ScenarioStep scenarioStep,
@@ -73,7 +74,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
   public enum STATUS {RUNNING, STOPPING, STOPPED}
 
-  private int stepNumber=0;
   /**
    * StartEventRunnable
    */
@@ -144,7 +144,8 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
           runResult.registerAddProcessInstance(scenarioStep.getProcessId(), true);
         } catch (AutomatorException e) {
           if (!alreadyLoggedError)
-            runResult.addError(scenarioStep, "Step #"+stepNumber+"-"+getId()+" Error at creation: [" + e.getMessage() + "]");
+            runResult.addError(scenarioStep,
+                "Step #" + stepNumber + "-" + getId() + " Error at creation: [" + e.getMessage() + "]");
           alreadyLoggedError = true;
           nbFailed++;
           totalFailed++;
@@ -156,14 +157,14 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
         Duration durationCurrent = duration.minusMillis(currentTimeMillis - begin);
         if (durationCurrent.isNegative()) {
           // take too long to create the required process instance, so stop now.
-          logger.info("Step #"+stepNumber+"-"+getId()+" Take too long to created ProcessInstances: created {} when expected {}", nbCreation,
+          logger.info("Step #" + stepNumber + "-" + getId()
+                  + " Take too long to created ProcessInstances: created {} when expected {}", nbCreation,
               scenarioStep.getNumberOfExecutions());
           isOverloadSection = true;
           break;
         }
 
       } // end of loop getNumberOfExecutions()
-
 
       long end = System.currentTimeMillis();
       duration = duration.minusMillis(end - begin);
@@ -174,7 +175,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
       }
 
       if (runScenario.getRunParameters().isLevelMonitoring()) {
-        logger.info("Step #"+stepNumber+"-" + getId() // id
+        logger.info("Step #" + stepNumber + "-" + getId() // id
             + "] Create (real/scenario)[" + nbCreation + "/" + scenarioStep.getNumberOfExecutions() // creation/target
             + "] Failed[" + nbFailed // failed
             + "] in " + (end - begin) + " ms " // time of operation
@@ -185,6 +186,5 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
     }
   }
-
 
 }
