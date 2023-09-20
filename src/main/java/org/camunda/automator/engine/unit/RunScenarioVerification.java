@@ -86,8 +86,7 @@ public class RunScenarioVerification {
       result.addVerification(verificationActivity, message.isEmpty(), message.toString());
 
       if (runScenario.getRunParameters().isLevelDebug())
-        logger.info("ScnScenarioVerification.CheckActivity [{}] Success {} ",
-            verificationActivity.getTaskId(),
+        logger.info("ScnScenarioVerification.CheckActivity [{}] Success {} ", verificationActivity.getTaskId(),
             message.isEmpty() + " - " + message);
     } catch (AutomatorException e) {
       result.addVerification(verificationActivity, false, "Error " + e.getMessage());

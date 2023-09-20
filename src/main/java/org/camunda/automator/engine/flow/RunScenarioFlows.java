@@ -96,7 +96,7 @@ public class RunScenarioFlows {
       }
 
       case SERVICETASK -> {
-        if (!runScenario.getRunParameters().isServicetask()) {
+        if (!runScenario.getRunParameters().isServiceTask()) {
           logger.info("According configuration, SERVICETASK[{}] is fully disabled", scenarioStep.getTopic());
         } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
           logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
@@ -110,7 +110,7 @@ public class RunScenarioFlows {
       }
 
       case USERTASK -> {
-        if (!runScenario.getRunParameters().isUsertask()) {
+        if (!runScenario.getRunParameters().isUserTask()) {
           logger.info("According configuration, USERTASK[{}] is fully disabled", scenarioStep.getTaskId());
         } else {
           RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"),

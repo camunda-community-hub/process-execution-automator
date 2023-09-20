@@ -15,9 +15,9 @@ import java.util.List;
 
 public class RunScenarioFlowUserTask extends RunScenarioFlowBasic {
 
+  private final TaskScheduler scheduler;
   Logger logger = LoggerFactory.getLogger(RunScenarioFlowUserTask.class);
   private STATUS status = STATUS.RUNNING;
-  private final TaskScheduler scheduler;
 
   public RunScenarioFlowUserTask(TaskScheduler scheduler,
                                  ScenarioStep scenarioStep,

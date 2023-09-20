@@ -72,20 +72,20 @@ public class RunParameters {
     return this;
   }
 
-  public boolean isServicetask() {
+  public boolean isServiceTask() {
     return servicetask;
   }
 
-  public RunParameters setServicetask(boolean servicetask) {
+  public RunParameters setServiceTask(boolean servicetask) {
     this.servicetask = servicetask;
     return this;
   }
 
-  public boolean isUsertask() {
+  public boolean isUserTask() {
     return usertask;
   }
 
-  public RunParameters setUsertask(boolean usertask) {
+  public RunParameters setUserTask(boolean usertask) {
     this.usertask = usertask;
     return this;
   }
@@ -172,14 +172,18 @@ public class RunParameters {
   }
 
   public boolean isLevelDebug() {
-    return getLogLevelAsNumber() >= 4;
+    return getLogLevelAsNumber() >= 5;
   }
 
   public boolean isLevelInfo() {
-    return getLogLevelAsNumber() >= 3;
+    return getLogLevelAsNumber() >= 4;
   }
 
   public boolean isLevelMonitoring() {
+    return getLogLevelAsNumber() >= 3;
+  }
+
+  public boolean isLevelDashboard() {
     return getLogLevelAsNumber() >= 2;
   }
 
@@ -197,15 +201,16 @@ public class RunParameters {
 
   private int getLogLevelAsNumber() {
     return switch (logLevel) {
-    case NOTHING -> 0;
-    case MAIN -> 1;
-    case MONITORING -> 2;
-    case INFO -> 3;
-    case DEBUG -> 4;
+      case NOTHING -> 0;
+      case MAIN -> 1;
+      case DASHBOARD -> 2;
+      case MONITORING -> 3;
+      case INFO -> 4;
+      case DEBUG -> 5;
       default -> 0;
     };
   }
 
-  public enum LOGLEVEL {DEBUG, INFO, MONITORING, MAIN, NOTHING}
+  public enum LOGLEVEL {DEBUG, INFO, MONITORING, DASHBOARD, MAIN, NOTHING}
 
 }

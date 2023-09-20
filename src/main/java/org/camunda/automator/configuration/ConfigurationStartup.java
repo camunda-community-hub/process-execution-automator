@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -30,8 +31,13 @@ public class ConfigurationStartup {
    */
   @Value("${automator.startup.waitWarmUpServer:PT0S}")
   public String waitWarmupServer;
-  @Value("#{'${automator.startup.scenarioAtStartup:}'.split(';')}")
-  private List<String> scenarioAtStartup;
+
+  @Value("#{'${automator.startup.scenarioFileAtStartup:}'.split(';')}")
+  private List<String> scenarioFileAtStartup;
+
+  @Value("${automator.startup.scenarioResourceAtStartup:}")
+  private Resource scenarioResourceAtStartup;
+
   @Value("#{'${automator.startup.filterService:}'.split(';')}")
   private List<String> filterService;
 
@@ -77,8 +83,35 @@ public class ConfigurationStartup {
     return policyExtended.contains("|DEPLOYPROCESS|");
   }
 
-  public List<String> getScenarioAtStartup() {
-    return recalibrateAfterSplit(scenarioAtStartup);
+  public List<String> getScenarioFileAtStartup() {
+    return recalibrateAfterSplit(scenarioFileAtStartup);
+  }
+
+  /**
+   * Return the name for the variable scenarioAtStartup
+   *
+   * @return the name
+   */
+  public String getScenarioFileAtStartupName() {
+    return "automator.startup.scenarioAtStartup";
+  }
+
+  /**
+   * Return the list of collection - only one at this moment
+   *
+   * @return list of scenario detected as a resource
+   */
+  public List<Resource> getScenarioResourceAtStartup() {
+    return Collections.singletonList(scenarioResourceAtStartup);
+  }
+
+  /**
+   * return the name of the resourceAtStartup variable name
+   *
+   * @return name of the variable
+   */
+  public String getScenarioResourceAtStartupName() {
+    return "automator.startup.scenarioResourceAtStartup";
   }
 
   public List<String> getFilterService() {

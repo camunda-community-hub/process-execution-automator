@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.InputStream;
 
 @Component
 public class AutomatorAPI {
@@ -48,7 +49,20 @@ public class AutomatorAPI {
    * @throws AutomatorException if scenario can't be read
    */
   public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
-    return Scenario.createFromFile(scenarioFile);
+    Scenario scenario = Scenario.createFromFile(scenarioFile);
+    return scenario;
+  }
+
+  /**
+   * Create from an input Stream.
+   *
+   * @param scenarioInputStream inputStream
+   * @param origin              origin of inputStream
+   * @return scenario
+   * @throws AutomatorException if scenario can't be read
+   */
+  public Scenario loadFromInputStream(InputStream scenarioInputStream, String origin) throws AutomatorException {
+    return Scenario.createFromInputStream(scenarioInputStream, origin);
   }
 
   /**

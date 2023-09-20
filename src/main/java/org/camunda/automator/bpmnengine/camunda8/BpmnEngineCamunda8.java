@@ -200,9 +200,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         serverDefinition.workerMaxJobsActive = serverDefinition.workerExecutionThreads;
         analysis.append("No MaxJobsActive defined, align to the number of threads, ");
       }
-      if (serverDefinition.workerExecutionThreads < serverDefinition.workerMaxJobsActive) {
+      if (serverDefinition.workerExecutionThreads > serverDefinition.workerMaxJobsActive) {
         logger.error(
-            "Incorrect definition: the number of threads must be >= number Jobs Active, else ZeebeClient will not fetch enough jobs to feed threads");
+            "Camunda8 [{}] Incorrect definition: the number of threads {} must be <= number Jobs Active {} , else ZeebeClient will not fetch enough jobs to feed threads",
+            serverDefinition.name, serverDefinition.workerExecutionThreads, serverDefinition.workerMaxJobsActive);
       }
 
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);

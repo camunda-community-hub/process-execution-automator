@@ -186,12 +186,12 @@ public class RunScenarioUnit {
         }
         case USERTASK -> {
           // wait for the user Task
-          if (scnRunExecution.runScenario.getRunParameters().isUsertask())
+          if (scnRunExecution.runScenario.getRunParameters().isUserTask())
             scnRunResult = userTask.executeUserTask(scnRunResult, step);
         }
         case SERVICETASK -> {
           // wait for the user Task
-          if (scnRunExecution.runScenario.getRunParameters().isServicetask()) {
+          if (scnRunExecution.runScenario.getRunParameters().isServiceTask()) {
             scnRunResult = serviceTask.executeServiceTask(scnRunResult, step);
           }
         }

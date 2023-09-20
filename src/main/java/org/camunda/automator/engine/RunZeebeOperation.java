@@ -14,7 +14,8 @@ import java.util.Map;
 public class RunZeebeOperation {
 
   // Static method only
-  private RunZeebeOperation() {}
+  private RunZeebeOperation() {
+  }
 
   /**
    * Resolve variables

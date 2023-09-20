@@ -13,7 +13,6 @@ import org.camunda.automator.configuration.ConfigurationBpmEngine;
 import org.camunda.automator.engine.AutomatorException;
 
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,7 +21,8 @@ import java.util.Map;
 public class BpmnEngineFactory {
 
   private static final BpmnEngineFactory bpmnEngineFactory = new BpmnEngineFactory();
-  Map<ConfigurationBpmEngine.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(ConfigurationBpmEngine.CamundaEngine.class);
+  Map<ConfigurationBpmEngine.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(
+      ConfigurationBpmEngine.CamundaEngine.class);
 
   public static BpmnEngineFactory getInstance() {
     return bpmnEngineFactory;

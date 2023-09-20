@@ -11,45 +11,53 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.StringTokenizer;
 
+@Component
 @Configuration
+@ConfigurationProperties(prefix = "automator")
 @PropertySource("classpath:application.yaml")
+@EnableConfigurationProperties
 public class ConfigurationBpmEngine {
   static Logger logger = LoggerFactory.getLogger(ConfigurationBpmEngine.class);
-  @Value("${automator.logDebug:false}")
+  @Value("${logDebug:false}")
   public boolean logDebug = false;
-  @Value("#{'${automator.serversconnection}'.split(';')}")
+
+  @Value("#{'${serversConnection}'.split(';')}")
   public List<String> serversConnection;
+
+  @Value("${serversList}")
+  public List<Object> serversList;
+
   @Autowired
   ConfigurationServersEngine configurationServersEngine;
-  private List<BpmnServerDefinition> allServers = new ArrayList<>();
 
-  /**
-   * Add an explicit server, by the API
-   *
-   * @param bpmnEngineConfiguration server to add in the list
-   */
-  public void addExplicitServer(BpmnServerDefinition bpmnEngineConfiguration) {
-    allServers.add(bpmnEngineConfiguration);
-  }
+  private List<BpmnServerDefinition> allServers = new ArrayList<>();
 
   @PostConstruct
   public void init() {
     allServers = new ArrayList<>();
-    allServers.addAll(getFromServerConfiguration());
 
-    // decode the serverConnections
     try {
-      List<BpmnServerDefinition> listFromConnection = decodeListServersConnection();
-      allServers.addAll(listFromConnection);
+      // get From Server Connection
+      allServers.addAll(getFromServerConfiguration());
+
+      // decode the serverConnections
+      allServers.addAll(getFromServersConnectionList());
+
+      // decode serversList
+      allServers.addAll(getFromServersList());
 
       // log all servers detected
       logger.info("ConfigurationBpmEngine: servers detected : {} ", allServers.size());
@@ -66,6 +74,15 @@ public class ConfigurationBpmEngine {
     } catch (Exception e) {
       logger.error("Error during initialization");
     }
+  }
+
+  /**
+   * Add an explicit server, by the API
+   *
+   * @param bpmnEngineConfiguration server to add in the list
+   */
+  public void addExplicitServer(BpmnServerDefinition bpmnEngineConfiguration) {
+    allServers.add(bpmnEngineConfiguration);
   }
 
   public List<BpmnServerDefinition> getListServers() {
@@ -99,22 +116,22 @@ public class ConfigurationBpmEngine {
     return first.isPresent() ? first.get() : null;
   }
 
-  /**
-   * Compare type : CAMUNDA_8 and CAMUNDA_8_SAAS are consider as equals
-   *
-   * @param type1 type one to compare
-   * @param type2 type two to compare
-   * @return true if types are identical
-   */
-  private boolean sameType(CamundaEngine type1, CamundaEngine type2) {
-    if (type1.equals(CamundaEngine.CAMUNDA_8_SAAS))
-      type1 = CamundaEngine.CAMUNDA_8;
-    if (type2.equals(CamundaEngine.CAMUNDA_8_SAAS))
-      type2 = CamundaEngine.CAMUNDA_8;
-    return type1.equals(type2);
-  }
 
-  private List<BpmnServerDefinition> decodeListServersConnection() throws AutomatorException {
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Different information in the YAML                                   */
+  /*                                                                      */
+  /* ******************************************************************** */
+
+  /**
+   * Explode the configuration serverConnections
+   *
+   * @return
+   * @throws AutomatorException
+   */
+  private List<BpmnServerDefinition> getFromServersConnectionList() throws AutomatorException {
     // not possible to use a Stream: decode throw an exception
     List<BpmnServerDefinition> list = new ArrayList<>();
     for (String s : serversConnection) {
@@ -129,6 +146,13 @@ public class ConfigurationBpmEngine {
       list.add(bpmnServerDefinition);
     }
     return list;
+  }
+
+  private List<BpmnServerDefinition> getFromServersList() throws AutomatorException {
+    for (Object server : serversList) {
+      // TODO : Explode this source
+    }
+    return Collections.emptyList();
   }
 
   /**
@@ -172,7 +196,7 @@ public class ConfigurationBpmEngine {
   }
 
   /**
-   * Get the list from the serverConfiguration
+   * Get the list from the serverConfiguration Explode the variable
    *
    * @return list of BpmnServer
    */
@@ -232,6 +256,15 @@ public class ConfigurationBpmEngine {
     return list;
   }
 
+
+
+
+  /* ******************************************************************** */
+  /*                                                                      */
+  /*  Toolbox                                                             */
+  /*                                                                      */
+  /* ******************************************************************** */
+
   private int parseInt(String label, String value, int defaultValue) {
     try {
       if (value.equals("''"))
@@ -249,6 +282,21 @@ public class ConfigurationBpmEngine {
     if (value.equals("''"))
       return false;
     return !value.trim().isEmpty();
+  }
+
+  /**
+   * Compare type : CAMUNDA_8 and CAMUNDA_8_SAAS are considered as equals
+   *
+   * @param type1 type one to compare
+   * @param type2 type two to compare
+   * @return true if types are identical
+   */
+  private boolean sameType(CamundaEngine type1, CamundaEngine type2) {
+    if (type1.equals(CamundaEngine.CAMUNDA_8_SAAS))
+      type1 = CamundaEngine.CAMUNDA_8;
+    if (type2.equals(CamundaEngine.CAMUNDA_8_SAAS))
+      type2 = CamundaEngine.CAMUNDA_8;
+    return type1.equals(type2);
   }
 
   public enum CamundaEngine {CAMUNDA_7, CAMUNDA_8, CAMUNDA_8_SAAS, DUMMY}
@@ -291,4 +339,5 @@ public class ConfigurationBpmEngine {
     public String camunda7UserName;
     public String camunda7Password;
   }
+
 }
