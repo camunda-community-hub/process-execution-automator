@@ -141,7 +141,7 @@ Then, one service task simulator per service task and one for the user task.
     "modeExecution": "ASYNCHRONOUS"
   },
   {
-    "type": "USER TASK",
+    "type": "USERTASK",
     "taskId": "Activity_Verify",
     "waitingTime": "PT10S",
     "modeExecution": "ASYNCHRONOUS",
@@ -251,7 +251,7 @@ The main point is to provide the scenario to the pod.
 
 1. Create a config map for the scenario
 ````
-doc/loadtestscenario/
+cd doc/loadtestscenario/
 kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json 
 ````
 

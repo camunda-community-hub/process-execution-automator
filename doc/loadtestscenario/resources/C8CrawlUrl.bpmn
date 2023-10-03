@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1de8grd" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.13.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.2.0">
-  <bpmn:collaboration id="CrawlUrlProcessAutomator">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1de8grd" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.15.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.2.0">
+  <bpmn:collaboration id="CrawlUrlProcessAutomator-4553">
+    <bpmn:extensionElements>
+      <zeebe:properties>
+        <zeebe:property />
+      </zeebe:properties>
+    </bpmn:extensionElements>
     <bpmn:participant id="Participant_1qfabqv" name="Crawl Url Name" processRef="CrawlUrl" />
     <bpmn:participant id="Participant_1vqtszi" name="Process Automator" />
     <bpmn:messageFlow id="Flow_0dr7tpp" name="STARTEVENT" sourceRef="Participant_1vqtszi" targetRef="StartEvent" />
@@ -158,7 +163,7 @@
     <bpmn:association id="Association_17xddr9" sourceRef="StartEvent" targetRef="TextAnnotation_0ntwcxj" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
-    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="CrawlUrlProcessAutomator">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="CrawlUrlProcessAutomator-4553">
       <bpmndi:BPMNShape id="Participant_1qfabqv_di" bpmnElement="Participant_1qfabqv" isHorizontal="true">
         <dc:Bounds x="129" y="60" width="1750" height="620" />
         <bpmndi:BPMNLabel />

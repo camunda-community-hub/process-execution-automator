@@ -1,12 +1,22 @@
 # Unit Scenario
 
 ## Goal
+Verify a process reacts as expected.
+
+There is multiple use case:
+* When a process instance is created with the variable "amount=120", it follows the activity "getScore", and then "Review"
+
+* Verify that the performance is still the same and a service task stays under 300 ms to be executed
+
+* Execute automatically multiple scenario to cover all the process.
+
+* As a developer, you want to debug a service task in the process; You need to create a process instance and "advance it" in the process until you reach the activity
 
 
 
-### Verification
+### Verification (path and performance)
 
-![Process](doc/explanationProcess.png)
+![Process](../explanationProcess.png)
 
 in a CD/CI, you want to verify that a process follows the same behavior in the same performance
 time. Running every day (or hours) or asking via an API call to replay a scenario is useful to
@@ -34,15 +44,21 @@ advance the process instance where you want it.
 
 # Build a Scenario
 
-<Soon>
+In progress
 
+
+
+## Scenario definition
+
+## Generate from a real execution
 Automator can generate a scenario from a real execution. The user creates a process instance and
 executes it. It executes user tasks until the end of the process instance or at a certain point. Via
 the UI (or the API), the user gives the process instance. Automator queries Camunda Engine to
 collect the history of the process and, for each user task, which variable was provided. A new
 scenario is created from this example.
 
-
-## Scenario definition
+Note: this function is yet available
 
 ## execute
+
+In progress
