@@ -2,7 +2,7 @@ package org.camunda.automator.bpmnengine.camunda7;
 
 import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
@@ -72,13 +72,12 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   EngineApi engineApi;
   private int count = 0;
 
-  public BpmnEngineCamunda7(ConfigurationBpmEngine engineConfiguration,
-                            ConfigurationBpmEngine.BpmnServerDefinition serverDefinition) {
+  public BpmnEngineCamunda7(BpmnEngineList engineConfiguration, BpmnEngineList.BpmnServerDefinition serverDefinition) {
     this.serverUrl = serverDefinition.camunda7ServerUrl;
     this.userName = serverDefinition.camunda7UserName;
     this.password = serverDefinition.camunda7Password;
     this.workerMaxJobsActive = serverDefinition.workerMaxJobsActive;
-    this.logDebug = engineConfiguration.logDebug;
+    this.logDebug = engineConfiguration.getLogDebug();
     init();
   }
 
@@ -545,13 +544,13 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /* ******************************************************************** */
 
   @Override
-  public ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine() {
-    return ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7;
+  public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
+    return BpmnEngineList.CamundaEngine.CAMUNDA_7;
   }
 
   @Override
   public String getSignature() {
-    return ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
+    return BpmnEngineList.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
   }
 
   @Override

@@ -3,7 +3,7 @@ package org.camunda.automator.services;
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.AutomatorCLI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
@@ -35,7 +35,7 @@ public class AutomatorStartup {
   AutomatorCLI automatorCLI;
 
   @Autowired
-  ConfigurationBpmEngine engineConfiguration;
+  BpmnEngineList engineConfiguration;
 
   @Autowired
   ServiceAccess serviceAccess;
@@ -119,12 +119,12 @@ public class AutomatorStartup {
 
     AutomatorCLI automatorCLI;
 
-    ConfigurationBpmEngine engineConfiguration;
+    BpmnEngineList engineConfiguration;
 
     public AutomatorSetupRunnable(ConfigurationStartup configurationStartup,
                                   AutomatorAPI automatorAPI,
                                   AutomatorCLI automatorCLI,
-                                  ConfigurationBpmEngine engineConfiguration) {
+                                  BpmnEngineList engineConfiguration) {
       this.configurationStartup = configurationStartup;
       this.automatorAPI = automatorAPI;
       this.automatorCLI = automatorCLI;
@@ -173,8 +173,8 @@ public class AutomatorStartup {
           try {
             scenario = automatorAPI.loadFromFile(scenarioFile);
           } catch (Exception e) {
-            logger.error("Error during accessing InputStream from File [{}]: {}",
-                scenarioFile.getAbsolutePath(), e.getMessage());
+            logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.getAbsolutePath(),
+                e.getMessage());
           }
         else if (scenarioObject instanceof Resource scenarioResource) {
           try {
@@ -185,7 +185,7 @@ public class AutomatorStartup {
                 e.getMessage());
           }
         }
-        if (scenario==null)
+        if (scenario == null)
           continue;
         logger.info("Start scenario [{}]", scenario.getName());
 
@@ -198,7 +198,7 @@ public class AutomatorStartup {
           countEngineIsNotReady++;
           String message = "";
           try {
-            if (runParameters.isLevelDashboard()) {
+            if (runParameters.showLevelDashboard()) {
               logger.info("Connect to Bpmn Engine Type [{}] for scenario [{}]", scenario.getServerType(),
                   scenario.getName());
             }

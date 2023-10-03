@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: camunda-8-processautomator-service
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS

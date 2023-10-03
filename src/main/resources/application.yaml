@@ -45,22 +45,19 @@ automator:
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 
-
-
-
-
-
-      zeebeCloudRegister:
-      zeebeCloudRegion:
-      clientSecret:
-      zeebeCloudClusterId:
-      zeebeCloudClientId:
+    - type: "camunda8saas"
+      name: "Camunda8SaaS"
+      zeebeCloudRegister: "aaa"
+      zeebeCloudRegion: "usa"
+      zeebeClientSecret: "bbb"
+      zeebeCloudClusterId: "ddd"
+      zeebeCloudClientId: "eee"
 
 
 
   servers:
     camunda7:
-      name: "camunda7Local"
+      name: "Camunda7Local"
       url: "http://localhost:8080/engine-rest"
       workerMaxJobsActive: 20
 

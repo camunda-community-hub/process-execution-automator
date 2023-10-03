@@ -219,7 +219,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
       if (getRunScenario().getRunParameters().isDeepTracking())
         trackActiveWorkers.movement(-1);
 
-      if (getRunScenario().getRunParameters().isLevelMonitoring()) {
+      if (getRunScenario().getRunParameters().showLevelMonitoring()) {
         logger.info("Executed task[{}] in {} ms Sleep [{} s]", getId(), end - begin, durationSleep.getSeconds());
         /*
         logger.info(
@@ -253,7 +253,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
       // we register
       try {
         flowServiceTask.semaphore.acquire();
-        if (getRunScenario().getRunParameters().isLevelMonitoring()) {
+        if (getRunScenario().getRunParameters().showLevelMonitoring()) {
           logger.info("task[{}] Semaphore acquire", getId());
         }
       } catch (Exception e) {
@@ -265,7 +265,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         public void run() {
           manageWaitExecution(externalTask, externalTaskService, jobClient, activatedJob, 0);
           flowServiceTask.semaphore.release();
-          if (getRunScenario().getRunParameters().isLevelMonitoring()) {
+          if (getRunScenario().getRunParameters().showLevelMonitoring()) {
             logger.info("task[{}] Semaphore release", getId());
           }
         }

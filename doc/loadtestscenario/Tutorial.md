@@ -141,7 +141,7 @@ Then, one service task simulator per service task and one for the user task.
     "modeExecution": "ASYNCHRONOUS"
   },
   {
-    "type": "USER TASK",
+    "type": "USERTASK",
     "taskId": "Activity_Verify",
     "waitingTime": "PT10S",
     "modeExecution": "ASYNCHRONOUS",
@@ -251,7 +251,7 @@ The main point is to provide the scenario to the pod.
 
 1. Create a config map for the scenario
 ````
-doc/loadtestscenario/
+cd doc/loadtestscenario/
 kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json 
 ````
 
@@ -292,9 +292,9 @@ An alternative consists of placing the scenario under `src/resources/` and build
 Build the docker image via the build command. Replace `pierreyvesmonnet` with your docker user ID,
 
 ````
-docker build -t pierreyvesmonnet/processautomator:1.0.0 .
+docker build -t myGithubID/processautomator:1.0.0 .
 
-docker push pierreyvesmonnet/processautomator:1.0.0
+docker push myGithubID/processautomator:1.0.0
 ````
 
 

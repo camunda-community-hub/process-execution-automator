@@ -4,7 +4,7 @@
 
   <groupId>org.camunda.community.automator</groupId>
   <artifactId>process-execution-automator</artifactId>
-  <version>1.2.1-SNAPSHOT</version>
+  <version>1.2.2</version>
 
   <properties>
     <java.version>17</java.version>
@@ -17,7 +17,7 @@
 
     <junit.jupiter.version>5.9.1</junit.jupiter.version>
     <opensagres.version>2.0.3</opensagres.version>
-    <spring.boot.version>3.1.3</spring.boot.version>
+    <spring.boot.version>3.1.4</spring.boot.version>
   </properties>
 
 

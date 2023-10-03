@@ -45,7 +45,7 @@ public class RunScenarioUnit {
   public RunResult runExecution() {
     RunResult resultExecution = new RunResult(runScenario);
 
-    if (runScenario.getRunParameters().isLevelMonitoring()) {
+    if (runScenario.getRunParameters().showLevelMonitoring()) {
       logger.info("ScnRunExecution." + agentName + ": Start Execution [" + scnExecution.getName() + "] ");
     }
     ExecutorService executor = Executors.newFixedThreadPool(scnExecution.getNumberOfThreads());
@@ -71,7 +71,7 @@ public class RunScenarioUnit {
       resultExecution.addError(null, "Error during executing in parallel " + e.getMessage());
     }
 
-    if (runScenario.getRunParameters().isLevelMonitoring()) {
+    if (runScenario.getRunParameters().showLevelMonitoring()) {
       logger.info("ScnRunExecution." + agentName + ": End Execution [" + scnExecution.getName() + "] success? "
           + resultExecution.isSuccess());
     }
@@ -156,14 +156,14 @@ public class RunScenarioUnit {
       RunScenarioUnitUserTask userTask = new RunScenarioUnitUserTask(runScenario);
       RunScenarioUnitStartEvent startEvent = new RunScenarioUnitStartEvent(runScenario);
 
-      if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
+      if (scnRunExecution.runScenario.getRunParameters().showLevelMonitoring())
         logger.info(
             "ScnRunExecution.StartExecution [" + scnRunExecution.runScenario.getScenario().getName() + "] agent["
                 + agentName + "]");
 
       for (ScenarioStep step : scnExecution.getSteps()) {
 
-        if (scnRunExecution.runScenario.getRunParameters().isLevelDebug())
+        if (scnRunExecution.runScenario.getRunParameters().showLevelDebug())
           logger.info(
               "ScnRunExecution.StartExecution.Execute [" + scnRunExecution.runScenario.getScenario().getName() + "."
                   + step.getTaskId() + " agent[" + agentName + "]");
@@ -208,7 +208,7 @@ public class RunScenarioUnit {
         if (!scnRunResult.isSuccess() && ScenarioExecution.Policy.STOPATFIRSTERROR.equals(scnExecution.getPolicy()))
           return;
       }
-      if (scnRunExecution.runScenario.getRunParameters().isLevelMonitoring())
+      if (scnRunExecution.runScenario.getRunParameters().showLevelMonitoring())
         logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
       return;
     }

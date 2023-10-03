@@ -1,7 +1,7 @@
 package org.camunda.automator.engine;
 
 import org.camunda.automator.AutomatorCLI;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ public class SchedulerExecution {
   // https://www.baeldung.com/spring-boot-yaml-list
   // @Value("${automator.scheduler.colors}")
   @Autowired
-  ConfigurationBpmEngine bpmnEngineConfiguration;
+  BpmnEngineList bpmnEngineConfiguration;
   Logger logger = LoggerFactory.getLogger(SchedulerExecution.class);
   @Autowired
   ServiceAccess serviceAccess;

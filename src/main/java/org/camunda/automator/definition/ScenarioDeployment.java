@@ -1,12 +1,12 @@
 package org.camunda.automator.definition;
 
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 
 public class ScenarioDeployment {
   /**
    * type of server
    */
-  public ConfigurationBpmEngine.CamundaEngine serverType;
+  public BpmnEngineList.CamundaEngine serverType;
   /**
    * Type pf deployment
    */

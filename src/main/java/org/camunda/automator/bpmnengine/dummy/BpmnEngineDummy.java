@@ -2,7 +2,7 @@ package org.camunda.automator.bpmnengine.dummy;
 
 import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.flow.FixedBackoffSupplier;
@@ -17,10 +17,10 @@ import java.util.Map;
 
 public class BpmnEngineDummy implements BpmnEngine {
 
-  private final ConfigurationBpmEngine engineConfiguration;
+  private final BpmnEngineList engineConfiguration;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineDummy.class);
 
-  public BpmnEngineDummy(ConfigurationBpmEngine engineConfiguration) {
+  public BpmnEngineDummy(BpmnEngineList engineConfiguration) {
     this.engineConfiguration = engineConfiguration;
   }
 
@@ -38,7 +38,7 @@ public class BpmnEngineDummy implements BpmnEngine {
   /**
    * Engine is ready. If not, a connection() method must be call
    *
-   * @return
+   * @return ready if the engine is ready - true everytime
    */
   public boolean isReady() {
     return true;
@@ -143,13 +143,13 @@ public class BpmnEngineDummy implements BpmnEngine {
   }
 
   @Override
-  public ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine() {
-    return ConfigurationBpmEngine.CamundaEngine.DUMMY;
+  public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
+    return BpmnEngineList.CamundaEngine.DUMMY;
   }
 
   @Override
   public String getSignature() {
-    return ConfigurationBpmEngine.CamundaEngine.DUMMY.toString();
+    return BpmnEngineList.CamundaEngine.DUMMY.toString();
   }
 
   @Override

@@ -79,7 +79,7 @@ The unit scenario describes one process instance execution. Creation and user ta
 This functionality is used to run regression tests, coverage tests, or just advance process instances in the process
 for the development.
 
-Visit (Unit Scenario)[doc/unitscenario/README.md]
+Visit [Unit Scenario](doc/unitscenario/README.md)
 
 ### Load test (flowscenario)
 
@@ -89,12 +89,12 @@ The flow scenario has a duration and objective to verify.
 
 You can specify objectives: produce 1000 Process Instances, end 500 process instances, and produce 300 tasks in a user task.
 
-Visit (Load Test Scenario)[doc/loadtestscenario/README.md] and the (Load test Tutorial) [doc/loadtestscenario/Tutorial.md]
+Visit [Load Test Scenario](doc/loadtestscenario/README.md) and the [Load test Tutorial](doc/loadtestscenario/Tutorial.md)
 
 ## Scenario
 
 This section references all the information to build a scenario.
-Visit (Scenario reference)[doc/scenarioreference/README.md]
+Visit [Scenario reference](doc/scenarioreference/README.md)
 
 
 ## Connect to a server

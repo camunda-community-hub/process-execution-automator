@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-creation
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -74,7 +74,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-retrievework
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -129,7 +129,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-search
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -184,7 +184,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-message
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -239,7 +239,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-verify
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -293,7 +293,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-message
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -348,7 +348,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-filter
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -403,7 +403,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator-store
-          image: pierreyvesmonnet/processautomator:1.0.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS

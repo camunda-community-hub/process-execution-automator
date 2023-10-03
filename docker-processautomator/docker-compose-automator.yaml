@@ -2,7 +2,7 @@ version: "3"
 services:
 
   processautomatorDiscovery:
-    image: pierreyvesmonnet/processautomator:1.0.0
+    image: ghcr.io/camunda-community-hub/process-execution-automator:latest
     container_name: processautomatorDiscovery
     ports:
       - "8380:8380"
@@ -33,7 +33,7 @@ services:
       - operate
 
   processautomatorVerification:
-    image: pierreyvesmonnet/processautomator:1.0.0
+    image: ghcr.io/camunda-community-hub/process-execution-automator:latest
     container_name: processautomatorVerification
     ports:
       - "8381:8380"

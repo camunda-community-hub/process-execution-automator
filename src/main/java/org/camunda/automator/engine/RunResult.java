@@ -110,7 +110,7 @@ public class RunResult {
   public void addStepExecution(ScenarioStep step, long timeExecution) {
     addTimeExecution(timeExecution);
     numberOfSteps++;
-    if (runScenario.getRunParameters().isLevelInfo()) {
+    if (runScenario.getRunParameters().showLevelInfo()) {
       StepExecution scenarioExecution = new StepExecution(this);
       scenarioExecution.step = step;
       listDetailsSteps.add(scenarioExecution);
@@ -189,7 +189,7 @@ public class RunResult {
     numberOfSteps += result.numberOfSteps;
     numberOfErrorSteps += result.numberOfErrorSteps;
     // we collect the list only if the level is low
-    if (runScenario.getRunParameters() != null && runScenario.getRunParameters().isLevelInfo()) {
+    if (runScenario.getRunParameters() != null && runScenario.getRunParameters().showLevelInfo()) {
       listDetailsSteps.addAll(result.listDetailsSteps);
       listProcessInstancesId.addAll(result.listProcessInstancesId);
     }

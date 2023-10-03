@@ -171,19 +171,19 @@ public class RunParameters {
     return this;
   }
 
-  public boolean isLevelDebug() {
+  public boolean showLevelDebug() {
     return getLogLevelAsNumber() >= 5;
   }
 
-  public boolean isLevelInfo() {
+  public boolean showLevelInfo() {
     return getLogLevelAsNumber() >= 4;
   }
 
-  public boolean isLevelMonitoring() {
+  public boolean showLevelMonitoring() {
     return getLogLevelAsNumber() >= 3;
   }
 
-  public boolean isLevelDashboard() {
+  public boolean showLevelDashboard() {
     return getLogLevelAsNumber() >= 2;
   }
 

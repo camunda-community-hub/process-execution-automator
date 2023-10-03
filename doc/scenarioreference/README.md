@@ -30,7 +30,7 @@ It is possible to execute a multi-instance and give different values for each ex
 
 ## External operation
 
-A scenario may consist of executing some task and then sending a Cancellation message or starting a
+A scenario may consist of executing some tasks and then sending a Cancellation message or starting a
 process instance in a different process to get a Cancellation message. It is possible to describe
 this operation in a step.
 
@@ -114,7 +114,7 @@ this operation in a step.
 | Name                   | Name of execution                                                                                      | "name": "This is the first run" |
 | policy                 | "STOPATFIRSTERROR" or "CONTINUE": In case of an error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
 | numberProcessInstances | Number of process instances to create. Each process instance follows steps.             | "numberProcessInstances": 45    |
-| Number of threads | Number of threads to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
+| Number of threads      | Number of threads to execute in parallel. Default is 1.                                        | "numberOfThreads": 5            |
 | execution              | If false, the execution does not start. If not present, the default value is TRUE.                       | "execution" : false             | 
 
 Then, the execution contains a list of steps.
@@ -255,7 +255,7 @@ Decide when the warmup can finish. If a duration is set and the properties are t
 
 The parameter is an expression. Possible functions are:
 
-* UserTaskThreashold
+**UserTaskThreshold**
   A task appears in a user task. The expression gives the Number of tasks expected to be true.
 
 Syntax: UserTaskThreshold( < ActivityId >,< Value >)
@@ -265,7 +265,7 @@ Example:
 UserTaskThreshold(Activity_DiscoverySeedExtraction_TheEnd,7)
 ````
 
-* EndEventThreshold
+**EndEventThreshold**
   If an end event is detected after the instant the scenario starts, then the warmup is ended.
 
 Syntax: EndEventThreshold(< ActivityId >,< Value >)

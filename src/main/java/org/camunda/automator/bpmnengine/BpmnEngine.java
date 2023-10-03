@@ -2,7 +2,7 @@ package org.camunda.automator.bpmnengine;
 
 import io.camunda.operate.search.DateFilter;
 import io.camunda.zeebe.client.api.worker.JobWorker;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
@@ -30,7 +30,7 @@ public interface BpmnEngine {
   /**
    * Engine is ready. If not, a connection() method must be call
    *
-   * @return
+   * @return true if the engine is ready
    */
   boolean isReady();
 
@@ -83,7 +83,7 @@ public interface BpmnEngine {
    * @param userTaskId userTaskId
    * @param maxResult  maxResult returned
    * @return list of TaskId
-   * @throws AutomatorException
+   * @throws AutomatorException in case of error
    */
   List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException;
 
@@ -108,7 +108,7 @@ public interface BpmnEngine {
    * @param lockTime        lock time for the job
    * @param jobHandler      C7: must implement ExternalTaskHandler. C8: must implement JobHandler
    * @param backoffSupplier backOffStrategy
-   * @return
+   * @return list of Service Task
    */
   RegisteredTask registerServiceTask(String workerId,
                                      String topic,
@@ -207,7 +207,7 @@ public interface BpmnEngine {
   /*                                                                      */
   /* ******************************************************************** */
 
-  ConfigurationBpmEngine.CamundaEngine getTypeCamundaEngine();
+  BpmnEngineList.CamundaEngine getTypeCamundaEngine();
 
 
   /* ******************************************************************** */
