@@ -8,7 +8,7 @@ package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -179,9 +179,9 @@ public class Scenario {
     return serverName;
   }
 
-  public ConfigurationBpmEngine.CamundaEngine getServerType() {
+  public BpmnEngineList.CamundaEngine getServerType() {
     try {
-      return ConfigurationBpmEngine.CamundaEngine.valueOf(serverType.toUpperCase());
+      return BpmnEngineList.CamundaEngine.valueOf(serverType.toUpperCase());
     } catch (Exception e) {
       return null;
     }

@@ -3,7 +3,7 @@ package automatorapi;
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfigurationInstance;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
@@ -11,6 +11,7 @@ import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 
 import java.io.File;
 
@@ -38,7 +39,7 @@ public class TestSimpleUserTask {
     runParameters.setLogLevel( RunParameters.LOGLEVEL.DEBUG);
     try {
 
-      ConfigurationBpmEngine engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
+      BpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
       BpmnEngine bpmnEngine = automatorApi.getBpmnEngineFromScenario(scenario, engineConfiguration);
       if (bpmnEngine == null)
         bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration, engineConfiguration.getListServers().get(0));

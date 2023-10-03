@@ -8,7 +8,7 @@ package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineFactory;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
@@ -72,7 +72,7 @@ public class AutomatorAPI {
    * @param engineConfiguration different engine configuration
    * @return the engine, null if no engine exist, an exception if the connection is not possible
    */
-  public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, ConfigurationBpmEngine engineConfiguration)
+  public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList engineConfiguration)
       throws AutomatorException {
     try {
 
@@ -124,9 +124,8 @@ public class AutomatorAPI {
   /*  Deploy a process in the server                                      */
   /* ******************************************************************** */
 
-  public BpmnEngine getBpmnEngine(ConfigurationBpmEngine engineConfiguration,
-                                  ConfigurationBpmEngine.BpmnServerDefinition serverDefinition)
-      throws AutomatorException {
+  public BpmnEngine getBpmnEngine(BpmnEngineList engineConfiguration,
+                                  BpmnEngineList.BpmnServerDefinition serverDefinition) throws AutomatorException {
 
     return BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration, serverDefinition);
   }

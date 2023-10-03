@@ -9,7 +9,7 @@ package org.camunda.automator.bpmnengine;
 import org.camunda.automator.bpmnengine.camunda7.BpmnEngineCamunda7;
 import org.camunda.automator.bpmnengine.camunda8.BpmnEngineCamunda8;
 import org.camunda.automator.bpmnengine.dummy.BpmnEngineDummy;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.engine.AutomatorException;
 
 import java.util.EnumMap;
@@ -21,15 +21,14 @@ import java.util.Map;
 public class BpmnEngineFactory {
 
   private static final BpmnEngineFactory bpmnEngineFactory = new BpmnEngineFactory();
-  Map<ConfigurationBpmEngine.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(
-      ConfigurationBpmEngine.CamundaEngine.class);
+  Map<BpmnEngineList.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(BpmnEngineList.CamundaEngine.class);
 
   public static BpmnEngineFactory getInstance() {
     return bpmnEngineFactory;
   }
 
-  public BpmnEngine getEngineFromConfiguration(ConfigurationBpmEngine engineConfiguration,
-                                               ConfigurationBpmEngine.BpmnServerDefinition serverDefinition)
+  public BpmnEngine getEngineFromConfiguration(BpmnEngineList engineConfiguration,
+                                               BpmnEngineList.BpmnServerDefinition serverDefinition)
       throws AutomatorException {
     BpmnEngine engine = cacheEngine.get(serverDefinition.serverType);
     if (engine != null)

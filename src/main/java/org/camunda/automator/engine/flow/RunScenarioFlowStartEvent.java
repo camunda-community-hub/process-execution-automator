@@ -106,7 +106,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     public void run() {
       stepNumber++;
       if (flowStartEvent.stopping) {
-        if (runScenario.getRunParameters().isLevelMonitoring()) {
+        if (runScenario.getRunParameters().showLevelMonitoring()) {
           logger.info("Stop now [" + getId() + "]");
           if (nbOverloaded > 0)
             runResult.addError(scenarioStep,
@@ -174,7 +174,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
         nbOverloaded++;
       }
 
-      if (runScenario.getRunParameters().isLevelMonitoring()) {
+      if (runScenario.getRunParameters().showLevelMonitoring()) {
         logger.info("Step #" + stepNumber + "-" + getId() // id
             + "] Create (real/scenario)[" + nbCreation + "/" + scenarioStep.getNumberOfExecutions() // creation/target
             + "] Failed[" + nbFailed // failed

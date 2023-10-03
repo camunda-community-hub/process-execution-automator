@@ -229,7 +229,7 @@ public class RunScenarioWarmingUp {
       long end = System.currentTimeMillis();
       // one step generation?
       if (scenarioStep.getFrequency() == null || scenarioStep.getFrequency().isEmpty()) {
-        if (runScenario.getRunParameters().isLevelMonitoring()) {
+        if (runScenario.getRunParameters().showLevelMonitoring()) {
           logger.info("WarmingUp:StartEvent Create[{}] in {} " + " ms" + " (oneShoot) listPI(max20): ",
               scenarioStep.getNumberOfExecutions(), (end - begin),
               listProcessInstance.stream().collect(Collectors.joining(",")));
@@ -246,7 +246,7 @@ public class RunScenarioWarmingUp {
         nbOverloaded++;
       }
 
-      if (runScenario.getRunParameters().isLevelMonitoring()) {
+      if (runScenario.getRunParameters().showLevelMonitoring()) {
         logger.info(
             "Warmingup Create[" + scenarioStep.getNumberOfExecutions() + "] in " + (end - begin) + " ms" + " Sleep ["
                 + duration.getSeconds() + " s]" + (checkFunctionResult == null ?

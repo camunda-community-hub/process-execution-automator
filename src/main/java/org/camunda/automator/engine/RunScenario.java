@@ -1,7 +1,7 @@
 package org.camunda.automator.engine;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.ConfigurationBpmEngine;
+import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioExecution;
@@ -87,11 +87,11 @@ public class RunScenario {
       for (ScenarioDeployment deployment : scenario.getDeployments()) {
 
         boolean sameTypeServer = false;
-        if (deployment.serverType.equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7)) {
-          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_7);
-        } else if (deployment.serverType.equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8)) {
-          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8)
-              || bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmEngine.CamundaEngine.CAMUNDA_8_SAAS);
+        if (deployment.serverType.equals(BpmnEngineList.CamundaEngine.CAMUNDA_7)) {
+          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_7);
+        } else if (deployment.serverType.equals(BpmnEngineList.CamundaEngine.CAMUNDA_8)) {
+          sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_8)
+              || bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
         }
         if (sameTypeServer) {
           try {
