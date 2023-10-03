@@ -4,9 +4,9 @@
 
 at root, use 
 ````yaml
-docker build -t pierreyvesmonnet/processautomator:1.0.0 .
+docker build -t myGithubId/processautomator:1.0.0 .
 
-docker push pierreyvesmonnet/processautomator:1.0.0
+docker push myGithubId/processautomator:1.0.0
 ````
 
 Or use the image generated on camunda-hub

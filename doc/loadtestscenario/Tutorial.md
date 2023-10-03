@@ -292,9 +292,9 @@ An alternative consists of placing the scenario under `src/resources/` and build
 Build the docker image via the build command. Replace `pierreyvesmonnet` with your docker user ID,
 
 ````
-docker build -t pierreyvesmonnet/processautomator:1.0.0 .
+docker build -t myGithubID/processautomator:1.0.0 .
 
-docker push pierreyvesmonnet/processautomator:1.0.0
+docker push myGithubID/processautomator:1.0.0
 ````
 
 

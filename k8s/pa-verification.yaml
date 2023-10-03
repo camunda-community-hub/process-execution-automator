@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-creation
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -66,7 +66,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-retrieve
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -113,7 +113,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-checkurl
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -160,7 +160,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-updateitem
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -207,7 +207,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-download
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -254,7 +254,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-fingerprint
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -301,7 +301,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-getresult
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -348,7 +348,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-obtaindescription
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -395,7 +395,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-thresoldcheck
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
@@ -444,7 +444,7 @@ spec:
     spec:
       containers:
         - name: pa-verification-createpotentialclaim
-          image: pierreyvesmonnet/processautomator:1.0.3
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
