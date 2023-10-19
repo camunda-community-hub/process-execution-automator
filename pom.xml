@@ -12,11 +12,6 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
-    <!--
-        <zeebe.version>8.2.0</zeebe.version>
-        <zeebe-client.version>8.2.4</zeebe-client.version>
-    -->
-
     <zeebe.version>8.3.0</zeebe.version>
     <zeebe-client.version>8.3.0</zeebe-client.version>
 

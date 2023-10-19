@@ -28,7 +28,7 @@ automator:
   # each connection contains a name and a type. then, other parameters depends on the type
   # <name>,CAMUNDA_7,<url>
   # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive
-  # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,
+  # <name>,CAMUNDA_8_SAAS,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,
   #          zeebeCloudOAuthUrl,zeebeCloudAudience,clientSecret,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive
 
   serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest; \
