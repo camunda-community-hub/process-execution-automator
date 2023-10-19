@@ -89,18 +89,18 @@ automator:
       name: "Camunda8Marbble"
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
-      operateUrl: "https://ont-1.operate.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
-      taskListUrl: "https://ont-1.tasklist.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
 
       operateUserName: "demo"
       operateUserPassword: "demo"
 
-      region: "ont-1"
-      clusterId: "25fdd1e6-e4a1-4362-b49c-5eced08cb893"
-      clientId: "eknOoiO5GYDdFf4ZjDSh8yaLG-BVCw9L"
+      region: "bru-2"
+      clusterId: "4b..e2"
+      clientId: "bs..6a"
+      secret: "-E..ZG"
       oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
-      audience: ""
-      secret: "4BPUva1U4lDtoG2-torvAtx6w5RbHULUFhGZ-bBXOMWwZJG3d3VDlfPHjVO3Kz-N"
+      audience: "zeebe.camunda.io"
+      operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
+      taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
 
 
 
