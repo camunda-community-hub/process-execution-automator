@@ -64,6 +64,23 @@ public class RunScenario {
    */
   public RunResult runScenario() {
     RunResult result = new RunResult(this);
+
+    // control
+    if (scenario.typeScenario == null) {
+      result.addError(null, "TypeScenario undefined");
+    }
+    if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
+      if (scenario.getExecutions() == null || scenario.getExecutions().isEmpty())
+        result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.UNIT + "] must have a list of [executions]");
+    } else if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.FLOW)) {
+      if (scenario.getFlowControl() == null)
+        result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flowControl]");
+      if (scenario.getFlows() == null || scenario.getFlows().isEmpty())
+        result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flows]");
+    }
+    if (result.hasErrors())
+      return result;
+
     logger.info("RunScenario: ------ Deployment ({})", runParameters.isDeploymentProcess());
     if (runParameters.isDeploymentProcess())
       result.add(runDeployment());
@@ -126,8 +143,11 @@ public class RunScenario {
     ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
 
     // the scenario can be an Execution or a Flow
-    if (!scenario.getExecutions().isEmpty()) {
+    if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
       List<Future<?>> listFutures = new ArrayList<>();
+      logger.info("RunScenario: ------ execution UNIT scenario [{}] {} execution on {} Threads", scenario.getName(),
+          scenario.getExecutions().size(),
+          runParameters.getNumberOfThreadsPerScenario());
 
       for (int i = 0; i < scenario.getExecutions().size(); i++) {
         ScenarioExecution scnExecution = scenario.getExecutions().get(i);
@@ -150,10 +170,13 @@ public class RunScenario {
       } catch (Exception e) {
         result.addError(null, "Error during executing in parallel " + e.getMessage());
       }
+      logger.info("RunScenario: ------ End execution");
     }
-    if (!scenario.getFlows().isEmpty()) {
+    if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.FLOW)) {
+      logger.info("RunScenario: ------ execution FLOW scenario [{}]", scenario.getName());
       RunScenarioFlows scenarioFlows = new RunScenarioFlows(serviceAccess, this);
       scenarioFlows.execute(result);
+      logger.info("RunScenario: ------ End execution");
     }
 
     return result;

@@ -25,6 +25,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -79,6 +81,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -134,6 +138,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -189,6 +195,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -244,6 +252,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -298,6 +308,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -353,6 +365,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
@@ -408,6 +422,8 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo

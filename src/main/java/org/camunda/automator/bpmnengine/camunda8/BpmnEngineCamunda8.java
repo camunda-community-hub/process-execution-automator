@@ -1,6 +1,7 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
 import io.camunda.operate.CamundaOperateClient;
+import io.camunda.operate.auth.AuthInterface;
 import io.camunda.operate.dto.FlownodeInstance;
 import io.camunda.operate.dto.FlownodeInstanceState;
 import io.camunda.operate.dto.ProcessInstance;
@@ -24,13 +25,17 @@ import io.camunda.tasklist.dto.Variable;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
+import io.camunda.zeebe.client.api.command.ClientStatusException;
 import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.response.DeploymentEvent;
 import io.camunda.zeebe.client.api.response.ProcessInstanceEvent;
+import io.camunda.zeebe.client.api.response.Topology;
 import io.camunda.zeebe.client.api.worker.JobHandler;
 import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
+import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProvider;
+import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProviderBuilder;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
 import org.camunda.automator.configuration.BpmnEngineList;
@@ -50,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BpmnEngineCamunda8 implements BpmnEngine {
 
@@ -57,7 +64,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public static final int SEARCH_MAX_SIZE = 100;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
 
-  private final BpmnEngineList.BpmnServerDefinition serverDefinition;
+  private BpmnEngineList.BpmnServerDefinition serverDefinition;
   boolean hightFlowMode = false;
   /**
    * It is not possible to search user task for a specfic processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -73,14 +80,20 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   // Default
   private BpmnEngineList.CamundaEngine typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8;
 
+  private BpmnEngineCamunda8() {
+  }
+
   /**
    * Constructor from existing object
    *
-   * @param engineConfiguration configuration for this engine
-   * @param serverDefinition    server definition
+   * @param serverDefinition server definition
+   * @param logDebug         if true, operation will be log as debug level
    */
-  public BpmnEngineCamunda8(BpmnEngineList engineConfiguration, BpmnEngineList.BpmnServerDefinition serverDefinition) {
-    this.serverDefinition = serverDefinition;
+  public static BpmnEngineCamunda8 getFromServerDefinition(BpmnEngineList.BpmnServerDefinition serverDefinition,
+                                                           boolean logDebug) {
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+    bpmnEngineCamunda8.serverDefinition = serverDefinition;
+    return bpmnEngineCamunda8;
 
   }
 
@@ -89,48 +102,85 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
    *
    * @param zeebeSelfGatewayAddress    Self Manage : zeebe address
    * @param zeebeSelfSecurityPlainText Self Manage: Plain text
-   * @param zeebeSaasCloudRegister     Saas Cloud Register information
-   * @param zeebeSaasCloudRegion       Saas Cloud region
-   * @param zeebeSaasCloudClusterId    Saas Cloud ClusterID
-   * @param zeebeSaasCloudClientId     Saas Cloud ClientID
-   * @param zeebeSaasClientSecret      Saas Cloud Client Secret
    * @param operateUrl                 URL to access Operate
    * @param operateUserName            Operate user name
    * @param operateUserPassword        Operate password
    * @param tasklistUrl                Url to access TaskList
    */
-  public BpmnEngineCamunda8(String zeebeSelfGatewayAddress,
-                            String zeebeSelfSecurityPlainText,
-                            String zeebeSaasCloudRegister,
-                            String zeebeSaasCloudRegion,
-                            String zeebeSaasCloudClusterId,
-                            String zeebeSaasCloudClientId,
-                            String zeebeSaasClientSecret,
-                            String operateUrl,
-                            String operateUserName,
-                            String operateUserPassword,
-                            String tasklistUrl) {
-    this.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-    this.serverDefinition.zeebeGatewayAddress = zeebeSelfGatewayAddress;
-    this.serverDefinition.zeebeSecurityPlainText = zeebeSelfSecurityPlainText;
+  public static BpmnEngineCamunda8 getFromCamunda8(String zeebeSelfGatewayAddress,
+                                                   String zeebeSelfSecurityPlainText,
+                                                   String operateUrl,
+                                                   String operateUserName,
+                                                   String operateUserPassword,
+                                                   String tasklistUrl) {
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+    bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
+    bpmnEngineCamunda8.serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
+    bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
+    bpmnEngineCamunda8.serverDefinition.zeebeGatewayAddress = zeebeSelfGatewayAddress;
+    bpmnEngineCamunda8.serverDefinition.zeebeSecurityPlainText = zeebeSelfSecurityPlainText;
 
-    /*
-     * SaaS Zeebe
-     */
-    this.serverDefinition.zeebeCloudRegister = zeebeSaasCloudRegister;
-    this.serverDefinition.zeebeCloudRegion = zeebeSaasCloudRegion;
-    this.serverDefinition.zeebeCloudClusterId = zeebeSaasCloudClusterId;
-    this.serverDefinition.zeebeCloudClientId = zeebeSaasCloudClientId;
-    this.serverDefinition.zeebeClientSecret = zeebeSaasClientSecret;
 
     /*
      * Connection to Operate
      */
-    this.serverDefinition.operateUserName = operateUserName;
-    this.serverDefinition.operateUserPassword = operateUserPassword;
-    this.serverDefinition.operateUrl = operateUrl;
-    this.serverDefinition.taskListUrl = tasklistUrl;
+    bpmnEngineCamunda8.serverDefinition.operateUserName = operateUserName;
+    bpmnEngineCamunda8.serverDefinition.operateUserPassword = operateUserPassword;
+    bpmnEngineCamunda8.serverDefinition.operateUrl = operateUrl;
+    bpmnEngineCamunda8.serverDefinition.taskListUrl = tasklistUrl;
+    return bpmnEngineCamunda8;
 
+  }
+
+  /**
+   * Constructor to specify a Self Manage Zeebe Address por a Zeebe Saas
+   *
+   * @param zeebeSaasCloudRegister  Saas Cloud Register information
+   * @param zeebeSaasCloudRegion    Saas Cloud region
+   * @param zeebeSaasCloudClusterId Saas Cloud ClusterID
+   * @param zeebeSaasCloudClientId  Saas Cloud ClientID
+   * @param zeebeSaasClientSecret   Saas Cloud Client Secret
+   * @param operateUrl              URL to access Operate
+   * @param operateUserName         Operate user name
+   * @param operateUserPassword     Operate password
+   * @param tasklistUrl             Url to access TaskList
+   */
+  public static BpmnEngineCamunda8 getFromCamunda8SaaS(
+
+      String zeebeSaasCloudRegister,
+      String zeebeSaasCloudRegion,
+      String zeebeSaasCloudClusterId,
+      String zeebeSaasCloudClientId,
+      String zeebeSaasOAuthUrl,
+      String zeebeSaasAudience,
+      String zeebeSaasClientSecret,
+      String operateUrl,
+      String operateUserName,
+      String operateUserPassword,
+      String tasklistUrl) {
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+    bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
+    bpmnEngineCamunda8.serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
+
+
+    /*
+     * SaaS Zeebe
+     */
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasRegion = zeebeSaasCloudRegion;
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasClusterId = zeebeSaasCloudClusterId;
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasClientId = zeebeSaasCloudClientId;
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasClientSecret = zeebeSaasClientSecret;
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasOAuthUrl = zeebeSaasOAuthUrl;
+    bpmnEngineCamunda8.serverDefinition.zeebeSaasAudience = zeebeSaasAudience;
+
+    /*
+     * Connection to Operate
+     */
+    bpmnEngineCamunda8.serverDefinition.operateUserName = operateUserName;
+    bpmnEngineCamunda8.serverDefinition.operateUserPassword = operateUserPassword;
+    bpmnEngineCamunda8.serverDefinition.operateUrl = operateUrl;
+    bpmnEngineCamunda8.serverDefinition.taskListUrl = tasklistUrl;
+    return bpmnEngineCamunda8;
   }
 
   @Override
@@ -145,37 +195,59 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     // connection is critical, so let build the analysis
     StringBuilder analysis = new StringBuilder();
-    analysis.append("ZeebeConnection: ");
-    this.typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8;
-    if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim().isEmpty())
-      this.typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS;
+    boolean isOk = true;
+
+    isOk = stillOk(serverDefinition.name, "ZeebeConnection", analysis, false, isOk);
+    this.typeCamundaEngine = this.serverDefinition.serverType;
 
     final ZeebeClientBuilder clientBuilder;
-    io.camunda.operate.auth.AuthInterface saOperate;
+    AuthInterface saOperate;
     io.camunda.tasklist.auth.AuthInterface saTaskList;
 
-    if (this.serverDefinition.zeebeCloudRegister != null && !this.serverDefinition.zeebeCloudRegister.trim()
-        .isEmpty()) {
-      analysis.append("Saas ClientId[");
-      analysis.append(serverDefinition.zeebeCloudClientId);
-      analysis.append("]");
+    // ---------------------------- Camunda Saas
+    if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(this.typeCamundaEngine)) {
+      String gatewayAddressCloud =
+          serverDefinition.zeebeSaasClusterId + "." + serverDefinition.zeebeSaasRegion + ".zeebe.camunda.io:443";
+      stillOk(gatewayAddressCloud, "GatewayAddress", analysis, false, true);
+      stillOk(serverDefinition.zeebeSaasClientId, "ClientId", analysis, false, true);
+
       /* Connect to Camunda Cloud Cluster, assumes that credentials are set in environment variables.
        * See JavaDoc on class level for details
        */
-      clientBuilder = ZeebeClient.newClientBuilder();
-      saOperate = new io.camunda.operate.auth.SaasAuthentication(serverDefinition.zeebeCloudClientId,
-          serverDefinition.zeebeClientSecret);
-      saTaskList = new io.camunda.tasklist.auth.SaasAuthentication(serverDefinition.zeebeCloudClientId,
-          serverDefinition.zeebeClientSecret);
+      isOk = stillOk(serverDefinition.zeebeSaasOAuthUrl, "OAutorisationServerUrl", analysis, true, isOk);
+      isOk = stillOk(serverDefinition.zeebeSaasClientId, "ClientId", analysis, true, isOk);
+      isOk = stillOk(serverDefinition.zeebeSaasClientSecret, "ClientSecret", analysis, true, isOk);
+
+      try {
+        String audience = serverDefinition.zeebeSaasAudience != null ? serverDefinition.zeebeSaasAudience : "";
+        OAuthCredentialsProvider credentialsProvider = new OAuthCredentialsProviderBuilder() // formatting
+            .authorizationServerUrl(serverDefinition.zeebeSaasOAuthUrl)
+            .audience(audience)
+            .clientId(serverDefinition.zeebeSaasClientId)
+            .clientSecret(serverDefinition.zeebeSaasClientSecret)
+            .build();
+
+        clientBuilder = ZeebeClient.newClientBuilder()
+            .gatewayAddress(gatewayAddressCloud)
+            .credentialsProvider(credentialsProvider);
+
+      } catch (Exception e) {
+        zeebeClient = null;
+        throw new AutomatorException(
+            "Bad credential [" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+      }
+
+      saOperate = new io.camunda.operate.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
+          serverDefinition.zeebeSaasClientSecret);
+      saTaskList = new io.camunda.tasklist.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
+          serverDefinition.zeebeSaasClientSecret);
 
       typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS;
 
-      // Camunda 8 Self Manage
+      //---------------------------- Camunda 8 Self Manage
     } else if (serverDefinition.zeebeGatewayAddress != null && !this.serverDefinition.zeebeGatewayAddress.trim()
         .isEmpty()) {
-      analysis.append("GatewayAddress [");
-      analysis.append(serverDefinition.zeebeGatewayAddress);
-      analysis.append("]");
+      isOk = stillOk(serverDefinition.zeebeGatewayAddress, "GatewayAddress", analysis, true, isOk);
 
       // connect to local deployment; assumes that authentication is disabled
       clientBuilder = ZeebeClient.newClientBuilder()
@@ -189,38 +261,57 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     } else
       throw new AutomatorException("Invalid configuration");
 
+    // ---------------- connection
     try {
-      analysis.append("ExecutionThread[");
+      isOk = stillOk(serverDefinition.workerExecutionThreads, "ExecutionThread", analysis, false, isOk);
+
+      analysis.append(" ExecutionThread[");
       analysis.append(serverDefinition.workerExecutionThreads);
       analysis.append("] MaxJobsActive[");
       analysis.append(serverDefinition.workerMaxJobsActive);
       analysis.append("] ");
       if (serverDefinition.workerMaxJobsActive == -1) {
         serverDefinition.workerMaxJobsActive = serverDefinition.workerExecutionThreads;
-        analysis.append("No MaxJobsActive defined, align to the number of threads, ");
+        analysis.append("No workerMaxJobsActive defined, align to the number of threads, ");
       }
       if (serverDefinition.workerExecutionThreads > serverDefinition.workerMaxJobsActive) {
         logger.error(
-            "Camunda8 [{}] Incorrect definition: the number of threads {} must be <= number Jobs Active {} , else ZeebeClient will not fetch enough jobs to feed threads",
+            "Camunda8 [{}] Incorrect definition: the workerExecutionThreads {} must be <= workerMaxJobsActive {} , else ZeebeClient will not fetch enough jobs to feed threads",
             serverDefinition.name, serverDefinition.workerExecutionThreads, serverDefinition.workerMaxJobsActive);
       }
 
+      if (!isOk)
+        throw new AutomatorException("Invalid configuration " + analysis.toString());
+
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);
       clientBuilder.defaultJobWorkerMaxJobsActive(serverDefinition.workerMaxJobsActive);
-      zeebeClient = clientBuilder.build();
-      analysis.append("Zeebe connection with success,");
 
+      analysis.append("Zeebe connection...");
+      zeebeClient = clientBuilder.build();
+
+      // simple test
+      Topology join = zeebeClient.newTopologyRequest().send().join();
+
+      // Actually, if an error arrived, an exception is thrown
+      analysis.append(join != null ? "successfully," : "error");
+
+      isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
+
+      analysis.append("Operate connection...");
       operateClient = new CamundaOperateClient.Builder().operateUrl(serverDefinition.operateUrl)
           .authentication(saOperate)
           .build();
-      analysis.append("OperateConnection with success,");
+      analysis.append("successfully,");
 
       // TaskList is not mandatory
       if (serverDefinition.taskListUrl != null && !serverDefinition.taskListUrl.isEmpty()) {
+        isOk = stillOk(serverDefinition.taskListUrl, "taskListUrl", analysis, false, isOk);
+        analysis.append("Tasklist ...");
+
         taskClient = new CamundaTaskListClient.Builder().taskListUrl(serverDefinition.taskListUrl)
             .authentication(saTaskList)
             .build();
-        analysis.append("TasklistConnection with success,");
+        analysis.append("successfully,");
       }
       //get tasks assigned to demo
       logger.info(analysis.toString());
@@ -228,7 +319,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     } catch (Exception e) {
       zeebeClient = null;
       throw new AutomatorException(
-          "Can't connect to Zeebe/operate/tasklist " + e.getMessage() + " - Analysis:" + analysis);
+          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
     }
   }
 
@@ -254,10 +345,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /**
    * HighFlowMode: when true, the class does not save anything, to reduce the footprint
    *
-   * @param hightFlowMode true or false
+   * @param highFlowMode true or false
    */
-  public void turnHighFlowMode(boolean hightFlowMode) {
-    this.hightFlowMode = hightFlowMode;
+  public void turnHighFlowMode(boolean highFlowMode) {
+    this.hightFlowMode = highFlowMode;
   }
 
   @Override
@@ -286,11 +377,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       }
       return String.valueOf(processInstanceId);
     } catch (Exception e) {
-      throw new AutomatorException("Can't create in process [" + processId + "] :" + e.getMessage());
+      throw new AutomatorException("CreateProcessInstance Error[" + processId + "] :" + e.getMessage());
     }
   }
 
-  public String createProcessInstanceSimple(String processId, String starterEventId, Map<String, Object> variables)
+  public String createProcessInstanceDirect(String processId, String starterEventId, Map<String, Object> variables)
       throws AutomatorException {
     try {
       String marker = null;
@@ -454,6 +545,18 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       throws AutomatorException {
     try {
       long processInstanceIdLong = Long.parseLong(processInstanceId);
+
+      ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().parentKey(processInstanceIdLong)
+          .build();
+
+      SearchQuery processInstanceQuery = new SearchQuery.Builder().filter(processInstanceFilter).size(100).build();
+
+      List<ProcessInstance> listProcessInstances = operateClient.searchProcessInstances(processInstanceQuery);
+      Set<Long> setProcessInstances = listProcessInstances.stream()
+          .map(ProcessInstance::getKey)
+          .collect(Collectors.toSet());
+      setProcessInstances.add(processInstanceIdLong);
+
       ActivateJobsResponse jobsResponse = zeebeClient.newActivateJobsCommand()
           .jobType(topic)
           .maxJobsToActivate(10000)
@@ -463,7 +566,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       List<String> listJobsId = new ArrayList<>();
 
       for (ActivatedJob job : jobsResponse.getJobs()) {
-        if (job.getProcessInstanceKey() == processInstanceIdLong)
+        if (setProcessInstances.contains(job.getProcessInstanceKey()))
           listJobsId.add(String.valueOf(job.getKey()));
         else {
           zeebeClient.newFailCommand(job.getKey()).retries(2).send().join();
@@ -472,7 +575,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       return listJobsId;
 
     } catch (Exception e) {
-      throw new AutomatorException("Can't search users task " + e.getMessage());
+      throw new AutomatorException("Can't search service task topic[" + topic + "] : " + e.getMessage());
     }
   }
 
@@ -489,7 +592,24 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public void executeServiceTask(String serviceTaskId, String workerId, Map<String, Object> variables)
       throws AutomatorException {
     try {
-      zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).send().join();
+      zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).variables(variables).send().join();
+    } catch (Exception e) {
+      throw new AutomatorException("Can't execute service task " + e.getMessage());
+    }
+  }
+
+  public void throwBpmnServiceTask(String serviceTaskId,
+                                   String workerId,
+                                   String errorCode,
+                                   String errorMessage,
+                                   Map<String, Object> variables) throws AutomatorException {
+    try {
+      zeebeClient.newThrowErrorCommand(Long.valueOf(serviceTaskId))
+          .errorCode(errorCode)
+          .errorMessage(errorMessage)
+          .variables(variables)
+          .send()
+          .join();
     } catch (Exception e) {
       throw new AutomatorException("Can't execute service task " + e.getMessage());
     }
@@ -718,8 +838,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public String getSignature() {
     String signature = typeCamundaEngine.toString() + " ";
     if (typeCamundaEngine.equals(BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS))
-      signature += "Cloud[" + serverDefinition.zeebeCloudRegister + "] ClientId[" + serverDefinition.zeebeCloudClientId
-          + "] ClusterId[" + serverDefinition.zeebeCloudClusterId + "]";
+      signature +=
+          "Cloud ClientId[" + serverDefinition.zeebeSaasClientId + "] ClusterId[" + serverDefinition.zeebeSaasClusterId
+              + "]";
     else
       signature += "Address[" + serverDefinition.zeebeGatewayAddress + "]";
     signature += " numJobWorkerExecutionThreads[" + serverDefinition.workerExecutionThreads + "] workerMaxJobsActive["
@@ -739,4 +860,31 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public ZeebeClient getZeebeClient() {
     return zeebeClient;
   }
+
+  /**
+   * add in analysis and check the consistence
+   *
+   * @param value       value to check
+   * @param message     name of parameter
+   * @param analysis    analysis builder
+   * @param check       true if the value must not be null or empty
+   * @param wasOkBefore previous value, is returned if this check is Ok
+   * @return previous value is ok false else
+   */
+  private boolean stillOk(Object value, String message, StringBuilder analysis, boolean check, boolean wasOkBefore) {
+    analysis.append(message);
+    analysis.append(" [");
+    analysis.append(value);
+    analysis.append(" ]");
+
+    if (check) {
+      if (value == null || (value instanceof String && ((String) value).isEmpty())) {
+        analysis.append("No ");
+        analysis.append(message);
+        return false;
+      }
+    }
+    return wasOkBefore;
+  }
+
 }

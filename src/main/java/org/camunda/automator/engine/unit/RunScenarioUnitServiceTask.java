@@ -5,11 +5,15 @@ import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
 import org.camunda.automator.engine.RunZeebeOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
 
 public class RunScenarioUnitServiceTask {
+
+  private final Logger logger = LoggerFactory.getLogger(RunScenarioUnitServiceTask.class);
 
   private final RunScenario runScenario;
 
@@ -25,6 +29,10 @@ public class RunScenarioUnitServiceTask {
    * @return result completed
    */
   public RunResult executeServiceTask(RunResult result, ScenarioStep step) {
+    if (runScenario.getRunParameters().showLevelMonitoring()) {
+      logger.info("Service TaskId[{}]", step.getTaskId());
+    }
+
     if (step.getDelay() != null) {
       Duration duration = Duration.parse(step.getDelay());
       try {

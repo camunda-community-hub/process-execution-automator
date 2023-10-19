@@ -1,15 +1,20 @@
 automator:
 
-
-
   scheduler:
 
   startup:
+    # give the server to run all tests at startup. The name must be registered in the list of server after
+    serverName:
+
     scenarioPath: ./src/main/resources/loadtest
     # list of scenario separate by ;
     scenarioAtStartup: file:/C8CrawlUrlScn.json;
+
+    # one scenario resource - to be accessible in a Docker container via a configMap
+    scenarioResourceAtStartup:
+
     # DEBUG, INFO, MONITORING, MAIN, NOTHING
-    logLevel: DASHBOARD
+    logLevel: MONITORING
     # string composed with DEPLOYPROCESS, WARMINGUP, CREATION, SERVICETASK, USERTASK
     # (ex: "CREATION|DEPLOYPROCESS|CREATION|SERVICETASK")
     policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
@@ -22,21 +27,22 @@ automator:
   # servers connection is a list of connection separate by ;
   # each connection contains a name and a type. then, other parameters depends on the type
   # <name>,CAMUNDA_7,<url>
-  # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl
-  # <name>,CAMUNDA_8_SAAS,zeebeCloudRegister,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,clientSecret,OperateUserName,OperateUserPassword,OperateUrl
+  # <name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive
+  # <name>,CAMUNDA_8_SAAS,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,
+  #          zeebeCloudOAuthUrl,zeebeCloudAudience,clientSecret,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive
 
-  serversConnection: Camunda7URL,CAMUNDA_7,http://localhost:8080/engine-rest; \
-    Camunda8URL,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
+  serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest; \
+    Camunda8Safir,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
 
   # other way to provide the list of server connection
   serversList:
     - type: "camunda7"
-      name: "camunda7Local"
+      name: "camunda7Emeraud"
       url: "http://localhost:8080/engine-rest"
       workerMaxJobsActive: 20
 
     - type: "camunda8"
-      name: "Camunda8Local"
+      name: "Camunda8Ruby"
       zeebeGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
@@ -46,23 +52,31 @@ automator:
       workerMaxJobsActive: 10
 
     - type: "camunda8saas"
-      name: "Camunda8SaaS"
-      zeebeCloudRegister: "aaa"
-      zeebeCloudRegion: "usa"
-      zeebeClientSecret: "bbb"
-      zeebeCloudClusterId: "ddd"
-      zeebeCloudClientId: "eee"
+      name: "Camunda8Grena"
+      workerExecutionThreads: 10
+      workerMaxJobsActive: 10
 
 
+      # Cluster 8.3.0
+      region: "bru-2"
+      clusterId: "4b...e2"
+      clientId: "bs...6a"
+      secret: "-Ez...ZG"
+      oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
+      audience: "zeebe.camunda.io"
+      operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
+      taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
 
+
+  # This definition is very simple to use in the K8 definition, because one variable can be override
   servers:
     camunda7:
-      name: "Camunda7Local"
+      name: "Camunda7Granit"
       url: "http://localhost:8080/engine-rest"
       workerMaxJobsActive: 20
 
     camunda8:
-      name: "Camunda8Local"
+      name: "Camunda8Calcair"
       zeebeGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
@@ -71,18 +85,27 @@ automator:
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 
+    camunda8Saas:
+      name: "Camunda8Marbble"
+      workerExecutionThreads: 10
+      workerMaxJobsActive: 10
+      operateUrl: "https://ont-1.operate.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+      taskListUrl: "https://ont-1.tasklist.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+
+      region: "ont-1"
+      clusterId: "25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+      clientId: "eknOoiO5GYDdFf4ZjDSh8yaLG-BVCw9L"
+      oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
+      audience: ""
+      secret: "4BPUva1U4lDtoG2-torvAtx6w5RbHULUFhGZ-bBXOMWwZJG3d3VDlfPHjVO3Kz-N"
 
 
 
 
 
-      #zeebeCloudRegister:
-      #zeebeCloudRegion:
-      #clientSecret:
-      #zeebeCloudClusterId:
-      #zeebeCloudClientId:
 
-
-
-server.port: 8380
+server.port: 8381
 scheduler.poolSize: 10

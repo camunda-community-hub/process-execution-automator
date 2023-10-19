@@ -4,7 +4,7 @@
 Verify a process reacts as expected.
 
 There is multiple use case:
-* When a process instance is created with the variable "amount=120", it follows the activity "getScore", and then "Review"
+* When a process instance is created with the variable "amount>120", it follows the activity "getScore", and then "CheckUser"
 
 * Verify that the performance is still the same and a service task stays under 300 ms to be executed
 
@@ -44,9 +44,21 @@ advance the process instance where you want it.
 
 # Build a Scenario
 
-In progress
+A Unit scenario reference the different activity you need to simulate. If your environment has a worker behind the topic "getScore", you don't need to simulate it, so it must not be in the scenario?
+
+In the unit scenario, you should place some Event (for example, the end event): the unit will verify that this event is registered in the history.
+
+This verification implies to give an Operate access.
+
+The scenario will contains:
+
+The name, the process ID 
+
+A list of flow to execute under the attribut `executions`
 
 
+* a STARTEVENT, to start one process instance
+* the list of all SERVICETASK
 
 ## Scenario definition
 

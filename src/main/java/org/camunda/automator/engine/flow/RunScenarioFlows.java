@@ -7,6 +7,7 @@
 package org.camunda.automator.engine.flow;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
+import org.camunda.automator.definition.ScenarioFlowControl;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -41,8 +43,16 @@ public class RunScenarioFlows {
     // Create one executor per flow
     RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
     Map<String, RunResult.RecordCreationPI> recordCreationPIMap = new HashMap<>();
-    RunObjectives runObjectives = new RunObjectives(runScenario.getScenario().getFlowControl().getObjectives(),
-        runScenario.getBpmnEngine(), recordCreationPIMap);
+    if (runScenario.getScenario().getFlowControl() == null) {
+      runResult.addError(null, "Scenario does not declare a [FlowControl] section. This section is mandatory for a Flow Scenario");
+      return;
+    }
+
+    List<ScenarioFlowControl.Objective> listObjectives = runScenario.getScenario().getFlowControl().getObjectives();
+    if (listObjectives == null)
+      listObjectives = Collections.emptyList();
+
+    RunObjectives runObjectives = new RunObjectives(listObjectives, runScenario.getBpmnEngine(), recordCreationPIMap);
 
     logger.info("ScenarioFlow: ------ WarmingUp");
     runScenarioWarmingUp.warmingUp(runResult);
@@ -66,10 +76,8 @@ public class RunScenarioFlows {
 
     // Check with Objective now
     logger.info("ScenarioFlow: ------ CheckObjectives");
-    if (runScenario.getScenario().getFlowControl() != null
-        && runScenario.getScenario().getFlowControl().getObjectives() != null) {
-      checkObjectives(runObjectives, startTestDate, endTestDate, runResult);
-    }
+    checkObjectives(runObjectives, startTestDate, endTestDate, runResult);
+
     logger.info("ScenarioFlow: ------ TheEnd");
   }
 

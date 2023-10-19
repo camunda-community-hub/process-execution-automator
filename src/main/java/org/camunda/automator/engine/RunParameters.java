@@ -6,6 +6,8 @@ import java.util.List;
 public class RunParameters {
   private LOGLEVEL logLevel = LOGLEVEL.MONITORING;
 
+  private String serverName;
+
   private int numberOfThreadsPerScenario = 10;
 
   /**
@@ -47,6 +49,14 @@ public class RunParameters {
 
   public LOGLEVEL getLogLevel() {
     return logLevel;
+  }
+
+  public RunParameters setServerName(String serverName) {
+    this.serverName = serverName;
+    return this;
+  }
+  public String getServerName() {
+    return this.serverName;
   }
 
   public RunParameters setLogLevel(LOGLEVEL logLevel) {

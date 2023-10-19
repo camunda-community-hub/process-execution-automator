@@ -32,6 +32,9 @@ public class ConfigurationStartup {
   @Value("${automator.startup.waitWarmUpServer:PT0S}")
   public String waitWarmupServer;
 
+  @Value("${automator.startup.serverName}")
+  private String serverName;
+
   @Value("#{'${automator.startup.scenarioFileAtStartup:}'.split(';')}")
   private List<String> scenarioFileAtStartup;
 
@@ -40,6 +43,10 @@ public class ConfigurationStartup {
 
   @Value("#{'${automator.startup.filterService:}'.split(';')}")
   private List<String> filterService;
+
+  public String getServerName() {
+    return serverName;
+  }
 
   public void setLogLevel(String logLevel) {
     this.logLevel = logLevel;

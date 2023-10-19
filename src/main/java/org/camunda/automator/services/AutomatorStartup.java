@@ -45,8 +45,11 @@ public class AutomatorStartup {
     if (AutomatorCLI.isRunningCLI)
       return;
 
+    logger.info("AutomatorStartup-start");
     AutomatorSetupRunnable automatorSetupRunnable = new AutomatorSetupRunnable(configurationStartup, automatorAPI,
         automatorCLI, engineConfiguration);
+
+    // start the automator startup immediately, and Spring can continue to start the application
     serviceAccess.getTaskScheduler("AutomatorSetup").schedule(automatorSetupRunnable, Instant.now());
 
   }
@@ -100,8 +103,10 @@ public class AutomatorStartup {
           configurationStartup.getScenarioResourceAtStartupName());
 
       for (Resource resource : configurationStartup.getScenarioResourceAtStartup()) {
-        logger.info("Load scenario [Resource] from [{}]", resource.getDescription());
-        scenarioList.add(resource);
+        if (resource!=null) {
+          logger.info("Load scenario [Resource] from [{}]", resource.getDescription());
+          scenarioList.add(resource);
+        }
       }
     }
 
@@ -136,6 +141,7 @@ public class AutomatorStartup {
 
       RunParameters runParameters = new RunParameters();
       runParameters.setExecution(true)
+          .setServerName(configurationStartup.getServerName())
           .setLogLevel(configurationStartup.getLogLevelEnum())
           .setCreation(configurationStartup.isPolicyExecutionCreation())
           .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
@@ -149,7 +155,8 @@ public class AutomatorStartup {
       }
 
       logger.info(
-          "AutomatorStartup parameters warmingUp[{}] creation:[{}] serviceTask:[{}] userTask:[{}] ScenarioPath[{}] logLevel[{}] waitWarmingUpServer[{} s]",
+          "AutomatorStartup parameters serverName[{}] warmingUp[{}] creation:[{}] serviceTask:[{}] userTask:[{}] ScenarioPath[{}] logLevel[{}] waitWarmingUpServer[{} s]",
+          runParameters.getServerName(),
           runParameters.isWarmingUp(), runParameters.isCreation(), runParameters.isServiceTask(),
           runParameters.isUserTask(), configurationStartup.scenarioPath, configurationStartup.logLevel,
           configurationStartup.getWarmingUpServer().toMillis() / 1000);
@@ -199,10 +206,22 @@ public class AutomatorStartup {
           String message = "";
           try {
             if (runParameters.showLevelDashboard()) {
-              logger.info("Connect to Bpmn Engine Type [{}] for scenario [{}]", scenario.getServerType(),
-                  scenario.getName());
+              logger.info("Connect to Bpmn Engine for scenario [{}]", scenario.getName());
             }
-            bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+            if (scenario.getServerName() != null && !scenario.getServerName().isEmpty()) {
+              bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+
+            } else {
+              if (runParameters.getServerName() == null)
+                throw new AutomatorException("No Server define in configuration");
+              BpmnEngineList.BpmnServerDefinition serverDefinition = engineConfiguration.getByServerName(
+                  runParameters.getServerName());
+              if (serverDefinition == null)
+                throw new AutomatorException(
+                    "Server [" + runParameters.getServerName() + "] does not exist in the list");
+
+              bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
+            }
             if (!bpmnEngine.isReady()) {
               bpmnEngine.connection();
             }
@@ -212,9 +231,8 @@ public class AutomatorStartup {
           }
           if (pleaseTryAgain && countEngineIsNotReady < 10) {
             logger.info(
-                "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}] serverType[{}]",
-                message, countEngineIsNotReady, scenario.getName(), scenario.getName(), scenario.getServerName(),
-                scenario.getServerType());
+                "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}]",
+                message, countEngineIsNotReady, scenario.getName(), scenario.getName(), scenario.getServerName());
             try {
               Thread.sleep(((long) 1000) * 30);
             } catch (InterruptedException e) {
@@ -224,8 +242,7 @@ public class AutomatorStartup {
         } while (pleaseTryAgain && countEngineIsNotReady < 10);
 
         if (bpmnEngine == null) {
-          logger.error("Scenario [{}] file[{}] No BPM ENGINE running. Scenario reference serverName[{}] serverType[{}]",
-              scenario.getName(), scenario.getName(), scenario.getServerName(), scenario.getServerType());
+          logger.error("Scenario [{}] file[{}] No BPM ENGINE running.", scenario.getName(), scenario.getName());
           continue;
         }
 

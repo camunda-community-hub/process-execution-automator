@@ -72,12 +72,16 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   EngineApi engineApi;
   private int count = 0;
 
-  public BpmnEngineCamunda7(BpmnEngineList engineConfiguration, BpmnEngineList.BpmnServerDefinition serverDefinition) {
+  /**
+   * @param serverDefinition definition to connect to the server
+   * @param logDebug         if true, operation will be log as debug level
+   */
+  public BpmnEngineCamunda7(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug) {
     this.serverUrl = serverDefinition.camunda7ServerUrl;
     this.userName = serverDefinition.camunda7UserName;
     this.password = serverDefinition.camunda7Password;
     this.workerMaxJobsActive = serverDefinition.workerMaxJobsActive;
-    this.logDebug = engineConfiguration.getLogDebug();
+    this.logDebug = logDebug;
     init();
   }
 
@@ -226,7 +230,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException {
     if (logDebug) {
-      logger.info("BpmnEngine7.searchForActivity: taskName[" + userTaskId + "]");
+      logger.info("BpmnEngine7.searchForActivity: taskName[{}]", userTaskId);
     }
 
     TaskQueryDto taskQueryDto = new TaskQueryDto();
@@ -245,7 +249,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       throws AutomatorException {
 
     if (logDebug) {
-      logger.info("BpmnEngine7.executeUserTask: activityId[" + userTaskId + "]");
+      logger.info("BpmnEngine7.executeUserTask: activityId[{}]", userTaskId);
     }
     try {
       UserIdDto userIdDto = new UserIdDto();
@@ -312,7 +316,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
     if (logDebug) {
-      logger.info("BpmnEngine7.searchForActivity: Process[" + processInstanceId + "] taskName[" + serviceTaskId + "]");
+      logger.info("BpmnEngine7.searchForActivity: Process[{}] taskName[{}]", processInstanceId, serviceTaskId);
     }
 
     // get the list of all sub process instance
@@ -340,7 +344,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
       throws AutomatorException {
 
     if (logDebug) {
-      logger.info("BpmnEngine7.executeUserTask: activityId[" + serviceTaskId + "]");
+      logger.info("BpmnEngine7.executeUserTask: activityId[{}]", serviceTaskId);
     }
     try {
 

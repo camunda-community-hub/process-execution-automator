@@ -49,8 +49,7 @@ public class AutomatorAPI {
    * @throws AutomatorException if scenario can't be read
    */
   public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
-    Scenario scenario = Scenario.createFromFile(scenarioFile);
-    return scenario;
+    return Scenario.createFromFile(scenarioFile);
   }
 
   /**
@@ -69,23 +68,21 @@ public class AutomatorAPI {
    * Search the engine from the scenario
    *
    * @param scenario            scenario
-   * @param engineConfiguration different engine configuration
+   * @param bpmnEngineList different engine configuration
    * @return the engine, null if no engine exist, an exception if the connection is not possible
    */
-  public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList engineConfiguration)
+  public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList bpmnEngineList)
       throws AutomatorException {
     try {
 
       if (scenario.getServerName() != null) {
-        return getBpmnEngine(engineConfiguration, engineConfiguration.getByServerName(scenario.getServerName()));
+        return getBpmnEngine( bpmnEngineList.getByServerName(scenario.getServerName()), true);
       }
-      if (scenario.getServerType() != null) {
-        return getBpmnEngine(engineConfiguration, engineConfiguration.getByServerType(scenario.getServerType()));
-      }
+
       return null;
     } catch (AutomatorException e) {
-      logger.error("Can't connect the engine for the scenario [{}] serverName[{}] serverType[{}] : {}",
-          scenario.getName(), scenario.getServerName(), scenario.getServerType(), e.getMessage());
+      logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}",
+          scenario.getName(), scenario.getServerName(), e.getMessage());
       throw e;
     }
 
@@ -124,10 +121,8 @@ public class AutomatorAPI {
   /*  Deploy a process in the server                                      */
   /* ******************************************************************** */
 
-  public BpmnEngine getBpmnEngine(BpmnEngineList engineConfiguration,
-                                  BpmnEngineList.BpmnServerDefinition serverDefinition) throws AutomatorException {
-
-    return BpmnEngineFactory.getInstance().getEngineFromConfiguration(engineConfiguration, serverDefinition);
+  public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition,boolean logDebug) throws AutomatorException {
+    return BpmnEngineFactory.getInstance().getEngineFromConfiguration( serverDefinition, logDebug);
   }
 
   /**
