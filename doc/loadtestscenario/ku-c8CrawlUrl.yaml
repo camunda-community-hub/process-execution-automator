@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
         - name: ku-processautomator
-          image: ghcr.io/camunda-community-hub/process-execution-automator:1.3.0
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
