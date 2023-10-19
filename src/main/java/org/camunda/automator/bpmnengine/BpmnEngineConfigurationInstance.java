@@ -51,10 +51,9 @@ public class BpmnEngineConfigurationInstance {
 
     BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
     serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
-    serverDefinition.zeebeCloudRegister = zeebeCloudRegister;
-    serverDefinition.zeebeCloudRegion = zeebeCloudRegion;
-    serverDefinition.zeebeCloudClusterId = zeebeCloudClusterId;
-    serverDefinition.zeebeCloudClientId = zeebeCloudClientId;
+    serverDefinition.zeebeSaasRegion = zeebeCloudRegion;
+    serverDefinition.zeebeSaasClusterId = zeebeCloudClusterId;
+    serverDefinition.zeebeSaasClientId = zeebeCloudClientId;
 
     bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

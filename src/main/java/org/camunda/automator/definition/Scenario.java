@@ -29,11 +29,23 @@ import java.util.List;
 public class Scenario {
   static Logger logger = LoggerFactory.getLogger(Scenario.class);
 
-  private final List<ScenarioExecution> executions = new ArrayList<>();
   private final List<ScenarioDeployment> deployments = new ArrayList<>();
   private final List<ScenarioStep> flows = new ArrayList<>();
+
+  public enum TYPESCENARIO { FLOW, UNIT};
+
+  public TYPESCENARIO typeScenario;
+
+  /**
+   * Type FLOW
+   */
   private ScenarioWarmingUp warmingUp;
   private ScenarioFlowControl flowControl;
+
+  /**
+   * Type UNIT
+   */
+  private final List<ScenarioExecution> executions = new ArrayList<>();
 
   private String name;
   private String version;
@@ -41,7 +53,7 @@ public class Scenario {
   private String processId;
 
   /**
-   * Server to run the scenario
+   * Server to run the scenario (optional, will be overide by the configuration)
    */
   private String serverName;
 
@@ -173,20 +185,13 @@ public class Scenario {
     }
   }
 
+
   public String getServerName() {
     if (serverName == null || serverName.isEmpty())
       return null;
     return serverName;
   }
 
-  public BpmnEngineList.CamundaEngine getServerType() {
-    try {
-      return BpmnEngineList.CamundaEngine.valueOf(serverType.toUpperCase());
-    } catch (Exception e) {
-      return null;
-    }
-
-  }
 
   private void afterUnSerialize() {
     // Attention, now we have to manually set the tree relation

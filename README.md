@@ -81,7 +81,7 @@ for the development.
 
 Visit [Unit Scenario](doc/unitscenario/README.md)
 
-### Load test (flowscenario)
+### Load test (flow-scenario)
 
 The flow scenario describes an environment and sends a requirement like "generate 500 PI every 40 seconds".
 The flow scenario has a duration and objective to verify.
@@ -103,10 +103,72 @@ Process-Automator does not contain any Camunda server. It connects to an existin
 communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a
 Camunda 7 or a Camunda 8 server.
 
+The scenario does not contain any server information. It contains only the server.
+
+Process-automator reference a list of server in the configuration, under multiple ways:
+
+`````yaml
+automator:
+    serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest; \
+  Camunda8Safir,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
+
+    serversList:
+      - type: "camunda7"
+        name: "camunda7Emeraud"
+        url: "http://localhost:8080/engine-rest"
+        workerMaxJobsActive: 20
+
+      - type: "camunda8"
+        name: "Camunda8Ruby"
+        zeebeGatewayAddress: "127.0.0.1:26500"
+        operateUserName: "demo"
+        operateUserPassword: "demo"
+        operateUrl: "http://localhost:8081"
+        taskListUrl: "http://localhost:8082"
+        workerExecutionThreads: 10
+        workerMaxJobsActive: 10
+
+      - type: "camunda8saas"
+        name: "Camunda8Grena"        
+        workerExecutionThreads: 10
+        workerMaxJobsActive: 10
+        operateUrl: "https://ont-1.operate.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+        taskListUrl: "https://ont-1.tasklist.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+
+        operateUserName: "demo"
+        operateUserPassword: "demo"
+
+        region: "ont-1"
+        clusterId: "25xxxx93"
+        clientId: "ekxxxx9L"
+        oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
+        audience: ""
+        secret: "4BPxxxxxN"
+
+`````
+The `serverConnection` is ease to manipulate in a Docker or a Kubernetes environment.
+
+At the execution, two parameters are mandatory:
+* the scenario to run
+* the server to connect to run the scenario
+
+By this way, it's possible to use the same scenario on different environment.
+
+Example to run the CLI command
+
+````
+`java -jar target/process-execution-automator.jar \
+  -s Camunda8Ruby \ 
+  -v  \
+  -l MAIN \ 
+  -x run doc/unittestscenario/resources/C8LoanManagementScn.json
+````
 ## Use in Docker
 A docker image is created. The image can be used in a docker-compose.
 
 Visit [Docker documentation](doc/docker/README.md)
+
+Scenario and Server configuration can be setup at startup. 
 
 ## Use in Kubernetes
 

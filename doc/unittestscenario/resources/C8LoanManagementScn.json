@@ -1,0 +1,53 @@
+{
+  "name": "C8LoanManagement",
+  "processId": "LoanManagement",
+  "serverType": "Camunda_8",
+  "typeScenario": "UNIT",
+  "executions": [
+    {
+      "name": "multinstance",
+      "policy": "STOPATFIRSTERROR",
+      "numberProcessInstances": 1,
+      "numberOfThreads": 1,
+      "steps": [
+        {
+          "name": "Start event normal",
+          "type": "STARTEVENT",
+          "taskId": "StartEvent",
+          "processId": "LoanManagement",
+          "variables": {"amount":  500}
+        },
+        {
+          "type": "SERVICETASK",
+          "topic": "getScore",
+          "taskId" : "Activity_getScore",
+          "variables": {
+            "score": 565
+          }
+        },
+        {
+          "type": "SERVICETASK",
+          "taskId": "Activity_getUserInformation",
+          "topic": "getUserInformation"
+        },
+        {
+          "type": "SERVICETASK",
+          "topic": "calculateRisk",
+          "taskId": "Activity_calculateRisk",
+          "variables": {
+            "acceptLoan": true
+          }
+        },
+        {
+          "type": "SERVICETASK",
+          "taskId": "Activity_acceptLoan",
+          "topic": "acceptLoan"
+        },
+        {
+          "type": "ENDEVENT",
+          "taskId": "ClaimAccepted"
+        }
+      ]
+    }
+  ]
+}

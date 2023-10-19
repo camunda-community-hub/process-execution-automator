@@ -18,6 +18,8 @@ public class ConfigurationServersEngine {
   public List<String> serversConnection;
 
   public List<Map<String, Object>> serversList;
+
+
   @Value("${automator.servers.camunda7.url:''}")
   public String camunda7Url;
   @Value("${automator.servers.camunda7.username:}")
@@ -28,32 +30,50 @@ public class ConfigurationServersEngine {
   public String camunda7Name;
   @Value("${automator.servers.camunda7.workerMaxJobsActive:''}")
   public String C7WorkerMaxJobsActive;
+
   @Value("${automator.servers.camunda8.name:''}")
   public String zeebeName;
   @Value("${automator.servers.camunda8.zeebeGatewayAddress:''}")
   public String zeebeGatewayAddress;
-  @Value("${automator.servers.camunda8.zeebeCloudRegister:''}")
-  public String zeebeCloudRegister;
-  @Value("${automator.servers.camunda8.zeebeCloudRegion:''}")
-  public String zeebeCloudRegion;
-  @Value("${automator.servers.camunda8.zeebeCloudClusterId:''}")
-  public String zeebeCloudClusterId;
-  @Value("${automator.servers.camunda8.zeebeCloudClientId:''}")
-  public String zeebeCloudClientId;
-  @Value("${automator.servers.camunda8.clientSecret:''}")
-  public String zeebeClientSecret;
   @Value("${automator.servers.camunda8.operateUrl:''}")
-  public String operateUrl;
+  public String zeebeOperateUrl;
   @Value("${automator.servers.camunda8.operateUserName:''}")
-  public String operateUserName;
+  public String zeebeOperateUserName;
   @Value("${automator.servers.camunda8.operateUserPassword:''}")
-  public String operateUserPassword;
+  public String zeebeOperateUserPassword;
   @Value("${automator.servers.camunda8.taskListUrl:''}")
-  public String taskListUrl;
+  public String zeebeTaskListUrl;
   @Value("${automator.servers.camunda8.workerExecutionThreads:''}")
-  public String workerExecutionThreads;
+  public String zeebeWorkerExecutionThreads;
   @Value("${automator.servers.camunda8.workerMaxJobsActive:''}")
-  public String C8WorkerMaxJobsActive;
+  public String zeebeWorkerMaxJobsActive;
+
+
+  @Value("${automator.servers.camunda8Saas.region:''}")
+  public String zeebeSaasRegion;
+  @Value("${automator.servers.camunda8Saas.clusterId:''}")
+  public String zeebeSaasClusterId;
+  @Value("${automator.servers.camunda8Saas.clientId:''}")
+  public String zeebeSaasClientId;
+  @Value("${automator.servers.camunda8Saas.oAuthUrl:''}")
+  public String zeebeSaasOAuthUrl;
+  @Value("${automator.servers.camunda8Saas.audience:''}")
+  public String zeebeSaasAudience;
+
+  @Value("${automator.servers.camunda8Saas.secret:''}")
+  public String zeebeSaasClientSecret;
+  @Value("${automator.servers.camunda8Saas.operateUrl:''}")
+  public String zeebeSaasOperateUrl;
+  @Value("${automator.servers.camunda8Saas.operateUserName:''}")
+  public String zeebeSaasOperateUserName;
+  @Value("${automator.servers.camunda8Saas.operateUserPassword:''}")
+  public String zeebeSaasOperateUserPassword;
+  @Value("${automator.servers.camunda8Saas.taskListUrl:''}")
+  public String zeebeSaasTaskListUrl;
+  @Value("${automator.servers.camunda8Saas.workerExecutionThreads:''}")
+  public String zeebeSaasWorkerExecutionThreads;
+  @Value("${automator.servers.camunda8Saas.workerMaxJobsActive:''}")
+  public String zeebeSaasWorkerMaxJobsActive;
 
   public List<Map<String, Object>> getServersList() {
     return serversList;

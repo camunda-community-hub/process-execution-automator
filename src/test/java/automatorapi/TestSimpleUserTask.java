@@ -40,9 +40,7 @@ public class TestSimpleUserTask {
     try {
 
       BpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
-      BpmnEngine bpmnEngine = automatorApi.getBpmnEngineFromScenario(scenario, engineConfiguration);
-      if (bpmnEngine == null)
-        bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration, engineConfiguration.getListServers().get(0));
+      BpmnEngine bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration.getListServers().get(0),true);
 
       RunResult scenarioExecutionResult = automatorApi.executeScenario(bpmnEngine, runParameters, scenario);
       assert (scenarioExecutionResult.isSuccess());

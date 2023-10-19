@@ -181,30 +181,22 @@ public class AutomatorCLI implements CommandLineRunner {
 
       // get the correct server configuration
       BpmnEngineList.BpmnServerDefinition serverDefinition = null;
-      if (serverName != null) {
-        serverDefinition = engineConfiguration.getByServerName(serverName);
 
-        if (serverDefinition == null) {
-          throw new AutomatorException("Check configuration: name[" + serverName
-              + "] does not exist in the list of servers in application.yaml file");
-        }
-      } else {
-        List<BpmnEngineList.BpmnServerDefinition> listServers = engineConfiguration.getListServers();
-
-        serverDefinition = listServers.isEmpty() ? null : listServers.get(0);
-      }
+      serverDefinition = engineConfiguration.getByServerName(serverName);
       if (serverDefinition == null) {
-        throw new AutomatorException(
-            "Check configuration: configuration to access a Camunda server is missing in application.yaml");
+        throw new AutomatorException("Check configuration: name[" + serverName
+            + "] does not exist in the list of servers in application.yaml file");
       }
 
       long beginTime = System.currentTimeMillis();
-      BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(engineConfiguration, serverDefinition);
+      BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
 
       switch (action) {
       case RUN -> {
         Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-        BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+        BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
+
+        // execution
         RunResult scenarioExecutionResult = automatorAPI.executeScenario(
             bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
 
@@ -214,7 +206,7 @@ public class AutomatorCLI implements CommandLineRunner {
         List<File> listScenario = detectRecursiveScenario(folderRecursive);
         for (File scenarioFileIndex : listScenario) {
           Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+          BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
           RunResult scenarioExecutionResult = automatorAPI.executeScenario(
               bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
 
@@ -234,6 +226,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
   /**
    * To reduce the number of warning
+   *
    * @param message message to log out
    */
   private static void logOutLn(String message) {

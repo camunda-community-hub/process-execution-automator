@@ -20,16 +20,18 @@ spec:
     spec:
       containers:
         - name: ku-processautomator
-          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
+          image: ghcr.io/camunda-community-hub/process-execution-automator:1.3.0
           imagePullPolicy: Always
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
+                -Dautomator.startup.serverName=zeebeCloud
+                -Dautomator.servers.camunda8.name=zeebeCloud
                 -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
-                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.taskListUrl=http://camunda-tasklist:80
                 -Dautomator.servers.camunda8.workerExecutionThreads=1
                 -Dautomator.startup.scenarioResourceAtStartup=file:/C8CrawlUrlScn.json
                 -Dautomator.startup.policyExecution=WARMINGUP|CREATION|SERVICETASK|USERTASK

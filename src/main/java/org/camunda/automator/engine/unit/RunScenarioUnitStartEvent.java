@@ -5,8 +5,14 @@ import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
 import org.camunda.automator.engine.RunZeebeOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 public class RunScenarioUnitStartEvent {
+
+  private final Logger logger = LoggerFactory.getLogger(RunScenarioUnitStartEvent.class);
 
   private final RunScenario runScenario;
 
@@ -23,9 +29,16 @@ public class RunScenarioUnitStartEvent {
    */
   public RunResult startEvent(RunResult result, ScenarioStep step) {
     try {
-      result.addProcessInstanceId(step.getScnExecution().getScnHead().getProcessId(), runScenario.getBpmnEngine()
-          .createProcessInstance(step.getScnExecution().getScnHead().getProcessId(), step.getTaskId(), // activityId
-              RunZeebeOperation.getVariablesStep(runScenario, step))); // resolve variables
+      if (runScenario.getRunParameters().showLevelMonitoring()) {
+        logger.info("StartEvent EventId[{}]", step.getTaskId());
+      }
+        String processId = step.getScnExecution().getScnHead().getProcessId();
+      Map<String, Object> processVariables = RunZeebeOperation.getVariablesStep(runScenario, step);
+
+      String processInstanceId = runScenario.getBpmnEngine()
+          .createProcessInstance(processId, step.getTaskId(), processVariables);
+
+      result.addProcessInstanceId(processId, processInstanceId);
     } catch (AutomatorException e) {
       result.addError(step, "Error at creation " + e.getMessage());
     }

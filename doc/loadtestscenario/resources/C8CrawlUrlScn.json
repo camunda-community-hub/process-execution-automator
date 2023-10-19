@@ -1,8 +1,8 @@
 {
   "name": "C8CrawlUrl",
   "processId": "CrawlUrl",
-  "type": "FLOW",
   "serverType": "Camunda_8",
+  "typeScenario" : "FLOW",
   "deployments": [
     {
       "serverType": "CAMUNDA_8",

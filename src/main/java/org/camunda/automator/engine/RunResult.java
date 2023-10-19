@@ -157,7 +157,9 @@ public class RunResult {
     this.listVerifications.add(verificationStatus);
   }
 
-
+public boolean hasErrors() {
+    return ! listErrors.isEmpty();
+}
 
   /* ******************************************************************** */
   /*                                                                      */
@@ -260,17 +262,18 @@ public class RunResult {
    */
   public String getSynthesis(boolean fullDetail) {
     StringBuilder synthesis = new StringBuilder();
-    synthesis.append(isSuccess() ? "SUCCESS " : "FAIL    ");
+    synthesis.append((isSuccess() && ! hasErrors()) ? "SUCCESS " : "FAIL    ");
     synthesis.append(runScenario.getScenario().getName());
     synthesis.append("(");
     synthesis.append(runScenario.getScenario().getProcessId());
     synthesis.append("): ");
 
-    synthesis.append(timeExecution);
+    StringBuilder append = synthesis.append(timeExecution);
     synthesis.append(" timeExecution(ms), ");
-    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbCreated);
+    RecordCreationPI recordCreationPI = recordCreationPIMap.get(runScenario.getScenario().getProcessId());
+    synthesis.append(recordCreationPI==null? 0 : recordCreationPI.nbCreated);
     synthesis.append(" PICreated, ");
-    synthesis.append(recordCreationPIMap.get(runScenario.getScenario().getProcessId()).nbFailed);
+    synthesis.append(recordCreationPI==null? 0 : recordCreationPI.nbFailed);
     synthesis.append(" PIFailed, ");
     synthesis.append(numberOfSteps);
     synthesis.append(" stepsExecuted, ");

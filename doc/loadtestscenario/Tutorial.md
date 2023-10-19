@@ -24,8 +24,6 @@ zeebe:
   env:
     - name: ZEEBE_BROKER_EXECUTION_METRICS_EXPORTER_ENABLED
       value: "true"
-    - name: ZEEBE_BROKER_PROCESSING_MAXCOMMANDSINBATCH
-      value: "5000"
   resources:
     requests:
       cpu: "1"
@@ -221,13 +219,13 @@ Specify in the application parameter what you want to run.
 
 `````yaml
 Automator.startup:
-scenarioPath: ./doc/loadtestsscenario/resources
+  scenarioPath: ./doc/loadtestsscenario/resources
 # List of scenarios separated by ;
-scenarioAtStartup: C8CrawlUrlScn.json;
+  scenarioAtStartup: C8CrawlUrlScn.json;
 # DEBUG, INFO, MONITORING, MAIN, NOTHING
-logLevel: MAIN
+  logLevel: MAIN
 # string composed with DEPLOYPROCESS, WARMINGUP, CREATION, SERVICETASK (ex: "CREATION", "DEPLOYPROCESS|CREATION|SERVICETASK")
-policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
+  policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
 `````
 
 
@@ -249,14 +247,15 @@ To be close to the final platform, let's run the process-automator not locally b
 
 The main point is to provide the scenario to the pod.
 
-1. Create a config map for the scenario
+Create a config map for the scenario
 ````
 cd doc/loadtestscenario/
 kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json 
 ````
 
+How this scenario is accessible in the pod? Check the `ku-c8CrawUrl.yaml` file
 
-2. Create a volume and mount the configMap in that volume
+1. Create a volume and mount the configMap in that volume
 ````yaml
       volumes:
         - name: scenario
@@ -264,7 +263,7 @@ kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json
             name: crawurlscnmap
 ````
 
-3. Mount the volume in the container
+2. Mount the volume in the container
 
 `````yaml
 volumeMounts:
@@ -274,16 +273,29 @@ volumeMounts:
     readOnly: true
 `````
 
-4. Reference the file in parameters
+3. Reference the file in parameters
 
 `````
          -Dautomator.startup.scenarioResourceAtStartup=file:/C8CrawlUrlScn.json
 `````
 
-Then, deploy and start the docker image with
+
+Then, deploy and start the docker image.
+
+All this configuration is available in the file `ku-c8CrawlUrl.yaml`, so run it with
 ````
 kubectl create -f ku-c8CrawlUrl.yaml
 ````
+
+Follow the advance
+````
+kubectl get pods
+````
+Identify the correct pods, and access the log
+````
+kubectl logs -f ku-processautomator-xxxxxx
+````
+
 
 
 ### Generate the Docker image again

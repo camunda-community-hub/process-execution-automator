@@ -27,8 +27,8 @@ public class BpmnEngineFactory {
     return bpmnEngineFactory;
   }
 
-  public BpmnEngine getEngineFromConfiguration(BpmnEngineList engineConfiguration,
-                                               BpmnEngineList.BpmnServerDefinition serverDefinition)
+  public BpmnEngine getEngineFromConfiguration(BpmnEngineList.BpmnServerDefinition serverDefinition,
+                                               boolean logDebug)
       throws AutomatorException {
     BpmnEngine engine = cacheEngine.get(serverDefinition.serverType);
     if (engine != null)
@@ -41,13 +41,13 @@ public class BpmnEngineFactory {
         return engine;
 
       engine = switch (serverDefinition.serverType) {
-        case CAMUNDA_7 -> new BpmnEngineCamunda7(engineConfiguration, serverDefinition);
+        case CAMUNDA_7 -> new BpmnEngineCamunda7(serverDefinition, logDebug);
 
-        case CAMUNDA_8 -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
+        case CAMUNDA_8 -> BpmnEngineCamunda8.getFromServerDefinition(serverDefinition, logDebug);
 
-        case CAMUNDA_8_SAAS -> new BpmnEngineCamunda8(engineConfiguration, serverDefinition);
+        case CAMUNDA_8_SAAS -> BpmnEngineCamunda8.getFromServerDefinition( serverDefinition, logDebug);
 
-        case DUMMY -> new BpmnEngineDummy(engineConfiguration);
+        case DUMMY -> new BpmnEngineDummy(serverDefinition);
 
       };
 
