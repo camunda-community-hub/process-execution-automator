@@ -13,7 +13,7 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
     <zeebe.version>8.3.0</zeebe.version>
-    <zeebe-client.version>8.3.0</zeebe-client.version>
+    <zeebe-client.version>8.3.3</zeebe-client.version>
 
     <camunda7.version>7.19.0</camunda7.version>
 
