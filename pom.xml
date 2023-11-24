@@ -222,7 +222,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>3.0.6</version>
+        <version>3.2.0</version>
         <configuration>
           <mainClass>org.camunda.automator.AutomatorApplication</mainClass>
           <classifier>exec</classifier>
