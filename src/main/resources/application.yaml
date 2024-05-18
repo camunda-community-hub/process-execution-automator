@@ -8,7 +8,7 @@ automator:
 
     scenarioPath: ./src/main/resources/loadtest
     # list of scenario separate by ;
-    scenarioAtStartup: file:/C8CrawlUrlScn.json;
+    scenarioFileAtStartup: D:\pym\CamundaDrive\Challenge\loadtest\bankscn.json;
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:

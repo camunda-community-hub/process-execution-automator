@@ -44,7 +44,8 @@ public class RunScenarioFlows {
     RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
     Map<String, RunResult.RecordCreationPI> recordCreationPIMap = new HashMap<>();
     if (runScenario.getScenario().getFlowControl() == null) {
-      runResult.addError(null, "Scenario does not declare a [FlowControl] section. This section is mandatory for a Flow Scenario");
+      runResult.addError(null,
+          "Scenario does not declare a [FlowControl] section. This section is mandatory for a Flow Scenario");
       return;
     }
 
@@ -93,14 +94,13 @@ public class RunScenarioFlows {
       case STARTEVENT -> {
         if (!runScenario.getRunParameters().isCreation()) {
           logger.info("According configuration, STARTEVENT[" + scenarioStep.getProcessId() + "] is fully disabled");
-        } else
-          for (int i = 0; i < scenarioStep.getNbWorkers(); i++) {
-            RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
-                serviceAccess.getTaskScheduler(scenarioStep.getProcessId() + "-" + i), scenarioStep, i, runScenario,
-                new RunResult(runScenario));
-            runStartEvent.execute();
-            listFlows.add(runStartEvent);
-          }
+        } else {
+          RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
+              serviceAccess.getTaskScheduler(scenarioStep.getProcessId()), scenarioStep, runScenario,
+              new RunResult(runScenario));
+          runStartEvent.execute();
+          listFlows.add(runStartEvent);
+        }
       }
 
       case SERVICETASK -> {
@@ -111,7 +111,7 @@ public class RunScenarioFlows {
               scenarioStep.getTopic(), runScenario.getRunParameters().getFilterServiceTask());
         } else {
           RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
-              serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
+              serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
           runServiceTask.execute();
           listFlows.add(runServiceTask);
         }

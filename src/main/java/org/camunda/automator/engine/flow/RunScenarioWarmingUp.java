@@ -12,7 +12,6 @@ import org.camunda.automator.definition.ScenarioWarmingUp;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
-import org.camunda.automator.engine.RunZeebeOperation;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,24 +75,23 @@ public class RunScenarioWarmingUp {
           .filter(t -> t.getType().equals(ScenarioStep.Step.USERTASK))
           .toList());
     }
-    logger.info("WarmingUp: Start ---- {} operations (useServiceTask {} useUserTask {}", listOperationWarmingUp.size(),
+    logger.info("WarmingUp: Start ---- {} operations (useServiceTask {} useUserTask {})", listOperationWarmingUp.size(),
         warmingUp.useServiceTasks, warmingUp.useUserTasks);
 
     for (ScenarioStep scenarioStep : listOperationWarmingUp) {
       switch (scenarioStep.getType()) {
       case STARTEVENT -> {
-        logger.info("WarmingUp: StartEvent Generate [{}] Frequency [{}] EndWarmingUp [{}]",
+        logger.info("WarmingUp: StartEvent GeneratePI[{}] Frequency[{}] EndWarmingUp[{}]",
             scenarioStep.getNumberOfExecutions(), scenarioStep.getFrequency(), scenarioStep.getEndWarmingUp());
-
         StartEventWarmingUpRunnable startEventWarmingUpRunnable = new StartEventWarmingUpRunnable(
-            serviceAccess.getTaskScheduler("warmingUp"), scenarioStep, runScenario, runResult);
+            serviceAccess.getTaskScheduler("warmingUp"), scenarioStep, 0, runScenario, runResult);
         listWarmingUpStartEvent.add(startEventWarmingUpRunnable);
-        startEventWarmingUpRunnable.run();
+        startEventWarmingUpRunnable.start();
       }
       case SERVICETASK -> {
         logger.info("WarmingUp: Start Service Task topic[{}]", scenarioStep.getTopic());
         RunScenarioFlowServiceTask task = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"),
-            scenarioStep, 0, runScenario, new RunResult(runScenario));
+            scenarioStep, runScenario, new RunResult(runScenario));
         task.execute();
         listWarmingUpServiceTask.add(task);
       }
@@ -165,11 +163,13 @@ public class RunScenarioWarmingUp {
 
   /**
    * StartEventRunnable
+   * Must be runnable because we will schedule it.
    */
   class StartEventWarmingUpRunnable implements Runnable {
 
     private final TaskScheduler scheduler;
     private final ScenarioStep scenarioStep;
+    private final int index;
     private final RunScenario runScenario;
     private final RunResult runResult;
     public boolean stop = false;
@@ -178,13 +178,16 @@ public class RunScenarioWarmingUp {
     public String warmingUpNotFinishedAnalysis = "Not verified yet";
     public int nbInstancesCreated = 0;
     private int nbOverloaded = 0;
+    private int executionBatchNumber = 1;
 
     public StartEventWarmingUpRunnable(TaskScheduler scheduler,
                                        ScenarioStep scenarioStep,
+                                       int index,
                                        RunScenario runScenario,
                                        RunResult runResult) {
       this.scheduler = scheduler;
       this.scenarioStep = scenarioStep;
+      this.index = index;
       this.runScenario = runScenario;
       this.runResult = runResult;
     }
@@ -193,11 +196,20 @@ public class RunScenarioWarmingUp {
       this.stop = stop;
     }
 
+    /**
+     * Start it in a new tread
+     */
+    public void start() {
+      scheduler.schedule(this, Instant.now());
+
+    }
+
     @Override
     public void run() {
       if (stop) {
         return;
       }
+      executionBatchNumber++;
       // check if the condition is reach
       CheckFunctionResult checkFunctionResult = null;
       if (scenarioStep.getEndWarmingUp() != null) {
@@ -213,47 +225,53 @@ public class RunScenarioWarmingUp {
       }
       // continue to generate PI
       long begin = System.currentTimeMillis();
-      List<String> listProcessInstance = new ArrayList<>();
-      try {
-        for (int i = 0; i < scenarioStep.getNumberOfExecutions(); i++) {
-          String processInstance = runScenario.getBpmnEngine()
-              .createProcessInstance(scenarioStep.getProcessId(), scenarioStep.getTaskId(), // activityId
-                  RunZeebeOperation.getVariablesStep(runScenario, scenarioStep));
-          nbInstancesCreated++;
-          if (listProcessInstance.size() < 21)
-            listProcessInstance.add(processInstance);
-        }
-      } catch (AutomatorException e) {
-        logger.error("Error at creation: [{}]", e.getMessage());
+      CreateProcessInstanceThread createProcessInstanceThread = new CreateProcessInstanceThread(executionBatchNumber,
+          scenarioStep, runScenario, runResult);
+
+      Duration durationWarmup;
+      if (scenarioStep.getFrequency() == null || scenarioStep.getFrequency().isEmpty()) {
+        durationWarmup = Duration.ofHours(1);
+      } else {
+        durationWarmup = Duration.parse(scenarioStep.getFrequency());
       }
+
+      createProcessInstanceThread.startProcessInstance(durationWarmup);
+
       long end = System.currentTimeMillis();
       // one step generation?
       if (scenarioStep.getFrequency() == null || scenarioStep.getFrequency().isEmpty()) {
         if (runScenario.getRunParameters().showLevelMonitoring()) {
-          logger.info("WarmingUp:StartEvent Create[{}] in {} " + " ms" + " (oneShoot) listPI(max20): ",
+          logger.info("WarmingUp:StartEvent Create[{}] in {} ms (oneShoot) listPI(max20): ",
               scenarioStep.getNumberOfExecutions(), (end - begin),
-              listProcessInstance.stream().collect(Collectors.joining(",")));
+              createProcessInstanceThread.getListProcessInstances().stream().collect(Collectors.joining(",")));
         }
         warmingUpFinishedAnalysis += "GoalOneShoot";
         warmingUpFinished = true;
         return;
       }
 
-      Duration duration = Duration.parse(scenarioStep.getFrequency());
-      duration = duration.minusMillis(end - begin);
-      if (duration.isNegative()) {
-        duration = Duration.ZERO;
+      if (createProcessInstanceThread.isOverload()) {
         nbOverloaded++;
       }
-
-      if (runScenario.getRunParameters().showLevelMonitoring()) {
-        logger.info(
-            "Warmingup Create[" + scenarioStep.getNumberOfExecutions() + "] in " + (end - begin) + " ms" + " Sleep ["
-                + duration.getSeconds() + " s]" + (checkFunctionResult == null ?
-                "" :
-                "EndWarmingUp:" + checkFunctionResult.analysis));
+      Duration durationToWait;
+      if (scenarioStep.getFrequency() == null || scenarioStep.getFrequency().isEmpty()) {
+        durationToWait = Duration.ZERO;
+      } else {
+        durationToWait = durationWarmup.minusMillis(end - begin);
+        if (durationToWait.isNegative()) {
+          durationToWait = Duration.ZERO;
+        }
       }
-      scheduler.schedule(this, Instant.now().plusMillis(duration.toMillis()));
+      if (runScenario.getRunParameters().showLevelMonitoring()) {
+        logger.info("Warmingup batch_#{} Create real/scenario[{}/{}] in {} ms Sleep[{} s] {}", // log
+            executionBatchNumber, // batch
+            createProcessInstanceThread.getTotalCreation(), scenarioStep.getNumberOfExecutions(),
+            // Number of creation request
+            (end - begin), // duration
+            durationToWait.getSeconds(),  // Sleep for the frequency
+            (checkFunctionResult == null ? "" : "EndWarmingUp:" + checkFunctionResult.analysis));
+      }
+      scheduler.schedule(this, Instant.now().plusMillis(durationToWait.toMillis()));
     }
 
     /**

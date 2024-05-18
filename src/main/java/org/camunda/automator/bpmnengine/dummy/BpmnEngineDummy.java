@@ -17,11 +17,9 @@ import java.util.Map;
 
 public class BpmnEngineDummy implements BpmnEngine {
 
-  private final BpmnEngineList.BpmnServerDefinition serverDefinition;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineDummy.class);
 
   public BpmnEngineDummy(BpmnEngineList.BpmnServerDefinition serverDefinition) {
-    this.serverDefinition = serverDefinition;
   }
 
   @Override
@@ -30,9 +28,11 @@ public class BpmnEngineDummy implements BpmnEngine {
   }
 
   public void connection() throws AutomatorException {
+    // nothing to do here
   }
 
   public void disconnection() throws AutomatorException {
+    // nothing to do here
   }
 
   /**
@@ -78,6 +78,7 @@ public class BpmnEngineDummy implements BpmnEngine {
   @Override
   public RegisteredTask registerServiceTask(String workerId,
                                             String topic,
+                                            boolean streamEnable,
                                             Duration lockTime,
                                             Object jobHandler,
                                             FixedBackoffSupplier backoffSupplier) {

@@ -33,13 +33,18 @@ public class DataOperationStringToDate extends DataOperation {
   }
 
   @Override
+  public String getName() {
+    return "StringToDate";
+  }
+
+  @Override
   public String getHelp() {
     return "stringtodate(" + FCT_LOCALDATETIME + "|" + FCT_DATETIME + "|" + FCT_DATE + "|" + FCT_ZONEDATETIME + "|"
         + FCT_LOCALDATE + ", dateSt)";
   }
 
   @Override
-  public Object execute(String value, RunScenario runScenario) throws AutomatorException {
+  public Object execute(String value, RunScenario runScenario, int index) throws AutomatorException {
     List<String> args = extractArgument(value, true);
 
     if (args.size() != 2) {

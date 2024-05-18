@@ -24,14 +24,13 @@ public class RunScenarioFlowUserTask extends RunScenarioFlowBasic {
                                  int index,
                                  RunScenario runScenario,
                                  RunResult runResult) {
-    super(scenarioStep, index, runScenario, runResult);
+    super(scenarioStep, runScenario, runResult);
     this.scheduler = scheduler;
 
   }
 
   @Override
   public void execute() {
-
     RunScenarioFlowUserTask.UserTaskRunnable startEventRunnable = new RunScenarioFlowUserTask.UserTaskRunnable(
         scheduler, getScenarioStep(), runResult, getRunScenario(), this);
     scheduler.schedule(startEventRunnable, Instant.now());
@@ -119,7 +118,7 @@ public class RunScenarioFlowUserTask extends RunScenarioFlowBasic {
             for (String taskInstanceId : listActivities) {
               getRunScenario().getBpmnEngine()
                   .executeUserTask(taskInstanceId, getScenarioStep().getUserId(),
-                      RunZeebeOperation.getVariablesStep(getRunScenario(), getScenarioStep()));
+                      RunZeebeOperation.getVariablesStep(getRunScenario(), getScenarioStep(), 0));
             }
           }
         } catch (AutomatorException e) {

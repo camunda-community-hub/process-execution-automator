@@ -79,15 +79,20 @@ public class AutomatorStartup {
     if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
       logger.info("No scenario [File] from variable {} given", configurationStartup.getScenarioFileAtStartupName());
     } else {
-      logger.info("Detect {} scenario [File] from variable {}", configurationStartup.getScenarioFileAtStartup().size(),
-          configurationStartup.getScenarioFileAtStartupName());
+      logger.info("Detect {} scenario [File] from variable [{}] ScenarioPath[{}]",
+          configurationStartup.getScenarioFileAtStartup().size(), configurationStartup.getScenarioFileAtStartupName(),
+          configurationStartup.scenarioPath);
 
       for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
         logger.info("Register scenario [File] [{}]", scenarioFileName);
 
         File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
         if (!scenarioFile.exists()) {
-          logger.error("ScenarioFile: Can't find [{}/{}]", configurationStartup.scenarioPath, scenarioFileName);
+          scenarioFile = new File(scenarioFileName);
+        }
+        if (!scenarioFile.exists()) {
+          logger.error("ScenarioFile: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
+              scenarioFileName, scenarioFileName);
           continue;
         }
         scenarioList.add(scenarioFile);
@@ -98,12 +103,12 @@ public class AutomatorStartup {
       logger.info("No scenario [Resource] from variable {} given",
           configurationStartup.getScenarioResourceAtStartupName());
     } else {
-      logger.info("Detect {} scenario [Resource] from variable {}",
+      logger.info("Detect {} scenario [Resource] from variable [{}]",
           configurationStartup.getScenarioResourceAtStartup().size(),
           configurationStartup.getScenarioResourceAtStartupName());
 
       for (Resource resource : configurationStartup.getScenarioResourceAtStartup()) {
-        if (resource!=null) {
+        if (resource != null) {
           logger.info("Load scenario [Resource] from [{}]", resource.getDescription());
           scenarioList.add(resource);
         }
@@ -156,10 +161,9 @@ public class AutomatorStartup {
 
       logger.info(
           "AutomatorStartup parameters serverName[{}] warmingUp[{}] creation:[{}] serviceTask:[{}] userTask:[{}] ScenarioPath[{}] logLevel[{}] waitWarmingUpServer[{} s]",
-          runParameters.getServerName(),
-          runParameters.isWarmingUp(), runParameters.isCreation(), runParameters.isServiceTask(),
-          runParameters.isUserTask(), configurationStartup.scenarioPath, configurationStartup.logLevel,
-          configurationStartup.getWarmingUpServer().toMillis() / 1000);
+          runParameters.getServerName(), runParameters.isWarmingUp(), runParameters.isCreation(),
+          runParameters.isServiceTask(), runParameters.isUserTask(), configurationStartup.scenarioPath,
+          configurationStartup.logLevel, configurationStartup.getWarmingUpServer().toMillis() / 1000);
 
       try {
         String currentPath = new java.io.File(".").getCanonicalPath();
@@ -194,26 +198,25 @@ public class AutomatorStartup {
         }
         if (scenario == null)
           continue;
-        logger.info("Start scenario [{}]", scenario.getName());
+        logger.info("Start scenario [{}] on (1)ScenarioServerName[{}] (2)ConfigurationServerName[{}]",
+            scenario.getName(), scenario.getServerName(), runParameters.getServerName());
 
         // BpmnEngine: find the correct one referenced in the scenario
         int countEngineIsNotReady = 0;
         BpmnEngine bpmnEngine = null;
         boolean pleaseTryAgain;
+        String message = "";
         do {
           pleaseTryAgain = false;
           countEngineIsNotReady++;
-          String message = "";
           try {
-            if (runParameters.showLevelDashboard()) {
-              logger.info("Connect to Bpmn Engine for scenario [{}]", scenario.getName());
-            }
             if (scenario.getServerName() != null && !scenario.getServerName().isEmpty()) {
+              message += "ScenarioServerName[" + scenario.getServerName() + "];";
               bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
-
             } else {
               if (runParameters.getServerName() == null)
                 throw new AutomatorException("No Server define in configuration");
+              message += "ConfigurationServerName[" + runParameters.getServerName() + "];";
               BpmnEngineList.BpmnServerDefinition serverDefinition = engineConfiguration.getByServerName(
                   runParameters.getServerName());
               if (serverDefinition == null)
@@ -222,12 +225,16 @@ public class AutomatorStartup {
 
               bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
             }
+            if (runParameters.showLevelDashboard()) {
+              logger.info("Scenario [{}] Connect to BpmnEngine {}", scenario.getName(), message);
+            }
+
             if (!bpmnEngine.isReady()) {
               bpmnEngine.connection();
             }
           } catch (AutomatorException e) {
             pleaseTryAgain = true;
-            message = e.getMessage();
+            message += "Exception " + e.getMessage();
           }
           if (pleaseTryAgain && countEngineIsNotReady < 10) {
             logger.info(
@@ -242,7 +249,8 @@ public class AutomatorStartup {
         } while (pleaseTryAgain && countEngineIsNotReady < 10);
 
         if (bpmnEngine == null) {
-          logger.error("Scenario [{}] file[{}] No BPM ENGINE running.", scenario.getName(), scenario.getName());
+          logger.error("Scenario [{}] file[{}] Server {} No BPM ENGINE running.", scenario.getName(),
+              scenario.getName(), message);
           continue;
         }
 

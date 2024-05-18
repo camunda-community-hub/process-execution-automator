@@ -17,33 +17,20 @@ public abstract class RunScenarioFlowBasic {
   protected final RunResult runResult;
   private final ScenarioStep scenarioStep;
   private final RunScenario runScenario;
-  private final int index;
 
-  RunScenarioFlowBasic(ScenarioStep scenarioStep, int index, RunScenario runScenario, RunResult runResult) {
-    this.index = index;
+  RunScenarioFlowBasic(ScenarioStep scenarioStep, RunScenario runScenario, RunResult runResult) {
     this.scenarioStep = scenarioStep;
     this.runScenario = runScenario;
     this.runResult = runResult;
   }
 
   /**
-   * Return the index of this basicFlow
+   * Return an uniq ID of the step
    *
-   * @return index
+   * @return the ID of the step
    */
-  public int getIndex() {
-    return index;
-  }
-
   public String getId() {
-    String id = scenarioStep.getType() + " ";
-    id += switch (scenarioStep.getType()) {
-      case STARTEVENT -> scenarioStep.getProcessId() + "-" + scenarioStep.getTaskId() + "-" + Thread.currentThread()
-          .getName();
-      case SERVICETASK -> scenarioStep.getTopic() + "-" + Thread.currentThread().getName();
-      default -> "";
-    };
-    return id + "#" + getIndex();
+    return scenarioStep.getId();
   }
 
   public RunScenario getRunScenario() {

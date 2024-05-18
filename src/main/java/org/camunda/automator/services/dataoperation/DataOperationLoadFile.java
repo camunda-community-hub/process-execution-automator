@@ -18,15 +18,18 @@ public class DataOperationLoadFile extends DataOperation {
   }
 
   @Override
+  public String getName() {
+    return "LoadFile";
+  }
+
+  @Override
   public String getHelp() {
     return "loadfile(<CompletePathToTheFile>)";
   }
 
   @Override
-  public Object execute(String value, RunScenario runScenario) throws AutomatorException {
+  public Object execute(String value, RunScenario runScenario, int index) throws AutomatorException {
     File fileLoad = loadFile(value, runScenario);
-    if (fileLoad == null)
-      return null;
 
     FileValue typedFileValue = Variables.fileValue(fileLoad.getName()).file(fileLoad)
         // .mimeType("text/plain")

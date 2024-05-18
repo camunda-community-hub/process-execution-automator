@@ -26,6 +26,7 @@ public class ConfigurationStartup {
   public boolean deepTracking;
   @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}")
   public String policyExecution;
+
   /**
    * it may be necessary to wait the other component to warm up
    */

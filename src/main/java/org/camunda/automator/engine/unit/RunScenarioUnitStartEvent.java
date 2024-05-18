@@ -32,8 +32,9 @@ public class RunScenarioUnitStartEvent {
       if (runScenario.getRunParameters().showLevelMonitoring()) {
         logger.info("StartEvent EventId[{}]", step.getTaskId());
       }
-        String processId = step.getScnExecution().getScnHead().getProcessId();
-      Map<String, Object> processVariables = RunZeebeOperation.getVariablesStep(runScenario, step);
+      String processId = step.getScnExecution().getScnHead().getProcessId();
+      // There is no multithread: index=1
+      Map<String, Object> processVariables = RunZeebeOperation.getVariablesStep(runScenario, step, 1);
 
       String processInstanceId = runScenario.getBpmnEngine()
           .createProcessInstance(processId, step.getTaskId(), processVariables);

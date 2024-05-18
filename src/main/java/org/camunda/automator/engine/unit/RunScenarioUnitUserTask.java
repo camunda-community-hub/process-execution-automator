@@ -24,11 +24,11 @@ public class RunScenarioUnitUserTask {
   /**
    * Execute User task
    *
-   * @param result result to complete and return
    * @param step   step to execute
+   * @param result result to complete and return
    * @return result completed
    */
-  public RunResult executeUserTask(RunResult result, ScenarioStep step) {
+  public RunResult executeUserTask(ScenarioStep step, RunResult result) {
 
     if (runScenario.getRunParameters().showLevelMonitoring()) {
       logger.info("UserTask TaskId[{}]", step.getTaskId());
@@ -73,9 +73,10 @@ public class RunScenarioUnitUserTask {
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
+        // unit test: there is no multi thread executing this part, index=1
         runScenario.getBpmnEngine()
             .executeUserTask(listActivities.get(0), step.getUserId(),
-                RunZeebeOperation.getVariablesStep(runScenario, step));
+                RunZeebeOperation.getVariablesStep(runScenario, step, 1));
       } catch (AutomatorException e) {
         result.addError(step, e.getMessage());
         return result;

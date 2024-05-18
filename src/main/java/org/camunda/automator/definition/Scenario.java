@@ -8,7 +8,6 @@ package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,10 @@ public class Scenario {
 
   private final List<ScenarioDeployment> deployments = new ArrayList<>();
   private final List<ScenarioStep> flows = new ArrayList<>();
-
-  public enum TYPESCENARIO { FLOW, UNIT};
+  /**
+   * Type UNIT
+   */
+  private final List<ScenarioExecution> executions = new ArrayList<>();
 
   public TYPESCENARIO typeScenario;
 
@@ -41,24 +42,15 @@ public class Scenario {
    */
   private ScenarioWarmingUp warmingUp;
   private ScenarioFlowControl flowControl;
-
-  /**
-   * Type UNIT
-   */
-  private final List<ScenarioExecution> executions = new ArrayList<>();
-
   private String name;
   private String version;
   private String processName;
   private String processId;
-
   /**
    * Server to run the scenario (optional, will be overide by the configuration)
    */
   private String serverName;
-
   private String serverType;
-
   /**
    * This value is fulfill only if the scenario was read from a file
    */
@@ -69,13 +61,14 @@ public class Scenario {
     builder.setPrettyPrinting();
 
     Gson gson = builder.create();
-    Scenario scnHead = gson.fromJson(jsonContent, Scenario.class);
-    if (scnHead == null) {
+    Scenario scenario = gson.fromJson(jsonContent, Scenario.class);
+    if (scenario == null) {
       logger.error("Scenario: Can't build scenario from content [{}]", jsonContent);
       return null;
     }
-    scnHead.afterUnSerialize();
-    return scnHead;
+    scenario.afterUnSerialize();
+    scenario.initialize();
+    return scenario;
   }
 
   public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
@@ -83,6 +76,7 @@ public class Scenario {
 
       Scenario scenario = createFromInputStream(new FileInputStream(scenarioFile), scenarioFile.getAbsolutePath());
       scenario.scenarioFile = scenarioFile.getAbsolutePath();
+      scenario.initialize();
       return scenario;
 
     } catch (FileNotFoundException e) {
@@ -110,14 +104,23 @@ public class Scenario {
       Scenario scnHead = createFromJson(jsonContent.toString());
       if (scnHead == null) {
         throw new AutomatorException("Scenario: can't load from JSON [" + jsonContent + "] ");
-
       }
+      scnHead.initialize();
       return scnHead;
     } catch (IOException e) {
       logger.error("CreateScenarioFromInputString: origin[{}] error {} : {} ", origin, e.getMessage(), e.toString());
       throw new AutomatorException("Can't load content from [" + origin + "] " + e.getMessage());
     }
 
+  }
+
+  /**
+   * Initialize the scenario and complete it
+   */
+  private void initialize() {
+    for (int i = 0; i < flows.size(); i++) {
+      flows.get(i).setStepNumber(i);
+    }
   }
 
   /**
@@ -185,13 +188,11 @@ public class Scenario {
     }
   }
 
-
   public String getServerName() {
     if (serverName == null || serverName.isEmpty())
       return null;
     return serverName;
   }
-
 
   private void afterUnSerialize() {
     // Attention, now we have to manually set the tree relation
@@ -199,5 +200,7 @@ public class Scenario {
       scnExecution.afterUnSerialize(this);
     }
   }
+
+  public enum TYPESCENARIO {FLOW, UNIT}
 
 }
