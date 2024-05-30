@@ -30,6 +30,11 @@ public class RunScenarioFlowUserTask extends RunScenarioFlowBasic {
   }
 
   @Override
+  public String getTopic() {
+    return getScenarioStep().getTaskId();
+  }
+
+  @Override
   public void execute() {
     RunScenarioFlowUserTask.UserTaskRunnable startEventRunnable = new RunScenarioFlowUserTask.UserTaskRunnable(
         scheduler, getScenarioStep(), runResult, getRunScenario(), this);

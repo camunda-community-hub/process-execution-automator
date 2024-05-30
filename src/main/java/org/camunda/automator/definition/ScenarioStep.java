@@ -262,8 +262,8 @@ public class ScenarioStep {
    */
   public String getId() {
     return getType() + " " + switch (getType()) {
-      case STARTEVENT -> getProcessId() + "-" + getTaskId() + "-" + Thread.currentThread().getName();
-      case SERVICETASK -> getTopic() + "-" + Thread.currentThread().getName();
+      case STARTEVENT -> getProcessId() + "(" + getTaskId() + ")-" + Thread.currentThread().getId();
+      case SERVICETASK -> getTopic() + "-" + Thread.currentThread().getId();
       default -> "";
     };
   }

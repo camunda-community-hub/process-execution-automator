@@ -24,11 +24,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RunScenarioWarmingUp {
   private final ServiceAccess serviceAccess;
   private final RunScenario runScenario;
   Logger logger = LoggerFactory.getLogger(RunScenarioWarmingUp.class);
+
+  List<RunScenarioFlowServiceTask> listWarmingUpServiceTask = new ArrayList<>();
+  List<RunScenarioFlowUserTask> listWarmingUpUserTask = new ArrayList<>();
 
   RunScenarioWarmingUp(ServiceAccess serviceAccess, RunScenario runScenario) {
     this.serviceAccess = serviceAccess;
@@ -57,8 +61,8 @@ public class RunScenarioWarmingUp {
     long endWarmingUp =
         beginTime + (warmingUp.getDuration().toMillis() > 0 ? warmingUp.getDuration().toMillis() : 1000 * 60 * 10);
 
-    List<RunScenarioFlowServiceTask> listWarmingUpServiceTask = new ArrayList<>();
-    List<RunScenarioFlowUserTask> listWarmingUpUserTask = new ArrayList<>();
+    listWarmingUpServiceTask.clear();
+    listWarmingUpUserTask.clear();
     List<StartEventWarmingUpRunnable> listWarmingUpStartEvent = new ArrayList<>();
     List<ScenarioStep> listOperationWarmingUp = warmingUp.getOperations();
     if (warmingUp.useServiceTasks) {
@@ -149,18 +153,22 @@ public class RunScenarioWarmingUp {
       startRunnable.pleaseStop(true);
     }
 
-    // stop all tasks now
-    for (RunScenarioFlowServiceTask task : listWarmingUpServiceTask) {
-      task.pleaseStop();
-    }
-    for (RunScenarioFlowUserTask userTask : listWarmingUpUserTask) {
-      userTask.pleaseStop();
-    }
     // now warmup is finished
     logger.info("WarmingUp: Complete ----");
-
   }
 
+  public List<RunScenarioFlowServiceTask> getListWarmingUpServiceTask() {
+    return listWarmingUpServiceTask;
+  }
+
+  public List<RunScenarioFlowUserTask> getListWarmingUpUserTask() {
+    return listWarmingUpUserTask;
+  }
+
+  public List<RunScenarioFlowBasic> getListWarmingUpTask() {
+    return Stream.concat(listWarmingUpServiceTask.stream(), listWarmingUpUserTask.stream())
+        .collect(Collectors.toList());
+  }
   /**
    * StartEventRunnable
    * Must be runnable because we will schedule it.
@@ -235,7 +243,7 @@ public class RunScenarioWarmingUp {
         durationWarmup = Duration.parse(scenarioStep.getFrequency());
       }
 
-      createProcessInstanceThread.startProcessInstance(durationWarmup);
+      createProcessInstanceThread.createProcessInstances(durationWarmup);
 
       long end = System.currentTimeMillis();
       // one step generation?

@@ -33,6 +33,13 @@ public abstract class RunScenarioFlowBasic {
     return scenarioStep.getId();
   }
 
+  /**
+   * the task return the topic to address:
+   * - topic for a service task
+   * - taskId for a user task
+   */
+  public abstract String getTopic();
+
   public RunScenario getRunScenario() {
     return runScenario;
   }

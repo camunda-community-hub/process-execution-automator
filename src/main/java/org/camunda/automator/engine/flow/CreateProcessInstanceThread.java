@@ -46,7 +46,7 @@ public class CreateProcessInstanceThread {
    *
    * @param durationToCreateProcessInstances maximum duration to produce all PI
    */
-  public void startProcessInstance(Duration durationToCreateProcessInstances) {
+  public void createProcessInstances(Duration durationToCreateProcessInstances) {
 
     int numberOfThreads = scenarioStep.getNumberOfWorkers() == 0 ? 1 : scenarioStep.getNumberOfWorkers();
 
@@ -95,7 +95,8 @@ public class CreateProcessInstanceThread {
   }
 
   /**
-   * This subclass start a range of process instances
+   * This subclass start numberOfProcessInstanceToStart of process instances.
+   * Multiple threads doing the same operation are running at the same time.
    */
   private class StartProcess implements Runnable {
     private final ScenarioStep scenarioStep;
@@ -138,6 +139,10 @@ public class CreateProcessInstanceThread {
       this.scenarioStep = scenarioStep;
     }
 
+    /**
+     * This thread will create numberOfProcessInstanceToStart, but it monitor the time, and if the time is over
+     * the Duration, it stop
+     */
     @Override
     public void run() {
       boolean alreadyLoggedError = false;
@@ -174,10 +179,15 @@ public class CreateProcessInstanceThread {
         long currentTimeMillis = System.currentTimeMillis();
         Duration durationCurrent = durationToCreateProcessInstances.minusMillis(currentTimeMillis - begin);
         if (durationCurrent.isNegative()) {
-          // take too long to create the required process instance, so stop now.
-          logger.info("batch_#" + executionBatchNumber + "-" + scenarioStep.getId()
-                  + " Take too long to created ProcessInstances: created {} when expected {} in {} ms", nbCreation,
-              scenarioStep.getNumberOfExecutions(), currentTimeMillis - begin);
+          // log only at the debug mode (thread per thread), in monitoring log only at batch level
+          if (runScenario.getRunParameters().showLevelDebug()) {
+            // take too long to create the required process instance, so stop now.
+            logger.info("batch_#{} {} Over the duration. Created {} when expected {} in {} ms",
+                executionBatchNumber,
+                scenarioStep.getId(),
+                nbCreation,
+                numberOfProcessInstanceToStart, currentTimeMillis - begin);
+          }
           isOverload = true;
           break;
         }

@@ -35,6 +35,11 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     super(scenarioStep, runScenario, runResult);
     this.scheduler = scheduler;
   }
+  @Override
+  public String getTopic() {
+    return getScenarioStep().getTaskId();
+  }
+
 
   @Override
   public void execute() {
@@ -84,7 +89,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
     private int nbOverloaded = 0;
     private int totalCreation = 0;
-    private int totalCreationGoal = 0;
     private int totalFailed = 0;
 
     public StartEventRunnable(TaskScheduler scheduler,
@@ -109,13 +113,14 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
 
     @Override
     public void run() {
-      executionBatchNumber++;
       if (flowStartEvent.stopping) {
         if (runScenario.getRunParameters().showLevelMonitoring()) {
           logger.info("Stop now [" + getId() + "]");
           if (nbOverloaded > 0)
             runResult.addError(scenarioStep,
-                "Overloaded " + nbOverloaded + " TotalCreation " + totalCreation + " Goal " + totalCreationGoal
+                "Overloaded " + nbOverloaded
+                    + " TotalCreation: " + totalCreation // total creation we see
+                    + " TheoricNumberExpectred: " + (scenarioStep.getNumberOfExecutions()*executionBatchNumber) // expected
                     + " Process[" + scenarioStep.getProcessId() + "] Can't create PI at the required frequency");
           if (totalFailed > 0)
             runResult.addError(scenarioStep,
@@ -126,19 +131,23 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
         flowStartEvent.isRunning = false;
         return;
       }
+      executionBatchNumber++;
+
       Duration durationToCreateProcessInstances = Duration.parse(scenarioStep.getFrequency());
 
       long begin = System.currentTimeMillis();
       boolean isOverloadSection = false;
 
-      totalCreationGoal += scenarioStep.getNumberOfExecutions();
-
-      // generate process instance
+      // generate process instance in multiple threads
       CreateProcessInstanceThread createProcessInstanceThread = new CreateProcessInstanceThread(executionBatchNumber,
           scenarioStep, runScenario, runResult);
-      createProcessInstanceThread.startProcessInstance(durationToCreateProcessInstances);
+
+      // creates all process instances, return when finish OR when duration is reach
+      createProcessInstanceThread.createProcessInstances(durationToCreateProcessInstances);
+
+      // Now collect data for the running time
       totalCreation += createProcessInstanceThread.getTotalCreation();
-      totalFailed += createProcessInstanceThread.getTotalCreation();
+      totalFailed += createProcessInstanceThread.getTotalFailed();
       List<String> listProcessInstances = createProcessInstanceThread.getListProcessInstances();
       long end = System.currentTimeMillis();
 
@@ -161,9 +170,9 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
             + "] Create (real/scenario)[" + createProcessInstanceThread.getTotalCreation() + "/"
             + scenarioStep.getNumberOfExecutions() // creation/target
             + (isOverloadSection ? "OVERLOAD" : "") // Overload marker
-            + "] Failed[" + createProcessInstanceThread.getTotalCreation() // failed
+            + "] Failed[" + createProcessInstanceThread.getTotalFailed() // failed
             + "] in " + (end - begin) + " ms " // time of operation
-            + " Sleep[" + durationToWait.getSeconds() + " s] listPI(max20): " + listProcessInstances.stream()
+            + " Sleep[" + durationToWait.getSeconds() + " s] listPI(first20): " + listProcessInstances.stream()
             .collect(Collectors.joining(",")));
       }
 

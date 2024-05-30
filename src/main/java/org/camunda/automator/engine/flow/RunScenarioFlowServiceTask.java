@@ -54,6 +54,10 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
   }
 
   @Override
+  public String getTopic() {
+    return getScenarioStep().getTopic();
+  }
+  @Override
   public void execute() {
     registerWorker();
   }

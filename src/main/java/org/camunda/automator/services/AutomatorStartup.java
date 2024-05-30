@@ -234,7 +234,7 @@ public class AutomatorStartup {
             }
           } catch (AutomatorException e) {
             pleaseTryAgain = true;
-            message += "Exception " + e.getMessage();
+            message += "EXCEPT " + e.getMessage();
           }
           if (pleaseTryAgain && countEngineIsNotReady < 10) {
             logger.info(

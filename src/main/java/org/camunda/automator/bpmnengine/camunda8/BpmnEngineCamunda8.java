@@ -193,6 +193,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     // connection is critical, so let build the analysis
     StringBuilder analysis = new StringBuilder();
+
+
     boolean isOk = true;
 
     isOk = stillOk(serverDefinition.name, "ZeebeConnection", analysis, false, isOk);
@@ -232,7 +234,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       } catch (Exception e) {
         zeebeClient = null;
         throw new AutomatorException(
-            "Bad credential [" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+            "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
       }
 
       saOperate = new io.camunda.operate.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
@@ -260,6 +262,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       throw new AutomatorException("Invalid configuration");
 
     // ---------------- connection
+    boolean zeebeOk = false;
+    boolean operateOk = false;
+    boolean tasklistOk = false;
     try {
       isOk = stillOk(serverDefinition.workerExecutionThreads, "ExecutionThread", analysis, false, isOk);
 
@@ -292,6 +297,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
       // Actually, if an error arrived, an exception is thrown
       analysis.append(join != null ? "successfully," : "error");
+      zeebeOk = join != null;
 
       isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
 
@@ -300,6 +306,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
           .authentication(saOperate)
           .build();
       analysis.append("successfully,");
+      operateOk = true;
 
       // TaskList is not mandatory
       if (serverDefinition.taskListUrl != null && !serverDefinition.taskListUrl.isEmpty()) {
@@ -310,14 +317,18 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             .authentication(saTaskList)
             .build();
         analysis.append("successfully,");
+        tasklistOk = true;
       }
       //get tasks assigned to demo
-      logger.info(analysis.toString());
+      logger.info("Zeebe: OK, Operate: OK, TaskList:OK " + analysis.toString());
 
     } catch (Exception e) {
       zeebeClient = null;
-      throw new AutomatorException(
-          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+      throw new AutomatorException("NoConnection[" + serverDefinition.name // server name
+          + "] Zeebe:" + (zeebeOk ? "OK" : "FAIL") // zeebe status
+          + ", Operate:" + (operateOk ? "OK" : "FAIL") // Operate status
+          + ", Tasklist:" + (tasklistOk ? "OK" : "FAIL") // taskList status
+          + ", Analysis:" + analysis + " fail : " + e.getMessage());
     }
   }
 
