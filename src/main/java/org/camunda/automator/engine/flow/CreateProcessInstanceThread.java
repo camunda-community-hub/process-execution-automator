@@ -77,6 +77,9 @@ public class CreateProcessInstanceThread {
     return listStartProcess.stream().flatMap(t -> t.listProcessInstances.stream()).collect(Collectors.toList());
   }
 
+  public int getNumberOfRunningThreads() {
+    return (int) listStartProcess.stream().filter(t->t.isRunning()).count();
+  }
   public int getTotalCreation() {
     return listStartProcess.stream().mapToInt(t -> t.nbCreation).sum();
   }
@@ -112,6 +115,7 @@ public class CreateProcessInstanceThread {
      * the batch number
      */
     boolean isOverload = false;
+    boolean isRunning = false;
     Duration durationToCreateProcessInstances;
 
     /**
@@ -145,6 +149,7 @@ public class CreateProcessInstanceThread {
      */
     @Override
     public void run() {
+      isRunning=true;
       boolean alreadyLoggedError = false;
       isOverload = false;
       long begin = System.currentTimeMillis();
@@ -192,6 +197,10 @@ public class CreateProcessInstanceThread {
           break;
         }
       }
+      isRunning=false;
+    }
+    public boolean isRunning() {
+      return isRunning;
     }
   }
 }

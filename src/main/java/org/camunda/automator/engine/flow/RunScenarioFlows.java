@@ -83,8 +83,6 @@ public class RunScenarioFlows {
     logger.info("ScenarioFlow: ------ TheEnd");
   }
 
-
-
   /**
    * Start execution
    *
@@ -120,7 +118,8 @@ public class RunScenarioFlows {
             runServiceTaskOp.get().pleaseStop();
         } else {
           if (runServiceTaskOp.isEmpty()) {
-            RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
+            RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
+                serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
             runServiceTask.execute();
             listFlows.add(runServiceTask);
           } else {
@@ -138,8 +137,8 @@ public class RunScenarioFlows {
             runUserTaskOpt.get().pleaseStop();
         } else {
           if (runUserTaskOpt.isEmpty()) {
-            RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0,
-                runScenario, new RunResult(runScenario));
+            RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(
+                serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
             runUserTask.execute();
             listFlows.add(runUserTask);
           } else {
@@ -152,10 +151,10 @@ public class RunScenarioFlows {
     return listFlows;
   }
 
-
   private Optional<RunScenarioFlowBasic> getFromList(List<RunScenarioFlowBasic> listTasks, String topic) {
-    return listTasks.stream().filter(t->t.getTopic().equals(topic)).findFirst();
+    return listTasks.stream().filter(t -> t.getTopic().equals(topic)).findFirst();
   }
+
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time
    *
@@ -260,9 +259,9 @@ public class RunScenarioFlows {
   private void checkObjectives(RunObjectives runObjectives, Date startTestDate, Date endTestDate, RunResult runResult) {
 
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
-    logger.info("CollectingData...");
+    logger.info("CollectingData... (sleep 30s)");
     try {
-      Thread.sleep(1000 * 60);
+      Thread.sleep(1000 * 30);
     } catch (InterruptedException e) {
       // do nothing
     }
@@ -270,15 +269,17 @@ public class RunScenarioFlows {
     List<RunObjectives.ObjectiveResult> listCheckResult = runObjectives.check();
     for (RunObjectives.ObjectiveResult checkResult : listCheckResult) {
       if (checkResult.success) {
-        logger.info("Objective: SUCCESS type {} label [{}} processId[{}] reach {} (objective is {} ) analysis [{}}",
+        logger.info("Objective: SUCCESS type[{}] label[{}} processId[{}] reach/objective {}/{} analysis [{}}",
             checkResult.objective.type, checkResult.objective.label, checkResult.objective.processId,
             checkResult.recordedSuccessValue, checkResult.objective.value, checkResult.analysis);
-        // do not need to log the error, already done
-
       } else {
+        // do not need to log the error, already done
         runResult.addError(null,
-            "Objective: FAIL " + checkResult.objective.getInformation() + " type " + checkResult.objective.type
-                + " processId [" + checkResult.objective.processId + "] " + checkResult.analysis);
+            "Objective: FAIL " + checkResult.objective.getInformation() + " type[" + checkResult.objective.type
+                + "] processId[" + checkResult.objective.processId // ProcessID
+                + "] reach/objective " + checkResult.recordedSuccessValue // Reach
+                + "/" + checkResult.objective.value // Objective
+                + " " + checkResult.analysis);
       }
     }
   }
@@ -304,7 +305,7 @@ public class RunScenarioFlows {
       long previousValue = previousValueMap.getOrDefault(flowBasic.getId(), 0L);
 
       ScenarioStep scenarioStep = flowBasic.getScenarioStep();
-      String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " " + " currentNbThreads["
+      String key = "[" + flowBasic.getId() + "] " + flowBasic.getStatus().toString() + " currentNbThreads["
           + currentNumberOfThreads + "] ";
       key += switch (scenarioStep.getType()) {
         case STARTEVENT -> "PI[" + runResultFlow.getRecordCreationPI() + "] delta[" + (

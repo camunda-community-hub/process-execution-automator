@@ -360,6 +360,9 @@ public class RunResult {
       nbCreated += record.nbCreated;
       nbFailed += record.nbFailed;
     }
+    public String toString() {
+      return "Created["+nbCreated+"] Failed["+nbFailed+"]";
+    }
   }
 
   public class VerificationStatus {

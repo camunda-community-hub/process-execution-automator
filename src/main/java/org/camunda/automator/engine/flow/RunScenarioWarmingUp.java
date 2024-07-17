@@ -65,22 +65,28 @@ public class RunScenarioWarmingUp {
     listWarmingUpUserTask.clear();
     List<StartEventWarmingUpRunnable> listWarmingUpStartEvent = new ArrayList<>();
     List<ScenarioStep> listOperationWarmingUp = warmingUp.getOperations();
-    if (warmingUp.useServiceTasks) {
+    if (warmingUp.useServiceTasks && runScenario.getRunParameters().isServiceTask()) {
       listOperationWarmingUp.addAll(runScenario.getScenario()
           .getFlows()
           .stream()
           .filter(t -> t.getType().equals(ScenarioStep.Step.SERVICETASK))
           .toList());
     }
-    if (warmingUp.useUserTasks) {
+    if (warmingUp.useUserTasks  && runScenario.getRunParameters().isUserTask()) {
       listOperationWarmingUp.addAll(runScenario.getScenario()
           .getFlows()
           .stream()
           .filter(t -> t.getType().equals(ScenarioStep.Step.USERTASK))
           .toList());
     }
-    logger.info("WarmingUp: Start ---- {} operations (useServiceTask {} useUserTask {})", listOperationWarmingUp.size(),
-        warmingUp.useServiceTasks, warmingUp.useUserTasks);
+
+    logger.info("WarmingUp: Start ---- {} operations (Scenario/Policy: serviceTask:{}/{} userTask: {}/{})",
+        listOperationWarmingUp.size(), // size of operations
+        warmingUp.useServiceTasks, // scenario allow service task?
+        runScenario.getRunParameters().isServiceTask(), // pod can run service task?
+        warmingUp.useUserTasks,
+        runScenario.getRunParameters().isUserTask() // pod can run User Task?
+    );
 
     for (ScenarioStep scenarioStep : listOperationWarmingUp) {
       switch (scenarioStep.getType()) {

@@ -467,6 +467,20 @@ public class BpmnEngineList {
     public Integer workerExecutionThreads = Integer.valueOf(DEFAULT_VALUE_EXECUTION_THREADS);
     public Integer workerMaxJobsActive = Integer.valueOf(DEFAULT_VALUE_MAX_JOBS_ACTIVE);
 
+
+    public String getSynthesis() {
+      String synthesis= serverType.name();
+      if (serverType.equals(CamundaEngine.CAMUNDA_7)) {
+        synthesis+=" url["+camunda7ServerUrl+"] userName["+camunda7UserName+"]";
+      }
+      if (serverType.equals(CamundaEngine.CAMUNDA_8) ) {
+        synthesis+=" address["+zeebeGatewayAddress+"] workerThread["+workerExecutionThreads+"] MaxJobActive["+workerMaxJobsActive+"]";
+      }
+      if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS) ) {
+        synthesis+=" clientId["+zeebeSaasClientId+"] workerThread["+workerExecutionThreads+"] MaxJobActive["+workerMaxJobsActive+"]";
+      }
+      return synthesis;
+    }
   }
 
 }

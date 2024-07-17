@@ -112,6 +112,14 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     Duration durationSleep = getScenarioStep().getWaitingTimeDuration(Duration.ZERO);
     durationSleep = durationSleep.plusSeconds(10);
 
+    if (getRunScenario().getRunParameters().showLevelMonitoring()) {
+      logger.info("Start service TaskId[{}] Topic[{}] StreamEnable:{} DurationSleep[{} ms]",
+          getScenarioStep().getTaskId(),
+          getScenarioStep().getTopic(),
+          getScenarioStep().isStreamEnable(),
+          durationSleep.toMillis());
+    }
+
     registeredTask = bpmnEngine.registerServiceTask(getId(), // workerId
         getScenarioStep().getTopic(), // topic
         getScenarioStep().isStreamEnable(), // stream
