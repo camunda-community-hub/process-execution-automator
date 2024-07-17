@@ -223,6 +223,10 @@ public class AutomatorStartup {
                 throw new AutomatorException(
                     "Server [" + runParameters.getServerName() + "] does not exist in the list");
 
+              if (runParameters.showLevelMonitoring())
+              {
+                logger.info("Run scenario with Server {}", serverDefinition.getSynthesis());
+              }
               bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
             }
             if (runParameters.showLevelDashboard()) {
