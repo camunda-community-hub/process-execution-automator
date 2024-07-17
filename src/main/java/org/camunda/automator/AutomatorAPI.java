@@ -67,7 +67,7 @@ public class AutomatorAPI {
   /**
    * Search the engine from the scenario
    *
-   * @param scenario            scenario
+   * @param scenario       scenario
    * @param bpmnEngineList different engine configuration
    * @return the engine, null if no engine exist, an exception if the connection is not possible
    */
@@ -76,13 +76,13 @@ public class AutomatorAPI {
     try {
 
       if (scenario.getServerName() != null) {
-        return getBpmnEngine( bpmnEngineList.getByServerName(scenario.getServerName()), true);
+        return getBpmnEngine(bpmnEngineList.getByServerName(scenario.getServerName()), true);
       }
 
       return null;
     } catch (AutomatorException e) {
-      logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}",
-          scenario.getName(), scenario.getServerName(), e.getMessage());
+      logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
+          scenario.getServerName(), e.getMessage());
       throw e;
     }
 
@@ -121,8 +121,9 @@ public class AutomatorAPI {
   /*  Deploy a process in the server                                      */
   /* ******************************************************************** */
 
-  public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition,boolean logDebug) throws AutomatorException {
-    return BpmnEngineFactory.getInstance().getEngineFromConfiguration( serverDefinition, logDebug);
+  public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug)
+      throws AutomatorException {
+    return BpmnEngineFactory.getInstance().getEngineFromConfiguration(serverDefinition, logDebug);
   }
 
   /**

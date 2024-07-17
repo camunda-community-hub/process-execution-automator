@@ -51,16 +51,17 @@ public class RunParameters {
     return logLevel;
   }
 
-  public RunParameters setServerName(String serverName) {
-    this.serverName = serverName;
+  public RunParameters setLogLevel(LOGLEVEL logLevel) {
+    this.logLevel = logLevel;
     return this;
   }
+
   public String getServerName() {
     return this.serverName;
   }
 
-  public RunParameters setLogLevel(LOGLEVEL logLevel) {
-    this.logLevel = logLevel;
+  public RunParameters setServerName(String serverName) {
+    this.serverName = serverName;
     return this;
   }
 

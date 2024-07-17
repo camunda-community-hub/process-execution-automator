@@ -19,7 +19,6 @@ public class ConfigurationServersEngine {
 
   public List<Map<String, Object>> serversList;
 
-
   @Value("${automator.servers.camunda7.url:''}")
   public String camunda7Url;
   @Value("${automator.servers.camunda7.username:}")
@@ -47,7 +46,6 @@ public class ConfigurationServersEngine {
   public String zeebeWorkerExecutionThreads;
   @Value("${automator.servers.camunda8.workerMaxJobsActive:''}")
   public String zeebeWorkerMaxJobsActive;
-
 
   @Value("${automator.servers.camunda8Saas.region:''}")
   public String zeebeSaasRegion;

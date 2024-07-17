@@ -106,6 +106,15 @@ public class AutomatorCLI implements CommandLineRunner {
     return listFiles;
   }
 
+  /**
+   * To reduce the number of warning
+   *
+   * @param message message to log out
+   */
+  private static void logOutLn(String message) {
+    System.out.println(message);
+  }
+
   public void run(String[] args) {
     if (!isRunningCLI)
       return;
@@ -223,13 +232,4 @@ public class AutomatorCLI implements CommandLineRunner {
   }
 
   public enum ACTION {RUN, RECURSIVE, VERIFY, RUNVERIFY, RECURSIVVERIFY}
-
-  /**
-   * To reduce the number of warning
-   *
-   * @param message message to log out
-   */
-  private static void logOutLn(String message) {
-    System.out.println(message);
-  }
 }

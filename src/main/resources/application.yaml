@@ -8,7 +8,7 @@ automator:
 
     scenarioPath: ./src/main/resources/loadtest
     # list of scenario separate by ;
-    scenarioAtStartup: file:/C8CrawlUrlScn.json;
+    scenarioFileAtStartup: D:\pym\CamundaDrive\MyWork\Challenge\loadtest\SCN_BankOfAndora.json;
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:
@@ -82,8 +82,8 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
       taskListUrl: "http://localhost:8082"
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      workerMaxJobsActive: 200
 
     camunda8Saas:
       name: "Camunda8Marbble"

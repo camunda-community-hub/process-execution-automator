@@ -13,7 +13,21 @@ public abstract class DataOperation {
 
   public abstract boolean match(String value);
 
-  public abstract Object execute(String value, RunScenario runScenario) throws AutomatorException;
+  /**
+   * return the name of the operation
+   *
+   * @return name
+   */
+  public abstract String getName();
+
+  /**
+   * @param value       value from the function
+   * @param runScenario scenario to run
+   * @param index       when multiple workers run the same operation, each worker has a uniq index
+   * @return the result of the operation
+   * @throws AutomatorException in case of error
+   */
+  public abstract Object execute(String value, RunScenario runScenario, int index) throws AutomatorException;
 
   protected boolean matchFunction(String value, String function) {
     return value.toUpperCase(Locale.ROOT).startsWith(function.toUpperCase(Locale.ROOT) + "(");
