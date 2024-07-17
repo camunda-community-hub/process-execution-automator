@@ -83,6 +83,8 @@ public class RunScenarioFlows {
     logger.info("ScenarioFlow: ------ TheEnd");
   }
 
+
+
   /**
    * Start execution
    *
@@ -118,8 +120,10 @@ public class RunScenarioFlows {
             runServiceTaskOp.get().pleaseStop();
         } else {
           if (runServiceTaskOp.isEmpty()) {
+
             RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
                 serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
+
             runServiceTask.execute();
             listFlows.add(runServiceTask);
           } else {
@@ -137,8 +141,10 @@ public class RunScenarioFlows {
             runUserTaskOpt.get().pleaseStop();
         } else {
           if (runUserTaskOpt.isEmpty()) {
+
             RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(
                 serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
+
             runUserTask.execute();
             listFlows.add(runUserTask);
           } else {
@@ -151,9 +157,11 @@ public class RunScenarioFlows {
     return listFlows;
   }
 
+
   private Optional<RunScenarioFlowBasic> getFromList(List<RunScenarioFlowBasic> listTasks, String topic) {
     return listTasks.stream().filter(t -> t.getTopic().equals(topic)).findFirst();
   }
+
 
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time

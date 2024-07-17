@@ -80,6 +80,7 @@ public class RunScenarioWarmingUp {
           .toList());
     }
 
+
     logger.info("WarmingUp: Start ---- {} operations (Scenario/Policy: serviceTask:{}/{} userTask: {}/{})",
         listOperationWarmingUp.size(), // size of operations
         warmingUp.useServiceTasks, // scenario allow service task?
@@ -87,6 +88,7 @@ public class RunScenarioWarmingUp {
         warmingUp.useUserTasks,
         runScenario.getRunParameters().isUserTask() // pod can run User Task?
     );
+
 
     for (ScenarioStep scenarioStep : listOperationWarmingUp) {
       switch (scenarioStep.getType()) {

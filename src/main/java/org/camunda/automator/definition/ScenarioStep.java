@@ -264,6 +264,7 @@ public class ScenarioStep {
     return getType() + " " + switch (getType()) {
       case STARTEVENT -> getProcessId() + "(" + getTaskId() + ")";
       case SERVICETASK -> getTopic();
+
       default -> "";
     };
   }

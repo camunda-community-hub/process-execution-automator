@@ -35,6 +35,11 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     super(scenarioStep, runScenario, runResult);
     this.scheduler = scheduler;
   }
+  @Override
+  public String getTopic() {
+    return getScenarioStep().getTaskId();
+  }
+
 
   @Override
   public String getTopic() {
@@ -47,7 +52,9 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   public void execute() {
     stopping = false;
     isRunning = true;
+
     startEventRunnable = new StartEventRunnable(scheduler, getScenarioStep(), getRunScenario(), this, runResult);
+
     startEventRunnable.start();
   }
 
@@ -126,9 +133,11 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
           logger.info("Stop now [" + getId() + "]");
           if (nbOverloaded > 0)
             runResult.addError(scenarioStep,
+
                 "Overloaded:" + "" + nbOverloaded + " TotalCreation:" + totalCreation // total creation we see
                     + " TheoricNumberExpectred:" + (scenarioStep.getNumberOfExecutions() * executionBatchNumber)
                     // expected
+
                     + " Process[" + scenarioStep.getProcessId() + "] Can't create PI at the required frequency");
           if (totalFailed > 0)
             runResult.addError(scenarioStep,
@@ -147,8 +156,10 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
       boolean isOverloadSection = false;
 
       // generate process instance in multiple threads
+
       createProcessInstanceThread = new CreateProcessInstanceThread(executionBatchNumber, scenarioStep, runScenario,
           runResult);
+
 
       // creates all process instances, return when finish OR when duration is reach
       createProcessInstanceThread.createProcessInstances(durationToCreateProcessInstances);
@@ -170,7 +181,9 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
       Duration durationToWait = durationToCreateProcessInstances.minusMillis(end - begin);
       if (durationToWait.isNegative()) {
         durationToWait = Duration.ZERO;
+
       }
+
 
       // report now
       if (runScenario.getRunParameters().showLevelMonitoring() || createProcessInstanceThread.isOverload()) {
