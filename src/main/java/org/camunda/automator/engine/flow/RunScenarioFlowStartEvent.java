@@ -35,11 +35,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     super(scenarioStep, runScenario, runResult);
     this.scheduler = scheduler;
   }
-  @Override
-  public String getTopic() {
-    return getScenarioStep().getTaskId();
-  }
-
 
   @Override
   public String getTopic() {
