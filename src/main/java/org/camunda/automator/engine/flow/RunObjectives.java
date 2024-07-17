@@ -135,9 +135,10 @@ public class RunObjectives {
       int percent = (int) (100.0 * objectiveResult.recordedSuccessValue / (objective.value == 0 ? 1 : objective.value));
 
       objectiveResult.analysis +=
-          "Objective " + objective.getInformation() + ": ObjectiveCreation[" + objective.value // objective
+          "Objective " + objective.getInformation() // informatin
+              + ": Goal[" + objective.value // objective
               + "] Created(zeebeAPI)[" + processInstancesCreatedAPI // Value by the API, not really accurate
-              + "] Create(AutomatorRecord)[" + objectiveResult.recordedSuccessValue // value recorded by automator
+              + "] Created(AutomatorRecord)[" + objectiveResult.recordedSuccessValue // value recorded by automator
               + " (" + percent + " % )" // percent based on the recorded value
               + " CreateFail(AutomatorRecord)[" + objectiveResult.recordedFailValue + "]";
 
