@@ -28,7 +28,7 @@ public class RunScenarioUnitServiceTask {
    * @param step   step to execute
    * @return result completed
    */
-  public RunResult executeServiceTask(RunResult result, ScenarioStep step) {
+  public RunResult executeServiceTask(ScenarioStep step, RunResult result) {
     if (runScenario.getRunParameters().showLevelMonitoring()) {
       logger.info("Service TaskId[{}]", step.getTaskId());
     }
@@ -47,7 +47,7 @@ public class RunScenarioUnitServiceTask {
       waitingTimeInMs = duration.toMillis();
     }
     if (waitingTimeInMs == null)
-      waitingTimeInMs = Long.valueOf(5 * 60 * 1000);
+      waitingTimeInMs = 5L * 60 * 1000;
 
     for (int index = 0; index < step.getNumberOfExecutions(); index++) {
       long beginTimeWait = System.currentTimeMillis();
@@ -71,9 +71,10 @@ public class RunScenarioUnitServiceTask {
               + result.getFirstProcessInstanceId() + "]");
           return result;
         }
+        // this is a unit test : there is only one thread, index=1
         runScenario.getBpmnEngine()
             .executeServiceTask(listActivities.get(0), step.getUserId(),
-                RunZeebeOperation.getVariablesStep(runScenario, step));
+                RunZeebeOperation.getVariablesStep(runScenario, step, 1));
       } catch (AutomatorException e) {
         result.addError(step, e.getMessage());
         return result;

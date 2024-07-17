@@ -57,7 +57,7 @@
       "processId": "CrawlUrl",
       "frequency": "PT30S",
       "numberOfExecutions": "200",
-      "nbWorkers": "1",
+      "numberOfWorkers": "1",
       "variables": {"urlNotFound": false},
       "variablesOperation": {
         "loopcrawl": "generaterandomlist(10)"
@@ -70,7 +70,7 @@
       "processId": "CrawlUrl",
       "frequency": "PT1M",
       "numberOfExecutions": "1",
-      "nbWorkers": "1",
+      "numberOfWorkers": "1",
       "variables": {"urlNotFound": true},
       "variablesOperation": {
         "loopcrawl": "generaterandomlist(5)"

@@ -146,7 +146,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   /**
    * Engine is ready. If not, a connection() method must be call
    *
-   * @return
+   * @return true if the engine is ready
    */
   public boolean isReady() {
     if (count > 2)
@@ -274,7 +274,9 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
   @Override
   public RegisteredTask registerServiceTask(String workerId,
                                             String topic,
-                                            Duration lockTime, Boolean isStreamEnabled, Object jobHandler,
+                                            boolean streamEnable,
+                                            Duration lockTime,
+                                            Object jobHandler,
                                             FixedBackoffSupplier backoffSupplier) {
 
     if (!(jobHandler instanceof ExternalTaskHandler)) {

@@ -146,8 +146,7 @@ public class RunScenario {
     if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
       List<Future<?>> listFutures = new ArrayList<>();
       logger.info("RunScenario: ------ execution UNIT scenario [{}] {} execution on {} Threads", scenario.getName(),
-          scenario.getExecutions().size(),
-          runParameters.getNumberOfThreadsPerScenario());
+          scenario.getExecutions().size(), runParameters.getNumberOfThreadsPerScenario());
 
       for (int i = 0; i < scenario.getExecutions().size(); i++) {
         ScenarioExecution scnExecution = scenario.getExecutions().get(i);

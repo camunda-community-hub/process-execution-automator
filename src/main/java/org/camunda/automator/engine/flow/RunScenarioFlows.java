@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RunScenarioFlows {
   private final ServiceAccess serviceAccess;
@@ -44,7 +45,8 @@ public class RunScenarioFlows {
     RunScenarioWarmingUp runScenarioWarmingUp = new RunScenarioWarmingUp(serviceAccess, runScenario);
     Map<String, RunResult.RecordCreationPI> recordCreationPIMap = new HashMap<>();
     if (runScenario.getScenario().getFlowControl() == null) {
-      runResult.addError(null, "Scenario does not declare a [FlowControl] section. This section is mandatory for a Flow Scenario");
+      runResult.addError(null,
+          "Scenario does not declare a [FlowControl] section. This section is mandatory for a Flow Scenario");
       return;
     }
 
@@ -61,7 +63,7 @@ public class RunScenarioFlows {
     runObjectives.setStartDate(startTestDate);
 
     logger.info("ScenarioFlow: ------ Start");
-    List<RunScenarioFlowBasic> listFlows = startExecution();
+    List<RunScenarioFlowBasic> listFlows = startExecution(runScenarioWarmingUp.getListWarmingUpTask());
 
     waitEndExecution(runObjectives, startTestDate, listFlows);
 
@@ -81,50 +83,68 @@ public class RunScenarioFlows {
     logger.info("ScenarioFlow: ------ TheEnd");
   }
 
+
+
   /**
    * Start execution
    *
    * @return list of Flow started
    */
-  private List<RunScenarioFlowBasic> startExecution() {
+  private List<RunScenarioFlowBasic> startExecution(List<RunScenarioFlowBasic> listWarmingTask) {
     List<RunScenarioFlowBasic> listFlows = new ArrayList<>();
     for (ScenarioStep scenarioStep : runScenario.getScenario().getFlows()) {
       switch (scenarioStep.getType()) {
       case STARTEVENT -> {
         if (!runScenario.getRunParameters().isCreation()) {
           logger.info("According configuration, STARTEVENT[" + scenarioStep.getProcessId() + "] is fully disabled");
-        } else
-          for (int i = 0; i < scenarioStep.getNbWorkers(); i++) {
-            RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
-                serviceAccess.getTaskScheduler(scenarioStep.getProcessId() + "-" + i), scenarioStep, i, runScenario,
-                new RunResult(runScenario));
-            runStartEvent.execute();
-            listFlows.add(runStartEvent);
-          }
+        } else {
+          RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
+              serviceAccess.getTaskScheduler(scenarioStep.getProcessId()), scenarioStep, runScenario,
+              new RunResult(runScenario));
+          runStartEvent.execute();
+          listFlows.add(runStartEvent);
+        }
       }
 
       case SERVICETASK -> {
+        Optional<RunScenarioFlowBasic> runServiceTaskOp = getFromList(listWarmingTask, scenarioStep.getTopic());
+
         if (!runScenario.getRunParameters().isServiceTask()) {
           logger.info("According configuration, SERVICETASK[{}] is fully disabled", scenarioStep.getTopic());
+          if (runServiceTaskOp.isPresent())
+            runServiceTaskOp.get().pleaseStop();
         } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
           logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
               scenarioStep.getTopic(), runScenario.getRunParameters().getFilterServiceTask());
+          if (runServiceTaskOp.isPresent())
+            runServiceTaskOp.get().pleaseStop();
         } else {
-          RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
-              serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
-          runServiceTask.execute();
-          listFlows.add(runServiceTask);
+          if (runServiceTaskOp.isEmpty()) {
+            RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
+            runServiceTask.execute();
+            listFlows.add(runServiceTask);
+          } else {
+            listFlows.add(runServiceTaskOp.get());
+          }
         }
       }
 
       case USERTASK -> {
+        Optional<RunScenarioFlowBasic> runUserTaskOpt = getFromList(listWarmingTask, scenarioStep.getTaskId());
+
         if (!runScenario.getRunParameters().isUserTask()) {
           logger.info("According configuration, USERTASK[{}] is fully disabled", scenarioStep.getTaskId());
+          if (runUserTaskOpt.isPresent())
+            runUserTaskOpt.get().pleaseStop();
         } else {
-          RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"),
-              scenarioStep, 0, runScenario, new RunResult(runScenario));
-          runUserTask.execute();
-          listFlows.add(runUserTask);
+          if (runUserTaskOpt.isEmpty()) {
+            RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0,
+                runScenario, new RunResult(runScenario));
+            runUserTask.execute();
+            listFlows.add(runUserTask);
+          } else {
+            listFlows.add(runUserTaskOpt.get());
+          }
         }
       }
       }
@@ -132,6 +152,10 @@ public class RunScenarioFlows {
     return listFlows;
   }
 
+
+  private Optional<RunScenarioFlowBasic> getFromList(List<RunScenarioFlowBasic> listTasks, String topic) {
+    return listTasks.stream().filter(t->t.getTopic().equals(topic)).findFirst();
+  }
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time
    *

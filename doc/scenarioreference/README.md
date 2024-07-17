@@ -252,6 +252,16 @@ Example:
 the variable `loopcrawl` will be a list of 500 random string.
 
 
+**generateuniqueid(<Prefix>)**
+Generate a unique sequential number.
+The prefix is used to allo wmultiple counter
+Example:
+````
+"tidblue": "generateuniqueid(blue)"
+"tidred": "generateuniqueid(red)"
+````
+Variables `tidblue` and `tidred` got a unique id, each following a different counter.
+
 
 ## Verification
 

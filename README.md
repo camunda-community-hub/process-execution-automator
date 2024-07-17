@@ -19,7 +19,6 @@ The Unit Test section covers these goals.
 
 The Load Test section covers these goals.
 
-
 Process-Automator executes scenario. One scenario pilot a process.
 
 It is possible to execute multiple at the same time to handle a use case like
@@ -313,3 +312,15 @@ automator.servers:
     audience: ""
     secret: "4BPUva1U4lDtoG2-torvAtx6w5RbHULUFhGZ-bBXOMWwZJG3d3VDlfPHjVO3Kz-N"
 ````
+
+# Build
+
+Rebuilt the image via
+````
+mvn clean install
+mvn springboot:build-image
+````
+
+The docker image is build using the Dockerfile present on the root level.
+
+Push the image to ghcr.io/camunda-community-hub/process-execution-automator:

@@ -187,12 +187,12 @@ public class RunScenarioUnit {
         case USERTASK -> {
           // wait for the user Task
           if (scnRunExecution.runScenario.getRunParameters().isUserTask())
-            scnRunResult = userTask.executeUserTask(scnRunResult, step);
+            scnRunResult = userTask.executeUserTask(step, scnRunResult);
         }
         case SERVICETASK -> {
           // wait for the user Task
           if (scnRunExecution.runScenario.getRunParameters().isServiceTask()) {
-            scnRunResult = serviceTask.executeServiceTask(scnRunResult, step);
+            scnRunResult = serviceTask.executeServiceTask(step, scnRunResult);
           }
         }
 
@@ -210,7 +210,6 @@ public class RunScenarioUnit {
       }
       if (scnRunExecution.runScenario.getRunParameters().showLevelMonitoring())
         logger.info("ScnRunExecution.EndExecution [" + scnExecution.getName() + "] agent[" + agentName + "]");
-      return;
     }
 
     /**

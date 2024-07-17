@@ -20,12 +20,12 @@ public class ScenarioStep {
    * operations; stringtodate()
    */
   private final Map<String, String> variablesOperation = Collections.emptyMap();
+  private final Long fixedBackOffDelay = 0L;
+  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
-  private final Integer nbWorkers = Integer.valueOf(1);
-  private final Long fixedBackOffDelay = Long.valueOf(0);
-  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
+  private Integer numberOfWorkers;
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -43,7 +43,7 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
-  private Boolean streamEnabled =true;
+  private final Boolean streamEnable = false;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -66,6 +66,11 @@ public class ScenarioStep {
    * In case of FlowStep, the processId to execute the step
    */
   private String processId;
+
+  /**
+   * Receive a step range in the scenario, which help to identify the step
+   */
+  private int stepNumber = -1;
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -92,8 +97,10 @@ public class ScenarioStep {
   }
 
   public String getInformation() {
-    return (name == null ? "" : (name + ":")) + getType().toString() + ": taskId:[" + getTaskId() + "] topic:"
-        + getTopic() + "]";
+    return "step_" + stepNumber + " " // cartouche
+        + (name == null ? "" : ("[" + name + "]:")) // name
+        + getType().toString() // type
+        + ",taskId:[" + getTaskId() + "]" + (getTopic() == null ? "" : " topic:[" + getTopic() + "]");
   }
 
   public Step getType() {
@@ -127,10 +134,17 @@ public class ScenarioStep {
     return topic;
   }
 
-  public boolean getStreamEnabled() {
-    return streamEnabled;
+  public boolean isStreamEnable() {
+    return streamEnable;
   }
 
+  public int getStepNumber() {
+    return stepNumber;
+  }
+
+  public void setStepNumber(int stepNumber) {
+    this.stepNumber = stepNumber;
+  }
   /* ******************************************************************** */
   /*                                                                      */
   /*  getter                                                              */
@@ -200,8 +214,12 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNbWorkers() {
-    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
+  public int getNumberOfWorkers() {
+    return numberOfWorkers == null || numberOfWorkers == 0 ? 1 : numberOfWorkers;
+  }
+
+  public void setNumberOfWorkers(int nbWorkers) {
+    this.numberOfWorkers = nbWorkers;
   }
 
   public String getProcessId() {
@@ -235,6 +253,19 @@ public class ScenarioStep {
 
   public MODEEXECUTION getModeExecution() {
     return modeExecution == null ? MODEEXECUTION.CLASSICAL : modeExecution;
+  }
+
+  /**
+   * Return an uniq ID of the step (use to
+   *
+   * @return the id of the step
+   */
+  public String getId() {
+    return getType() + " " + switch (getType()) {
+      case STARTEVENT -> getProcessId() + "(" + getTaskId() + ")-" + Thread.currentThread().getId();
+      case SERVICETASK -> getTopic() + "-" + Thread.currentThread().getId();
+      default -> "";
+    };
   }
 
   /**
