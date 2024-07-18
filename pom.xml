@@ -99,7 +99,7 @@
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-tasklist-client-java</artifactId>
-      <version>1.6.1</version>
+      <version>8.3.3</version>
     </dependency>
 
     <!-- C7 external task client -->
