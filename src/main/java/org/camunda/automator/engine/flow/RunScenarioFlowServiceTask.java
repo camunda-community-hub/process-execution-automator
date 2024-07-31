@@ -45,6 +45,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
   public RunScenarioFlowServiceTask(TaskScheduler scheduler,
                                     ScenarioStep scenarioStep,
+                                    int index,
                                     RunScenario runScenario,
                                     RunResult runResult) {
     super(scenarioStep, runScenario, runResult);
@@ -125,6 +126,22 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         getScenarioStep().isStreamEnable(), // stream
         durationSleep, // lock time
         new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
+    /*
+    // calculate the lock duration: this is <numberOfThreads> *
+    ZeebeClient zeebeClient = ((BpmnEngineCamunda8) getRunScenario().getBpmnEngine()).getZeebeClient();
+
+    JobWorkerBuilderStep1.JobWorkerBuilderStep3 step3 = zeebeClient.newWorker()
+        .jobType(getScenarioStep().getTopic())
+        .handler(new SimpleDelayC8Handler(this))
+        .timeout(durationSleep)
+        .name(getId());
+
+    if (getScenarioStep().getFixedBackOffDelay() > 0) {
+      step3.backoffSupplier(new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
+    }
+    jobWorker = step3.open();
+    */
+
   }
 
   private static class TrackActiveWorker {

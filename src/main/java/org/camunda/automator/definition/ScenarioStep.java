@@ -67,11 +67,6 @@ public class ScenarioStep {
    */
   private String processId;
 
-  /**
-   * Receive a step range in the scenario, which help to identify the step
-   */
-  private int stepNumber = -1;
-
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
@@ -97,10 +92,8 @@ public class ScenarioStep {
   }
 
   public String getInformation() {
-    return "step_" + stepNumber + " " // cartouche
-        + (name == null ? "" : ("[" + name + "]:")) // name
-        + getType().toString() // type
-        + ",taskId:[" + getTaskId() + "]" + (getTopic() == null ? "" : " topic:[" + getTopic() + "]");
+    return (name == null ? "" : (name + ":")) + getType().toString() + ": taskId:[" + getTaskId() + "] topic:"
+        + getTopic() + "]";
   }
 
   public Step getType() {
@@ -134,17 +127,10 @@ public class ScenarioStep {
     return topic;
   }
 
-  public boolean isStreamEnable() {
-    return streamEnable;
+  public boolean getStreamEnabled() {
+    return streamEnabled;
   }
 
-  public int getStepNumber() {
-    return stepNumber;
-  }
-
-  public void setStepNumber(int stepNumber) {
-    this.stepNumber = stepNumber;
-  }
   /* ******************************************************************** */
   /*                                                                      */
   /*  getter                                                              */
