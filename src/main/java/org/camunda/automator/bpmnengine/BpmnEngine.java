@@ -106,14 +106,14 @@ public interface BpmnEngine {
    * @param workerId        workerId
    * @param topic           topic to register
    * @param lockTime        lock time for the job
+   * @param isStreamEnabled
    * @param jobHandler      C7: must implement ExternalTaskHandler. C8: must implement JobHandler
    * @param backoffSupplier backOffStrategy
    * @return list of Service Task
    */
   RegisteredTask registerServiceTask(String workerId,
                                      String topic,
-                                     Duration lockTime,
-                                     Object jobHandler,
+                                     Duration lockTime, Boolean isStreamEnabled, Object jobHandler,
                                      FixedBackoffSupplier backoffSupplier);
 
   /**

@@ -43,6 +43,7 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
+  private Boolean streamEnabled =true;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -124,6 +125,10 @@ public class ScenarioStep {
 
   public String getTopic() {
     return topic;
+  }
+
+  public boolean getStreamEnabled() {
+    return streamEnabled;
   }
 
   /* ******************************************************************** */

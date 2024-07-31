@@ -25,7 +25,6 @@ import io.camunda.tasklist.dto.Variable;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
-import io.camunda.zeebe.client.api.command.ClientStatusException;
 import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
@@ -293,7 +292,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       Topology join = zeebeClient.newTopologyRequest().send().join();
 
       // Actually, if an error arrived, an exception is thrown
-      analysis.append(join != null ? "successfully," : "error");
+      analysis.append(join != null ? "successfully, " : "error, ");
 
       isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
 
@@ -301,7 +300,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       operateClient = new CamundaOperateClient.Builder().operateUrl(serverDefinition.operateUrl)
           .authentication(saOperate)
           .build();
-      analysis.append("successfully,");
+      analysis.append("successfully, ");
 
       // TaskList is not mandatory
       if (serverDefinition.taskListUrl != null && !serverDefinition.taskListUrl.isEmpty()) {
@@ -311,7 +310,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         taskClient = new CamundaTaskListClient.Builder().taskListUrl(serverDefinition.taskListUrl)
             .authentication(saTaskList)
             .build();
-        analysis.append("successfully,");
+        analysis.append("successfully, ");
       }
       //get tasks assigned to demo
       logger.info(analysis.toString());
@@ -319,7 +318,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     } catch (Exception e) {
       zeebeClient = null;
       throw new AutomatorException(
-          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
     }
   }
 
@@ -501,8 +500,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   @Override
   public RegisteredTask registerServiceTask(String workerId,
                                             String topic,
-                                            Duration lockTime,
-                                            Object jobHandler,
+                                            Duration lockTime, Boolean isStreamEnabled, Object jobHandler,
                                             FixedBackoffSupplier backoffSupplier) {
     if (!(jobHandler instanceof JobHandler)) {
       logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId,
@@ -520,6 +518,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         .jobType(topic)
         .handler((JobHandler) jobHandler)
         .timeout(lockTime)
+        .streamEnabled(isStreamEnabled)
         .name(workerId);
 
     if (backoffSupplier != null) {
@@ -875,7 +874,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     analysis.append(message);
     analysis.append(" [");
     analysis.append(value);
-    analysis.append(" ]");
+    analysis.append("]");
 
     if (check) {
       if (value == null || (value instanceof String && ((String) value).isEmpty())) {

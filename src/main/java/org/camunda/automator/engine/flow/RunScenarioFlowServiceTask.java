@@ -110,7 +110,8 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
     registeredTask = bpmnEngine.registerServiceTask(getId(), // workerId
         getScenarioStep().getTopic(), // topic
-        durationSleep, // lock time
+        durationSleep,
+        getScenarioStep().getStreamEnabled(), // lock time
         new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
     /*
     // calculate the lock duration: this is <numberOfThreads> *
@@ -198,6 +199,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         }
         /* C8 */
         if (jobClient != null) {
+
           CompleteJobCommandStep1 completeCommand = jobClient.newCompleteCommand(activatedJob.getKey());
           CommandWrapper command = new RefactoredCommandWrapper((FinalCommandStep) completeCommand,
               activatedJob.getDeadline(), activatedJob.toString(), exceptionHandlingStrategy);

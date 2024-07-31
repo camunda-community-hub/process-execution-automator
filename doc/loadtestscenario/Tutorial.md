@@ -356,6 +356,10 @@ To improve the performance, the number of worker
 The requirement is 200 process instances every 30 seconds. Let's base the calculation per minute.
 This is then 400 process instances/minute.
 
+| Name          |  Value |
+|---------------|-------------:|
+| Process instances |            200 PI/30 s |
+
 
 The first task needs 2 seconds duration. To execute 400 process instances, it will need 2*400=800 s.
 Because this throughput is required by minute, multiple workers must do it in parallel.

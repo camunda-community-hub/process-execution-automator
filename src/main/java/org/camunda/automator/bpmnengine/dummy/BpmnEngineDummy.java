@@ -78,8 +78,7 @@ public class BpmnEngineDummy implements BpmnEngine {
   @Override
   public RegisteredTask registerServiceTask(String workerId,
                                             String topic,
-                                            Duration lockTime,
-                                            Object jobHandler,
+                                            Duration lockTime, Boolean isStreamEnabled, Object jobHandler,
                                             FixedBackoffSupplier backoffSupplier) {
     return null;
   }
