@@ -2,6 +2,7 @@ package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
@@ -29,6 +30,10 @@ public class AutomatorCLI implements CommandLineRunner {
   AutomatorAPI automatorAPI;
   @Autowired
   BpmnEngineList engineConfiguration;
+
+  @Autowired
+  ConfigurationStartup configurationStartup;
+
 
   public static void main(String[] args) {
     isRunningCLI = true;
@@ -122,6 +127,19 @@ public class AutomatorCLI implements CommandLineRunner {
     File folderRecursive = null;
 
     RunParameters runParameters = new RunParameters();
+    runParameters.setExecution(true)
+        .setServerName(configurationStartup.getServerName())
+        .setLogLevel(configurationStartup.getLogLevelEnum())
+        .setCreation(configurationStartup.isPolicyExecutionCreation())
+        .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
+        .setUserTask(configurationStartup.isPolicyExecutionUserTask())
+        .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
+        .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
+        .setDeepTracking(configurationStartup.deepTracking());
+    List<String> filterService = configurationStartup.getFilterService();
+    if (filterService != null) {
+      runParameters.setFilterExecutionServiceTask(filterService);
+    }
     Integer overrideNumberOfExecution = null;
     int i = 0;
     ACTION action = null;
@@ -193,7 +211,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
       serverDefinition = engineConfiguration.getByServerName(serverName);
       if (serverDefinition == null) {
-        throw new AutomatorException("Check configuration: name[" + serverName
+        throw new AutomatorException("Check configuration: Server name (from parameter)[" + serverName
             + "] does not exist in the list of servers in application.yaml file");
       }
 

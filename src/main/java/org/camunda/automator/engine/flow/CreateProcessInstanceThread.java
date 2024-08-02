@@ -48,7 +48,7 @@ public class CreateProcessInstanceThread {
    */
   public void createProcessInstances(Duration durationToCreateProcessInstances) {
 
-    int numberOfThreads = scenarioStep.getNumberOfWorkers() == 0 ? 1 : scenarioStep.getNumberOfWorkers();
+    int numberOfThreads = scenarioStep.getNbWorkers() == 0 ? 1 : scenarioStep.getNbWorkers();
 
     ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
     int totalNumberOfPi = 0;

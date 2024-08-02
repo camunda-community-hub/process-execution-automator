@@ -45,7 +45,6 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
   public RunScenarioFlowServiceTask(TaskScheduler scheduler,
                                     ScenarioStep scenarioStep,
-                                    int index,
                                     RunScenario runScenario,
                                     RunResult runResult) {
     super(scenarioStep, runScenario, runResult);
@@ -114,34 +113,18 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     durationSleep = durationSleep.plusSeconds(10);
 
     if (getRunScenario().getRunParameters().showLevelMonitoring()) {
-      logger.info("Start service TaskId[{}] Topic[{}] StreamEnable:{} DurationSleep[{} ms]",
+      logger.info("Start service TaskId[{}] Topic[{}] StreamEnabled:{} DurationSleep[{} ms]",
           getScenarioStep().getTaskId(),
           getScenarioStep().getTopic(),
-          getScenarioStep().isStreamEnable(),
+          getScenarioStep().isStreamEnabled(),
           durationSleep.toMillis());
     }
 
     registeredTask = bpmnEngine.registerServiceTask(getId(), // workerId
         getScenarioStep().getTopic(), // topic
-        getScenarioStep().isStreamEnable(), // stream
+        getScenarioStep().isStreamEnabled(), // stream
         durationSleep, // lock time
         new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
-    /*
-    // calculate the lock duration: this is <numberOfThreads> *
-    ZeebeClient zeebeClient = ((BpmnEngineCamunda8) getRunScenario().getBpmnEngine()).getZeebeClient();
-
-    JobWorkerBuilderStep1.JobWorkerBuilderStep3 step3 = zeebeClient.newWorker()
-        .jobType(getScenarioStep().getTopic())
-        .handler(new SimpleDelayC8Handler(this))
-        .timeout(durationSleep)
-        .name(getId());
-
-    if (getScenarioStep().getFixedBackOffDelay() > 0) {
-      step3.backoffSupplier(new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));
-    }
-    jobWorker = step3.open();
-    */
-
   }
 
   private static class TrackActiveWorker {
@@ -209,7 +192,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         variables = RunZeebeOperation.getVariablesStep(flowServiceTask.getRunScenario(),
             flowServiceTask.getScenarioStep(), 0);
 
-
+      /**   This should be moved to the Camunda Engine implementation */
         /* C7 */
         if (externalTask != null) {
           currentVariables = externalTask.getAllVariables();

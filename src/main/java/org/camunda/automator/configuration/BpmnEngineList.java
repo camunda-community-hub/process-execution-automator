@@ -176,46 +176,48 @@ public class BpmnEngineList {
     for (Map<String, Object> serverMap : configurationServersEngine.getServersList()) {
       count++;
       BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
-      bpmnServerDefinition.name = getString("name", serverMap, null, "ServerList #" + count);
+      bpmnServerDefinition.name = getString("name", serverMap, null, "ServerList #" + count, true);
       String contextLog = "ServerList #" + count + " Name [" + bpmnServerDefinition.name + "]";
       bpmnServerDefinition.workerMaxJobsActive = getInteger(CONF_WORKER_MAX_JOBS_ACTIVE, serverMap,
           DEFAULT_VALUE_MAX_JOBS_ACTIVE, contextLog);
 
-      if (CONF_TYPE_V_CAMUNDA_7.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog))) {
+      if (CONF_TYPE_V_CAMUNDA_7.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog,true))) {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_7;
-        bpmnServerDefinition.camunda7ServerUrl = getString(CONF_URL, serverMap, null, contextLog);
+        bpmnServerDefinition.camunda7ServerUrl = getString(CONF_URL, serverMap, null, contextLog,true);
         if (bpmnServerDefinition.camunda7ServerUrl == null)
           throw new AutomatorException(
               "Incorrect Definition - [url] expected for [" + CONF_TYPE_V_CAMUNDA_7 + "] type " + contextLog);
       }
-      if (CONF_TYPE_V_CAMUNDA_8.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog))) {
+      if (CONF_TYPE_V_CAMUNDA_8.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog,true))) {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8;
-        bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog);
-        bpmnServerDefinition.operateUserName = getString(CONF_OPERATE_USER_NAME, serverMap, null, contextLog);
-        bpmnServerDefinition.operateUserPassword = getString(CONF_OPERATE_USER_PASSWORD, serverMap, null, contextLog);
-        bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog);
-        bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog);
+        bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,true);
+        bpmnServerDefinition.operateUserName = getString(CONF_OPERATE_USER_NAME, serverMap, "Demo", contextLog,false);
+        bpmnServerDefinition.operateUserPassword = getString(CONF_OPERATE_USER_PASSWORD, serverMap, "Demo",
+            contextLog,false);
+        bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog,false);
+        bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog,false);
         bpmnServerDefinition.workerExecutionThreads = getInteger(CONF_WORKER_EXECUTION_THREADS, serverMap,
             DEFAULT_VALUE_EXECUTION_THREADS, contextLog);
         if (bpmnServerDefinition.zeebeGatewayAddress == null)
           throw new AutomatorException(
               "Incorrect Definition - [zeebeGatewayAddress] expected for [" + CONF_TYPE_V_CAMUNDA_8 + "] type");
       }
-      if (CONF_TYPE_V_CAMUNDA_8_SAAS.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog))) {
+      if (CONF_TYPE_V_CAMUNDA_8_SAAS.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog,true))) {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8_SAAS;
-        bpmnServerDefinition.zeebeSaasRegion = getString(CONF_ZEEBE_SAAS_REGION, serverMap, null, contextLog);
-        bpmnServerDefinition.zeebeSaasClientSecret = getString(CONF_ZEEBE_SAAS_SECRET, serverMap, null, contextLog);
-        bpmnServerDefinition.zeebeSaasClusterId = getString(CONF_ZEEBE_SAAS_CLUSTER_ID, serverMap, null, contextLog);
-        bpmnServerDefinition.zeebeSaasClientId = getString(CONF_ZEEBE_SAAS_CLIENT_ID, serverMap, null, contextLog);
-        bpmnServerDefinition.zeebeSaasOAuthUrl = getString(CONF_ZEEBE_SAAS_OAUTHURL, serverMap, null, contextLog);
-        bpmnServerDefinition.zeebeSaasAudience = getString(CONF_ZEEBE_SAAS_AUDIENCE, serverMap, null, contextLog);
+        bpmnServerDefinition.zeebeSaasRegion = getString(CONF_ZEEBE_SAAS_REGION, serverMap, null, contextLog,true);
+        bpmnServerDefinition.zeebeSaasClientSecret = getString(CONF_ZEEBE_SAAS_SECRET, serverMap, null, contextLog,true);
+        bpmnServerDefinition.zeebeSaasClusterId = getString(CONF_ZEEBE_SAAS_CLUSTER_ID, serverMap, null, contextLog,true);
+        bpmnServerDefinition.zeebeSaasClientId = getString(CONF_ZEEBE_SAAS_CLIENT_ID, serverMap, null, contextLog,true);
+        bpmnServerDefinition.zeebeSaasOAuthUrl = getString(CONF_ZEEBE_SAAS_OAUTHURL, serverMap, null, contextLog,true);
+        bpmnServerDefinition.zeebeSaasAudience = getString(CONF_ZEEBE_SAAS_AUDIENCE, serverMap, null, contextLog,true);
 
         bpmnServerDefinition.workerExecutionThreads = getInteger(CONF_WORKER_EXECUTION_THREADS, serverMap,
             DEFAULT_VALUE_EXECUTION_THREADS, contextLog);
-        bpmnServerDefinition.operateUserName = getString(CONF_OPERATE_USER_NAME, serverMap, null, contextLog);
-        bpmnServerDefinition.operateUserPassword = getString(CONF_OPERATE_USER_PASSWORD, serverMap, null, contextLog);
-        bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog);
-        bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog);
+        bpmnServerDefinition.operateUserName = getString(CONF_OPERATE_USER_NAME, serverMap, null, contextLog,false);
+        bpmnServerDefinition.operateUserPassword = getString(CONF_OPERATE_USER_PASSWORD, serverMap, null, contextLog,
+            false);
+        bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog,false);
+        bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog,false);
         if (bpmnServerDefinition.zeebeSaasRegion == null || bpmnServerDefinition.zeebeSaasClientSecret == null
             || bpmnServerDefinition.zeebeSaasClusterId == null || bpmnServerDefinition.zeebeSaasClientId == null)
           throw new AutomatorException(
@@ -357,13 +359,16 @@ public class BpmnEngineList {
   /*                                                                      */
   /* ******************************************************************** */
 
-  private String getString(String name, Map<String, Object> record, String defaultValue, String contextLog) {
+  private String getString(String name, Map<String, Object> record, String defaultValue, String contextLog,
+                           boolean isMandatory) {
     try {
       if (!record.containsKey(name)) {
-        if (defaultValue == null)
-          logger.error(contextLog + "Variable [{}] not defined in {}", name, contextLog);
-        else
-          logger.info(contextLog + "Variable [{}] not defined in {}", name, contextLog);
+        if (isMandatory) {
+          if (defaultValue == null)
+            logger.error(contextLog + "Variable [{}] not defined in {}", name, contextLog);
+          else
+            logger.info(contextLog + "Variable [{}] not defined in {}", name, contextLog);
+        }
         return defaultValue;
       }
       return (String) record.get(name);

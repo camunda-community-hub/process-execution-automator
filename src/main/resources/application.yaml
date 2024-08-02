@@ -8,7 +8,7 @@ automator:
 
     scenarioPath: ./src/main/resources/loadtest
     # list of scenario separate by ;
-    scenarioFileAtStartup: D:\pym\CamundaDrive\MyWork\Challenge\loadtest\SCN_BankOfAndora.json;
+    scenarioFileAtStartup: DiscoverySeedExtraction.json
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:
@@ -18,7 +18,7 @@ automator:
     # string composed with DEPLOYPROCESS, WARMINGUP, CREATION, SERVICETASK, USERTASK
     # (ex: "CREATION|DEPLOYPROCESS|CREATION|SERVICETASK")
     policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
-    filterService2: simple-task
+    filterService2: check-identity
 
     deepTracking: false
 
@@ -48,6 +48,12 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
       taskListUrl: "http://localhost:8082"
+      workerExecutionThreads: 10
+      workerMaxJobsActive: 10
+
+    - type: "camunda8"
+      name: "Camunda8ZeebeOnly"
+      zeebeGatewayAddress: "127.0.0.1:26500"
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 

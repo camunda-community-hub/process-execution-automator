@@ -20,12 +20,12 @@ public class ScenarioStep {
    * operations; stringtodate()
    */
   private final Map<String, String> variablesOperation = Collections.emptyMap();
-  private final Long fixedBackOffDelay = 0L;
-  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
-  private Integer numberOfWorkers;
+  private Integer nbWorkers = Integer.valueOf(1);
+  private final Long fixedBackOffDelay = Long.valueOf(0);
+  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -43,7 +43,7 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
-  private final Boolean streamEnable = false;
+  private Boolean streamEnabled =true;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -127,8 +127,8 @@ public class ScenarioStep {
     return topic;
   }
 
-  public boolean getStreamEnabled() {
-    return streamEnabled;
+  public boolean isStreamEnabled() {
+    return streamEnabled==null? true: streamEnabled;
   }
 
   /* ******************************************************************** */
@@ -200,14 +200,12 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNumberOfWorkers() {
-    return numberOfWorkers == null || numberOfWorkers == 0 ? 1 : numberOfWorkers;
+  public int getNbWorkers() {
+    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
   }
-
   public void setNumberOfWorkers(int nbWorkers) {
-    this.numberOfWorkers = nbWorkers;
+    this.nbWorkers = nbWorkers;
   }
-
   public String getProcessId() {
     return processId;
   }

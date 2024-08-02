@@ -47,6 +47,9 @@ public class RunParameters {
 
   private boolean warmingUp = true;
 
+  public RunParameters() {
+  }
+
   public LOGLEVEL getLogLevel() {
     return logLevel;
   }

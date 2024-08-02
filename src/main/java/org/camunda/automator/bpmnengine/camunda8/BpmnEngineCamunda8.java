@@ -25,7 +25,6 @@ import io.camunda.tasklist.dto.Variable;
 import io.camunda.tasklist.exception.TaskListException;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
-import io.camunda.zeebe.client.api.command.ClientStatusException;
 import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
@@ -293,16 +292,20 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       Topology join = zeebeClient.newTopologyRequest().send().join();
 
       // Actually, if an error arrived, an exception is thrown
-      analysis.append(join != null ? "successfully," : "error");
+      analysis.append(join != null ? "successfully, " : "error, ");
 
-      isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
+      // -------------------------------------- Operate
+      if (serverDefinition.operateUrl != null && !serverDefinition.operateUrl.isEmpty()) {
+        isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
+        analysis.append("Operate connection...");
+        operateClient = new CamundaOperateClient.Builder().operateUrl(serverDefinition.operateUrl)
+            .authentication(saOperate)
+            .build();
+        analysis.append("successfully, ");
+      } else
+        analysis.append("No operate connection required, ");
 
-      analysis.append("Operate connection...");
-      operateClient = new CamundaOperateClient.Builder().operateUrl(serverDefinition.operateUrl)
-          .authentication(saOperate)
-          .build();
-      analysis.append("successfully,");
-
+      // -------------------------------------- TaskList
       // TaskList is not mandatory
       if (serverDefinition.taskListUrl != null && !serverDefinition.taskListUrl.isEmpty()) {
         isOk = stillOk(serverDefinition.taskListUrl, "taskListUrl", analysis, false, isOk);
@@ -311,15 +314,17 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         taskClient = new CamundaTaskListClient.Builder().taskListUrl(serverDefinition.taskListUrl)
             .authentication(saTaskList)
             .build();
-        analysis.append("successfully,");
-      }
+        analysis.append("successfully, ");
+      } else
+        analysis.append("No Tasklist connection required, ");
+
       //get tasks assigned to demo
       logger.info(analysis.toString());
 
     } catch (Exception e) {
       zeebeClient = null;
       throw new AutomatorException(
-          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
     }
   }
 
@@ -500,10 +505,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
   @Override
   public RegisteredTask registerServiceTask(String workerId,
-                                            String topic,
-                                            Duration lockTime,
-                                            Object jobHandler,
-                                            FixedBackoffSupplier backoffSupplier) {
+                                     String topic,
+                                     boolean streamEnabled,
+                                     Duration lockTime,
+                                     Object jobHandler,
+                                     FixedBackoffSupplier backoffSupplier) {
     if (!(jobHandler instanceof JobHandler)) {
       logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId,
           topic);
@@ -520,6 +526,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         .jobType(topic)
         .handler((JobHandler) jobHandler)
         .timeout(lockTime)
+        .streamEnabled(streamEnabled)
         .name(workerId);
 
     if (backoffSupplier != null) {
@@ -544,6 +551,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
     try {
+      if (operateClient==null) {
+        throw new AutomatorException("No Operate connection was provided");
+      }
       long processInstanceIdLong = Long.parseLong(processInstanceId);
 
       ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().parentKey(processInstanceIdLong)
@@ -619,6 +629,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
       throws AutomatorException {
     try {
+      if (operateClient==null) {
+        throw new AutomatorException("No Operate connection was provided");
+      }
+
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
       FlownodeInstanceFilter flownodeFilter = new FlownodeInstanceFilter.Builder().processInstanceKey(
           Long.valueOf(processInstanceId)).build();
@@ -642,6 +656,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                                   Map<String, Object> filterVariables,
                                                                   int maxResult) throws AutomatorException {
     try {
+      if (operateClient==null) {
+        throw new AutomatorException("No Operate connection was provided");
+      }
+
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
       ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().bpmnProcessId(processId)
           .build();
@@ -696,6 +714,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   @Override
   public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
     try {
+      if (operateClient==null) {
+        throw new AutomatorException("No Operate connection was provided");
+      }
+
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
       VariableFilter variableFilter = new VariableFilter.Builder().processInstanceKey(Long.valueOf(processInstanceId))
           .build();
@@ -719,6 +741,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
   public long countNumberOfProcessInstancesCreated(String processId, DateFilter startDate, DateFilter endDate)
       throws AutomatorException {
+    if (operateClient==null) {
+      throw new AutomatorException("No Operate connection was provided");
+    }
+
     SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
     try {
       int cumul = 0;
@@ -746,6 +772,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
   public long countNumberOfProcessInstancesEnded(String processId, DateFilter startDate, DateFilter endDate)
       throws AutomatorException {
+    if (operateClient==null) {
+      throw new AutomatorException("No Operate connection was provided");
+    }
+
     SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
     try {
       int cumul = 0;
@@ -782,6 +812,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
 
   public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
+    if (operateClient==null) {
+      throw new AutomatorException("No Operate connection was provided");
+    }
 
     try {
 
@@ -875,7 +908,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     analysis.append(message);
     analysis.append(" [");
     analysis.append(value);
-    analysis.append(" ]");
+    analysis.append("]");
 
     if (check) {
       if (value == null || (value instanceof String && ((String) value).isEmpty())) {

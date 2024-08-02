@@ -87,6 +87,9 @@ The flow scenario has a duration and objective to verify.
 
 You can specify objectives: produce 1000 Process Instances, end 500 process instances, and produce 300 tasks in a user task.
 
+The method to conduct a [Load Test](doc/howRunLoadTest%2FREADME.md) is available here.
+
+
 Visit [Load Test Scenario](doc/loadtestscenario/README.md) and the [Load test Tutorial](doc/loadtestscenario/Tutorial.md)
 
 ## Scenario
@@ -323,4 +326,35 @@ mvn springboot:build-image
 
 The docker image is build using the Dockerfile present on the root level.
 
-Push the image to ghcr.io/camunda-community-hub/process-execution-automator:
+Push the image to 
+```
+ghcr.io/camunda-community-hub/process-execution-automator:
+```
+
+## Detail
+
+Run command
+````
+mvn clean install
+````
+Now, create a docker image
+````
+docker build -t ghcr.io/processautomator:1.5.0 .
+````
+
+
+Push the image to the Camunda hub (you must be login first to the docker registry)
+
+````
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.0
+````
+
+
+Tag as the latest:
+````
+docker tag ghcr.io/processautomator:1.5.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
+````
+
+Check on
+https://github.com/camunda-community-hub/process-execution-automator/pkgs/container/process-execution-automator
