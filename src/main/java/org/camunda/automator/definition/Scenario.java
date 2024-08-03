@@ -117,9 +117,6 @@ public class Scenario {
    * Initialize the scenario and complete it
    */
   private void initialize() {
-    for (int i = 0; i < flows.size(); i++) {
-      flows.get(i).setStepNumber(i);
-    }
   }
 
   /**

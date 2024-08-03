@@ -26,8 +26,6 @@ public class ScenarioStep {
    * In case of a Flow Step, the number of workers to execute this tasks
    */
   private Integer nbWorkers = Integer.valueOf(1);
-  private final Long fixedBackOffDelay = Long.valueOf(0);
-  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -209,14 +207,11 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNumberOfWorkers() {
-    return numberOfWorkers == null || numberOfWorkers == 0 ? 1 : numberOfWorkers;
+  public int getNbWorkers() {
+    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
   }
 
-  public void setNumberOfWorkers(int nbWorkers) {
-    this.numberOfWorkers = nbWorkers;
-  }
-  public void setNumberOfWorkers(int nbWorkers) {
+  public void setNbWorkers(int nbWorkers) {
     this.nbWorkers = nbWorkers;
   }
   public String getProcessId() {
