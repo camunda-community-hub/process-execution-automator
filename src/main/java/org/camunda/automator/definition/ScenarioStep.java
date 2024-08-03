@@ -20,6 +20,8 @@ public class ScenarioStep {
    * operations; stringtodate()
    */
   private final Map<String, String> variablesOperation = Collections.emptyMap();
+  private final Long fixedBackOffDelay = 0L;
+  private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
@@ -67,6 +69,11 @@ public class ScenarioStep {
    */
   private String processId;
 
+  /**
+   * Receive a step range in the scenario, which help to identify the step
+   */
+  private int stepNumber = -1;
+
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
   }
@@ -92,8 +99,10 @@ public class ScenarioStep {
   }
 
   public String getInformation() {
-    return (name == null ? "" : (name + ":")) + getType().toString() + ": taskId:[" + getTaskId() + "] topic:"
-        + getTopic() + "]";
+    return "step_" + stepNumber + " " // cartouche
+        + (name == null ? "" : ("[" + name + "]:")) // name
+        + getType().toString() // type
+        + ",taskId:[" + getTaskId() + "]" + (getTopic() == null ? "" : " topic:[" + getTopic() + "]");
   }
 
   public Step getType() {
@@ -200,8 +209,12 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNbWorkers() {
-    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
+  public int getNumberOfWorkers() {
+    return numberOfWorkers == null || numberOfWorkers == 0 ? 1 : numberOfWorkers;
+  }
+
+  public void setNumberOfWorkers(int nbWorkers) {
+    this.numberOfWorkers = nbWorkers;
   }
   public void setNumberOfWorkers(int nbWorkers) {
     this.nbWorkers = nbWorkers;

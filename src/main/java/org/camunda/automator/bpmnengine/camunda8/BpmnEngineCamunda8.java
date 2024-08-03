@@ -70,8 +70,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public static final String THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME = "ThisIsACompleteImpossibleVariableName";
   public static final int SEARCH_MAX_SIZE = 100;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
-
-  private BpmnEngineList.BpmnServerDefinition serverDefinition;
   boolean hightFlowMode = false;
   /**
    * It is not possible to search user task for a specfic processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -79,6 +77,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
    */
   Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
   Random random = new Random(System.currentTimeMillis());
+  private BpmnEngineList.BpmnServerDefinition serverDefinition;
   private ZeebeClient zeebeClient;
   private CamundaOperateClient operateClient;
   private CamundaTaskListClient  taskClient;
@@ -205,6 +204,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     // connection is critical, so let build the analysis
     StringBuilder analysis = new StringBuilder();
+
+
     boolean isOk = true;
 
     isOk = stillOk(serverDefinition.name, "ZeebeConnection", analysis, false, isOk);
@@ -244,7 +245,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       } catch (Exception e) {
         zeebeClient = null;
         throw new AutomatorException(
-            "Bad credential [" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
+            "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
       }
       try {
         URL authUrl = URI.create("https://login.cloud.camunda.io/oauth/token").toURL();
@@ -321,6 +322,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       throw new AutomatorException("Invalid configuration");
 
     // ---------------- connection
+    boolean zeebeOk = false;
+    boolean operateOk = false;
+    boolean tasklistOk = false;
     try {
       isOk = stillOk(serverDefinition.workerExecutionThreads, "ExecutionThread", analysis, false, isOk);
 
@@ -340,7 +344,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       }
 
       if (!isOk)
-        throw new AutomatorException("Invalid configuration " + analysis.toString());
+        throw new AutomatorException("Invalid configuration " + analysis);
 
       clientBuilder.numJobWorkerExecutionThreads(serverDefinition.workerExecutionThreads);
       clientBuilder.defaultJobWorkerMaxJobsActive(serverDefinition.workerMaxJobsActive);
@@ -352,6 +356,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       Topology join = zeebeClient.newTopologyRequest().send().join();
 
       // Actually, if an error arrived, an exception is thrown
+
       analysis.append(join != null ? "successfully, " : "error, ");
 
       // -------------------------------------- Operate
@@ -376,9 +381,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         analysis.append("successfully, ");
       } else
         analysis.append("No Tasklist connection required, ");
-
       //get tasks assigned to demo
-      logger.info(analysis.toString());
+      logger.info("Zeebe: OK, Operate: OK, TaskList:OK " + analysis.toString());
 
     } catch (Exception e) {
       zeebeClient = null;
@@ -395,7 +399,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /**
    * Engine is ready. If not, a connection() method must be call
    *
-   * @return
+   * @return true if the engine is ready
    */
   public boolean isReady() {
     return zeebeClient != null;

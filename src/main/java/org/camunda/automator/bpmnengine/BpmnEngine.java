@@ -105,6 +105,7 @@ public interface BpmnEngine {
   /**
    * @param workerId        workerId
    * @param topic           topic to register
+
    * @param streamEnabled    true if the stream enable is open
    * @param lockTime        lock time for the job
    * @param jobHandler      C7: must implement ExternalTaskHandler. C8: must implement JobHandler

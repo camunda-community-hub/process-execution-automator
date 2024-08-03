@@ -17,11 +17,9 @@ import java.util.Map;
 
 public class BpmnEngineDummy implements BpmnEngine {
 
-  private final BpmnEngineList.BpmnServerDefinition serverDefinition;
   private final Logger logger = LoggerFactory.getLogger(BpmnEngineDummy.class);
 
   public BpmnEngineDummy(BpmnEngineList.BpmnServerDefinition serverDefinition) {
-    this.serverDefinition = serverDefinition;
   }
 
   @Override

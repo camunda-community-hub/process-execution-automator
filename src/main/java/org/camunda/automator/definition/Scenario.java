@@ -75,6 +75,7 @@ public class Scenario {
 
       Scenario scenario = createFromInputStream(new FileInputStream(scenarioFile), scenarioFile.getAbsolutePath());
       scenario.scenarioFile = scenarioFile.getAbsolutePath();
+      scenario.initialize();
       return scenario;
 
     } catch (FileNotFoundException e) {
@@ -103,12 +104,22 @@ public class Scenario {
       if (scnHead == null) {
         throw new AutomatorException("Scenario: can't load from JSON [" + jsonContent + "] ");
       }
+      scnHead.initialize();
       return scnHead;
     } catch (IOException e) {
       logger.error("CreateScenarioFromInputString: origin[{}] error {} : {} ", origin, e.getMessage(), e.toString());
       throw new AutomatorException("Can't load content from [" + origin + "] " + e.getMessage());
     }
 
+  }
+
+  /**
+   * Initialize the scenario and complete it
+   */
+  private void initialize() {
+    for (int i = 0; i < flows.size(); i++) {
+      flows.get(i).setStepNumber(i);
+    }
   }
 
   /**

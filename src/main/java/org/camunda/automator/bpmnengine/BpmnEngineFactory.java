@@ -33,6 +33,7 @@ public class BpmnEngineFactory {
     return bpmnEngineFactory;
   }
 
+
   public static BpmnEngineFactory getInstance(BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
     bpmnEngineFactory.benchmarkStartPiExceptionHandlingStrategy = benchmarkStartPiExceptionHandlingStrategy;
     return bpmnEngineFactory;

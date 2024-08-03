@@ -326,6 +326,7 @@ mvn springboot:build-image
 
 The docker image is build using the Dockerfile present on the root level.
 
+
 Push the image to 
 ```
 ghcr.io/camunda-community-hub/process-execution-automator:
