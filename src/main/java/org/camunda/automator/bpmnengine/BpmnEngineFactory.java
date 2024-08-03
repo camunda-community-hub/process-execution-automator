@@ -7,6 +7,7 @@
 package org.camunda.automator.bpmnengine;
 
 import org.camunda.automator.bpmnengine.camunda7.BpmnEngineCamunda7;
+import org.camunda.automator.bpmnengine.camunda8.BenchmarkStartPiExceptionHandlingStrategy;
 import org.camunda.automator.bpmnengine.camunda8.BpmnEngineCamunda8;
 import org.camunda.automator.bpmnengine.dummy.BpmnEngineDummy;
 import org.camunda.automator.configuration.BpmnEngineList;
@@ -15,15 +16,25 @@ import org.camunda.automator.engine.AutomatorException;
 import java.util.EnumMap;
 import java.util.Map;
 
-/**
+
+/*
  * This can't be a Component, to be used in AutomatorAPI
  */
 public class BpmnEngineFactory {
 
   private static final BpmnEngineFactory bpmnEngineFactory = new BpmnEngineFactory();
   Map<BpmnEngineList.CamundaEngine, BpmnEngine> cacheEngine = new EnumMap<>(BpmnEngineList.CamundaEngine.class);
+  BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy=null;
 
+  private BpmnEngineFactory() {
+    // use the getInstance() method
+  }
   public static BpmnEngineFactory getInstance() {
+    return bpmnEngineFactory;
+  }
+
+  public static BpmnEngineFactory getInstance(BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
+    bpmnEngineFactory.benchmarkStartPiExceptionHandlingStrategy = benchmarkStartPiExceptionHandlingStrategy;
     return bpmnEngineFactory;
   }
 
@@ -42,9 +53,9 @@ public class BpmnEngineFactory {
       engine = switch (serverDefinition.serverType) {
         case CAMUNDA_7 -> new BpmnEngineCamunda7(serverDefinition, logDebug);
 
-        case CAMUNDA_8 -> BpmnEngineCamunda8.getFromServerDefinition(serverDefinition, logDebug);
+        case CAMUNDA_8 -> BpmnEngineCamunda8.getFromServerDefinition(serverDefinition, benchmarkStartPiExceptionHandlingStrategy, logDebug);
 
-        case CAMUNDA_8_SAAS -> BpmnEngineCamunda8.getFromServerDefinition(serverDefinition, logDebug);
+        case CAMUNDA_8_SAAS -> BpmnEngineCamunda8.getFromServerDefinition(serverDefinition, benchmarkStartPiExceptionHandlingStrategy, logDebug);
 
         case DUMMY -> new BpmnEngineDummy(serverDefinition);
 

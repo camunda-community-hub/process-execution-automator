@@ -14,8 +14,8 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
-    <zeebe.version>8.3.0</zeebe.version>
-    <zeebe-client.version>8.3.0</zeebe-client.version>
+    <version.zeebe>8.5.7</version.zeebe>
+    <version.zeebe-client>8.5.5</version.zeebe-client>
 
     <camunda7.version>7.19.0</camunda7.version>
 
@@ -52,12 +52,12 @@
     <dependency>
       <groupId>io.camunda.spring</groupId>
       <artifactId>spring-boot-starter-camunda</artifactId>
-      <version>${zeebe.version}</version>
+      <version>${version.zeebe}</version>
     </dependency>
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>zeebe-client-java</artifactId>
-      <version>${zeebe-client.version}</version>
+      <version>${version.zeebe-client}</version>
     </dependency>
 
     <dependency>
@@ -97,28 +97,30 @@
       <artifactId>camunda-operate-client-java</artifactId>
       <version>8.1.8.1</version>
     </dependency>
--->
-
-    <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
-    <!--
     <dependency>
-      <groupId>io.camunda.spring</groupId>
-      <artifactId>spring-boot-starter-camunda-operate</artifactId>
-      <version>8.5.8-rc1</version>
+      <groupId>io.camunda</groupId>
+      <artifactId>camunda-tasklist-client-java</artifactId>
+      <version>1.6.1</version>
     </dependency>
 -->
 
+
+    <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
     <dependency>
       <groupId>io.camunda.spring</groupId>
       <artifactId>java-client-operate</artifactId>
       <version>8.5.8-rc1</version>
     </dependency>
 
+    <!-- 1.6.1, 8.5.3.4 -->
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-tasklist-client-java</artifactId>
       <version>1.6.1</version>
     </dependency>
+
+
+
 
     <!-- C7 external task client -->
     <dependency>

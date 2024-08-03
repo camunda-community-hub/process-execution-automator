@@ -56,6 +56,9 @@ automator:
       zeebeGatewayAddress: "127.0.0.1:26500"
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+      operateUrl: "http://localhost:8081"
 
     - type: "camunda8saas"
       name: "Camunda8Grena"

@@ -1,15 +1,21 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.operate.CamundaOperateClient;
-import io.camunda.operate.auth.AuthInterface;
-import io.camunda.operate.dto.FlownodeInstance;
-import io.camunda.operate.dto.FlownodeInstanceState;
-import io.camunda.operate.dto.ProcessInstance;
-import io.camunda.operate.dto.ProcessInstanceState;
-import io.camunda.operate.dto.SearchResult;
+import io.camunda.operate.CamundaOperateClientConfiguration;
+import io.camunda.operate.auth.JwtAuthentication;
+import io.camunda.operate.auth.JwtCredential;
+import io.camunda.operate.auth.SimpleAuthentication;
+import io.camunda.operate.auth.SimpleCredential;
+import io.camunda.operate.auth.TokenResponseMapper;
 import io.camunda.operate.exception.OperateException;
+import io.camunda.operate.model.FlowNodeInstance;
+import io.camunda.operate.model.FlowNodeInstanceState;
+import io.camunda.operate.model.ProcessInstance;
+import io.camunda.operate.model.ProcessInstanceState;
+import io.camunda.operate.model.SearchResult;
 import io.camunda.operate.search.DateFilter;
-import io.camunda.operate.search.FlownodeInstanceFilter;
+import io.camunda.operate.search.FlowNodeInstanceFilter;
 import io.camunda.operate.search.ProcessInstanceFilter;
 import io.camunda.operate.search.SearchQuery;
 import io.camunda.operate.search.Sort;
@@ -35,6 +41,7 @@ import io.camunda.zeebe.client.api.worker.JobHandler;
 import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProvider;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProviderBuilder;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
 import org.camunda.automator.configuration.BpmnEngineList;
@@ -44,9 +51,10 @@ import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.flow.FixedBackoffSupplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,13 +81,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   Random random = new Random(System.currentTimeMillis());
   private ZeebeClient zeebeClient;
   private CamundaOperateClient operateClient;
-  private CamundaTaskListClient taskClient;
-  @Autowired
-  private BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy;
+  private CamundaTaskListClient  taskClient;
+
+  private final  BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy;
   // Default
   private BpmnEngineList.CamundaEngine typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8;
 
-  private BpmnEngineCamunda8() {
+  private BpmnEngineCamunda8(BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy ) {
+    this.exceptionHandlingStrategy = exceptionHandlingStrategy;
   }
 
   /**
@@ -89,8 +98,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
    * @param logDebug         if true, operation will be log as debug level
    */
   public static BpmnEngineCamunda8 getFromServerDefinition(BpmnEngineList.BpmnServerDefinition serverDefinition,
+                                                           BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy,
                                                            boolean logDebug) {
-    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8(benchmarkStartPiExceptionHandlingStrategy);
     bpmnEngineCamunda8.serverDefinition = serverDefinition;
     return bpmnEngineCamunda8;
 
@@ -111,8 +121,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                    String operateUrl,
                                                    String operateUserName,
                                                    String operateUserPassword,
-                                                   String tasklistUrl) {
-    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+                                                   String tasklistUrl,
+                                                   BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8(benchmarkStartPiExceptionHandlingStrategy);
     bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
     bpmnEngineCamunda8.serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
     bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
@@ -145,7 +156,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
    * @param tasklistUrl             Url to access TaskList
    */
   public static BpmnEngineCamunda8 getFromCamunda8SaaS(
-
       String zeebeSaasCloudRegister,
       String zeebeSaasCloudRegion,
       String zeebeSaasCloudClusterId,
@@ -156,8 +166,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       String operateUrl,
       String operateUserName,
       String operateUserPassword,
-      String tasklistUrl) {
-    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8();
+      String tasklistUrl,
+      BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
+    BpmnEngineCamunda8 bpmnEngineCamunda8 = new BpmnEngineCamunda8(benchmarkStartPiExceptionHandlingStrategy);
     bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
     bpmnEngineCamunda8.serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
 
@@ -200,7 +211,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     this.typeCamundaEngine = this.serverDefinition.serverType;
 
     final ZeebeClientBuilder clientBuilder;
-    AuthInterface saOperate;
+    CamundaOperateClientConfiguration configurationOperate;
     io.camunda.tasklist.auth.AuthInterface saTaskList;
 
     // ---------------------------- Camunda Saas
@@ -235,12 +246,34 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         throw new AutomatorException(
             "Bad credential [" + serverDefinition.name + "] Analysis:" + analysis + " fail : " + e.getMessage());
       }
+      try {
+        URL authUrl = URI.create("https://login.cloud.camunda.io/oauth/token").toURL();
+        URL operateUrl = URI.create("https://" + serverDefinition.zeebeSaasRegion + ".operate.camunda.io/"
+            + serverDefinition.zeebeSaasClusterId).toURL();
 
-      saOperate = new io.camunda.operate.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
-          serverDefinition.zeebeSaasClientSecret);
-      saTaskList = new io.camunda.tasklist.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
-          serverDefinition.zeebeSaasClientSecret);
+        JwtCredential credentials = new JwtCredential(serverDefinition.zeebeSaasClientId,
+            serverDefinition.zeebeSaasClientSecret, "operate.camunda.io", authUrl);
+        ObjectMapper objectMapper = new ObjectMapper();
 
+        JwtAuthentication authentication = new io.camunda.operate.auth.JwtAuthentication(credentials,
+            (TokenResponseMapper) objectMapper);
+        CamundaOperateClientConfiguration configuration = new CamundaOperateClientConfiguration(authentication,
+            operateUrl, objectMapper,
+            (org.apache.hc.client5.http.impl.classic.CloseableHttpClient) HttpClients.createDefault());
+
+        configurationOperate = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper,
+            HttpClients.createDefault());
+
+
+        saTaskList = new io.camunda.tasklist.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
+            serverDefinition.zeebeSaasClientSecret);
+      } catch (Exception e) {
+        zeebeClient = null;
+        logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+        throw new AutomatorException(
+            "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
+                + e.getMessage());
+      }
       typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS;
 
       //---------------------------- Camunda 8 Self Manage
@@ -252,8 +285,35 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       clientBuilder = ZeebeClient.newClientBuilder()
           .gatewayAddress(serverDefinition.zeebeGatewayAddress)
           .usePlaintext();
-      saOperate = new io.camunda.operate.auth.SimpleAuthentication(serverDefinition.operateUserName,
-          serverDefinition.operateUserPassword, serverDefinition.operateUrl);
+      try {
+        if (serverDefinition.operateAuthenticationUrl != null) {
+          URL operateUrl = URI.create(serverDefinition.operateUrl).toURL();
+          // "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
+          URL authUrl = URI.create(serverDefinition.operateAuthenticationUrl).toURL();
+
+          JwtCredential credentials = new JwtCredential(serverDefinition.operateClientId,
+              serverDefinition.operateClientSecret, serverDefinition.operateAudience, authUrl);
+          ObjectMapper objectMapper = new ObjectMapper();
+          JwtAuthentication authentication = new JwtAuthentication(credentials, (TokenResponseMapper) objectMapper);
+          configurationOperate = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper,
+              HttpClients.createDefault());
+        } else {
+          URL operateUrl = URI.create(serverDefinition.operateUrl).toURL();
+          SimpleCredential credentials = new SimpleCredential(serverDefinition.operateUserName,
+              serverDefinition.operateUserPassword, operateUrl, Duration.ofMinutes(10));
+          SimpleAuthentication authentication = new SimpleAuthentication(credentials);
+          ObjectMapper objectMapper = new ObjectMapper();
+          configurationOperate = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper,
+              HttpClients.createDefault());
+        }
+      } catch (Exception e) {
+        zeebeClient = null;
+        logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+        throw new AutomatorException(
+            "Can't connect to SaaS environemnt[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
+                + e.getMessage());
+      }
+
       saTaskList = new io.camunda.tasklist.auth.SimpleAuthentication(serverDefinition.operateUserName,
           serverDefinition.operateUserPassword);
       typeCamundaEngine = BpmnEngineList.CamundaEngine.CAMUNDA_8;
@@ -298,9 +358,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       if (serverDefinition.operateUrl != null && !serverDefinition.operateUrl.isEmpty()) {
         isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, false, isOk);
         analysis.append("Operate connection...");
-        operateClient = new CamundaOperateClient.Builder().operateUrl(serverDefinition.operateUrl)
-            .authentication(saOperate)
-            .build();
+        operateClient = new CamundaOperateClient(configurationOperate);
+
         analysis.append("successfully, ");
       } else
         analysis.append("No operate connection required, ");
@@ -323,6 +382,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     } catch (Exception e) {
       zeebeClient = null;
+      logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
       throw new AutomatorException(
           "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
     }
@@ -505,11 +565,11 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
   @Override
   public RegisteredTask registerServiceTask(String workerId,
-                                     String topic,
-                                     boolean streamEnabled,
-                                     Duration lockTime,
-                                     Object jobHandler,
-                                     FixedBackoffSupplier backoffSupplier) {
+                                            String topic,
+                                            boolean streamEnabled,
+                                            Duration lockTime,
+                                            Object jobHandler,
+                                            FixedBackoffSupplier backoffSupplier) {
     if (!(jobHandler instanceof JobHandler)) {
       logger.error("handler is not a JobHandler implementation, can't register the worker [{}], topic [{}]", workerId,
           topic);
@@ -551,12 +611,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
       throws AutomatorException {
     try {
-      if (operateClient==null) {
+      if (operateClient == null) {
         throw new AutomatorException("No Operate connection was provided");
       }
       long processInstanceIdLong = Long.parseLong(processInstanceId);
 
-      ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().parentKey(processInstanceIdLong)
+      ProcessInstanceFilter processInstanceFilter = ProcessInstanceFilter.builder().parentKey(processInstanceIdLong)
           .build();
 
       SearchQuery processInstanceQuery = new SearchQuery.Builder().filter(processInstanceFilter).size(100).build();
@@ -629,21 +689,21 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
       throws AutomatorException {
     try {
-      if (operateClient==null) {
+      if (operateClient == null) {
         throw new AutomatorException("No Operate connection was provided");
       }
 
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
-      FlownodeInstanceFilter flownodeFilter = new FlownodeInstanceFilter.Builder().processInstanceKey(
+      FlowNodeInstanceFilter flownodeFilter = FlowNodeInstanceFilter.builder().processInstanceKey(
           Long.valueOf(processInstanceId)).build();
 
       SearchQuery flownodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(maxResult).build();
-      List<FlownodeInstance> flownodes = operateClient.searchFlownodeInstances(flownodeQuery);
+      List<FlowNodeInstance> flownodes = operateClient.searchFlowNodeInstances(flownodeQuery);
       return flownodes.stream().filter(t -> taskId.equals(t.getFlowNodeId())).map(t -> {
         TaskDescription taskDescription = new TaskDescription();
         taskDescription.taskId = t.getFlowNodeId();
         taskDescription.type = getTaskType(t.getType()); // to implement
-        taskDescription.isCompleted = FlownodeInstanceState.COMPLETED.equals(t.getState()); // to implement
+        taskDescription.isCompleted = FlowNodeInstanceState.COMPLETED.equals(t.getState()); // to implement
         return taskDescription;
       }).toList();
 
@@ -656,12 +716,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                                   Map<String, Object> filterVariables,
                                                                   int maxResult) throws AutomatorException {
     try {
-      if (operateClient==null) {
+      if (operateClient == null) {
         throw new AutomatorException("No Operate connection was provided");
       }
 
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
-      ProcessInstanceFilter processInstanceFilter = new ProcessInstanceFilter.Builder().bpmnProcessId(processId)
+      ProcessInstanceFilter processInstanceFilter = ProcessInstanceFilter.builder().bpmnProcessId(processId)
           .build();
 
       SearchQuery processInstanceQuery = new SearchQuery.Builder().filter(processInstanceFilter)
@@ -714,16 +774,16 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   @Override
   public Map<String, Object> getVariables(String processInstanceId) throws AutomatorException {
     try {
-      if (operateClient==null) {
+      if (operateClient == null) {
         throw new AutomatorException("No Operate connection was provided");
       }
 
       // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
-      VariableFilter variableFilter = new VariableFilter.Builder().processInstanceKey(Long.valueOf(processInstanceId))
+      VariableFilter variableFilter = VariableFilter.builder().processInstanceKey(Long.valueOf(processInstanceId))
           .build();
 
       SearchQuery variableQuery = new SearchQuery.Builder().filter(variableFilter).build();
-      List<io.camunda.operate.dto.Variable> listVariables = operateClient.searchVariables(variableQuery);
+      List<io.camunda.operate.model.Variable> listVariables = operateClient.searchVariables(variableQuery);
 
       Map<String, Object> variables = new HashMap<>();
       listVariables.forEach(t -> variables.put(t.getName(), t.getValue()));
@@ -741,7 +801,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
   public long countNumberOfProcessInstancesCreated(String processId, DateFilter startDate, DateFilter endDate)
       throws AutomatorException {
-    if (operateClient==null) {
+    if (operateClient == null) {
       throw new AutomatorException("No Operate connection was provided");
     }
 
@@ -749,7 +809,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     try {
       int cumul = 0;
       SearchResult<ProcessInstance> searchResult = null;
-      queryBuilder = queryBuilder.filter(new ProcessInstanceFilter.Builder().bpmnProcessId(processId).build());
+      queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId).build());
       queryBuilder.sort(new Sort("key", SortOrder.ASC));
       int maxLoop = 0;
       do {
@@ -772,7 +832,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
   public long countNumberOfProcessInstancesEnded(String processId, DateFilter startDate, DateFilter endDate)
       throws AutomatorException {
-    if (operateClient==null) {
+    if (operateClient == null) {
       throw new AutomatorException("No Operate connection was provided");
     }
 
@@ -781,7 +841,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       int cumul = 0;
       SearchResult<ProcessInstance> searchResult = null;
 
-      queryBuilder = queryBuilder.filter(new ProcessInstanceFilter.Builder().bpmnProcessId(processId)
+      queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId)
           // .startDate(startDate)
           // .endDate(endDate)
           .state(ProcessInstanceState.COMPLETED).build());
@@ -812,27 +872,27 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
   /* ******************************************************************** */
 
   public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
-    if (operateClient==null) {
+    if (operateClient == null) {
       throw new AutomatorException("No Operate connection was provided");
     }
 
     try {
 
       int cumul = 0;
-      SearchResult<FlownodeInstance> searchResult = null;
+      SearchResult<FlowNodeInstance> searchResult = null;
       int maxLoop = 0;
       do {
         maxLoop++;
 
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
-        queryBuilder = queryBuilder.filter(new FlownodeInstanceFilter.Builder().flowNodeId(taskId).build());
+        queryBuilder = queryBuilder.filter(FlowNodeInstanceFilter.builder().flowNodeId(taskId).build());
         queryBuilder.sort(new Sort("key", SortOrder.ASC));
         if (searchResult != null && !searchResult.getItems().isEmpty()) {
           queryBuilder.searchAfter(searchResult.getSortValues());
         }
         SearchQuery searchQuery = queryBuilder.build();
         searchQuery.setSize(SEARCH_MAX_SIZE);
-        searchResult = operateClient.searchFlownodeInstanceResults(searchQuery);
+        searchResult = operateClient.searchFlowNodeInstanceResults(searchQuery);
         cumul += (long) searchResult.getItems().size();
       } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
       return cumul;
