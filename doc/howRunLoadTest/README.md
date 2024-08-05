@@ -192,7 +192,9 @@ To measure the throughput, this warmup period must be over.
 
 Using a too-long time is Counterproductive: you reduce the number of tests you can run.
 
-In the end, when you fit the expected throughput, run an extended test (1 or 2 hours); some issues may be visible after some time. If the Operate's import does not follow the instructions, it's hard to detect it. If the cluster is built on some unstable performance resource, the issue may not be visible in a 10-minute test.
+In the end, when you fit the expected throughput, run an extended test (1 or 2 hours); some issues may be visible after some time. 
+If the Operate's import does not follow the instructions, it's hard to detect it. 
+If the cluster is built on some unstable performance resource, the issue may not be visible in a 10-minute test.
 
 # Warmup
 When a process instance is created, the Zeebe engine processes it. In general, the process has a service task.
@@ -469,13 +471,82 @@ Note: It is acceptable if the cluster faces a peak, and the disk will absorb the
 Via Operate, check the number of jobs per task. If the number of workers is underestimated, a service task will make the number of functions too essential.
 This may be related to the GRPC latency (there are enough workers, but the completion is too long) or insufficient workers to handle the throughput.
 
-The second effect is the operating importer.
+The second effect is Operate's importer.
 Zeebe exports data in a Raw index, and then Operate imports the data in the Operate index.
 If the importer is behind, Operate will show the situation from the past.
 The simple way to detect the situation is at the end of the load test. Stop creations and workers: now, zeebe, finish work.
-During one minute, information in Operate should change (the importer finishes importing the last information), but if the data still changes after this time, operate importer is too slow and must be scaled.
+During one minute, information in Operate should change (the importer finishes importing the last information), 
+but if the data still changes after this time, operate importer is too slow and must be scaled.
 
 
+# Procedures
+
+## Broker size scaling
+
+the number of pods (clusters) can be changed dynamically.
+
+Check the procedure here:
+
+https://docs.camunda.io/docs/self-managed/zeebe-deployment/operations/cluster-scaling/
+
+Attention: maintains the VALUE.YAML should have the same number; 
+otherwise, any helm upgrade will downsize the cluster to the original value. 
+Worst: you may lose data at this moment. When you downscale, the first step consists of sending 
+the request to the cluster via a REST CALL. The cluster will then move partitions to pods. 
+Only when this operation is finished it’s possible to reduce the number of pods.
+
+
+## Operate scaling
+
+There is two methods to scale Operate,
+
+### Multiple threads to import
+
+This parameter pilot the importer. Each time a new record to import is detected by Operate, it submit the record to a Thread pool. 
+Then, a thread realize the import.
+
+This is possible to change the value of thread in this pool (the default value is 1). The first one is to change the value of
+camunda.operate.importer.threadsCount
+you can change this parameter via the env section
+
+````yaml
+env:
+  - name: CAMUNDA_OPERATE_IMPORTER_THREADSCOUNT
+    value: 10
+````
+
+You have to check the CPU on the Operate pod. If the CPU and memory is high, it's counter-productive to increase the number of threads.
+
+### Create multiple pods
+Operate contains 3 applications:
+
+* the Importer application
+* the Webapp
+* the Archiver
+
+The Webapp application can be scaled without any control. This is the UI.
+The Archiver and the Archiver can be scaled, but each instance must have a unique number and know the total number of instances.
+
+This can be done via 
+
+
+````yaml
+env:
+  - name: CAMUNDA_OPERATE_IMPORTERENABLED
+    value: "true"
+  - name: CAMUNDA_OPERATE_ARCHIVERENABLED
+    value: "false"
+  - name: CAMUNDA_OPERATE_WEBAPPENABLED
+    value: "false"
+  - name: CAMUNDA_OPERATE_CLUSTERNODE_NODECOUNT
+    value: "3"
+  - name: CAMUNDA_OPERATE_CLUSTERNODE_CURRENTNODEID
+    value: "0"
+````
+Three deployment (each with replicas:1 and a different CURRENTNODEID, moving for 0 to 2) must be specified.
+The total number of nodes is the total number of partitions. 
+It's possible to have less importer than partitions: then a node will import multiple partition. 
+This is why it's primordial to have the NODE_COUNT : each node calculate the number of partition to import.
 
 
 # Action-Reaction
