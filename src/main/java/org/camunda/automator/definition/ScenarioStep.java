@@ -43,7 +43,7 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
-  private Boolean streamEnabled =true;
+  private final Boolean streamEnabled = true;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -70,7 +70,7 @@ public class ScenarioStep {
   /**
    * Receive a step range in the scenario, which help to identify the step
    */
-  private int stepNumber = -1;
+  private final int stepNumber = -1;
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -135,7 +135,7 @@ public class ScenarioStep {
   }
 
   public boolean isStreamEnabled() {
-    return streamEnabled==null? true: streamEnabled;
+    return streamEnabled == null || streamEnabled.booleanValue();
   }
 
   /* ******************************************************************** */
@@ -214,12 +214,13 @@ public class ScenarioStep {
   public void setNbWorkers(int nbWorkers) {
     this.nbWorkers = nbWorkers;
   }
+
   public String getProcessId() {
     return processId;
   }
 
   public long getFixedBackOffDelay() {
-    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay;
+    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay.longValue();
   }
 
   protected void afterUnSerialize(ScenarioExecution scnExecution) {

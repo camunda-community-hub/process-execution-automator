@@ -34,7 +34,6 @@ public class AutomatorCLI implements CommandLineRunner {
   @Autowired
   ConfigurationStartup configurationStartup;
 
-
   public static void main(String[] args) {
     isRunningCLI = true;
     SpringApplication app = new SpringApplication(AutomatorCLI.class);

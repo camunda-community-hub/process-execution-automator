@@ -77,9 +77,8 @@ public class CreateProcessInstanceThread {
     return listStartProcess.stream().flatMap(t -> t.listProcessInstances.stream()).collect(Collectors.toList());
   }
 
-
   public int getNumberOfRunningThreads() {
-    return (int) listStartProcess.stream().filter(t->t.isRunning()).count();
+    return (int) listStartProcess.stream().filter(t -> t.isRunning()).count();
   }
 
   public int getTotalCreation() {
@@ -125,11 +124,11 @@ public class CreateProcessInstanceThread {
     /**
      * @param executionBatchNumber
      * @param indexInBatch                     the component number, when multiple component where generated to handle the flow
-     * @param numberOfProcessInstanceToStart number of process instance to start by this object
+     * @param numberOfProcessInstanceToStart   number of process instance to start by this object
      * @param durationToCreateProcessInstances duration max allowed to create process instance
-     * @param scenarioStep step to use to create the process instance
-     * @param runScenario scenario to use
-     * @param runResult result object to save information
+     * @param scenarioStep                     step to use to create the process instance
+     * @param runScenario                      scenario to use
+     * @param runResult                        result object to save information
      */
     public StartProcess(int executionBatchNumber,
                         int indexInBatch,
@@ -153,7 +152,7 @@ public class CreateProcessInstanceThread {
      */
     @Override
     public void run() {
-      isRunning=true;
+      isRunning = true;
       boolean alreadyLoggedError = false;
       isOverload = false;
       long begin = System.currentTimeMillis();
@@ -191,19 +190,17 @@ public class CreateProcessInstanceThread {
           // log only at the debug mode (thread per thread), in monitoring log only at batch level
           if (runScenario.getRunParameters().showLevelDebug()) {
             // take too long to create the required process instance, so stop now.
-            logger.info("batch_#{} {} Over the duration. Created {} when expected {} in {} ms",
-                executionBatchNumber,
-                scenarioStep.getId(),
-                nbCreation,
-                numberOfProcessInstanceToStart, currentTimeMillis - begin);
+            logger.info("batch_#{} {} Over the duration. Created {} when expected {} in {} ms", executionBatchNumber,
+                scenarioStep.getId(), nbCreation, numberOfProcessInstanceToStart, currentTimeMillis - begin);
           }
           isOverload = true;
           break;
         }
       }
 
-      isRunning=false;
+      isRunning = false;
     }
+
     public boolean isRunning() {
       return isRunning;
 

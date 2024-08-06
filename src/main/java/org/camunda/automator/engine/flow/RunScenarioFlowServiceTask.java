@@ -57,6 +57,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
   public String getTopic() {
     return getScenarioStep().getTopic();
   }
+
   @Override
   public void execute() {
     registerWorker();
@@ -114,9 +115,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
     if (getRunScenario().getRunParameters().showLevelMonitoring()) {
       logger.info("Start service TaskId[{}] Topic[{}] StreamEnabled:{} DurationSleep[{} ms]",
-          getScenarioStep().getTaskId(),
-          getScenarioStep().getTopic(),
-          getScenarioStep().isStreamEnabled(),
+          getScenarioStep().getTaskId(), getScenarioStep().getTopic(), getScenarioStep().isStreamEnabled(),
           durationSleep.toMillis());
     }
 
@@ -156,11 +155,11 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     public void execute(org.camunda.bpm.client.task.ExternalTask externalTask,
                         ExternalTaskService externalTaskService) {
       switch (getScenarioStep().getModeExecution()) {
-      case CLASSICAL, WAIT -> manageWaitExecution(externalTask, externalTaskService, null, null,
-          durationSleep.toMillis());
+      case CLASSICAL, WAIT ->
+          manageWaitExecution(externalTask, externalTaskService, null, null, durationSleep.toMillis());
       case THREAD, ASYNCHRONOUS -> manageAsynchronousExecution(externalTask, externalTaskService, null, null);
-      case THREADTOKEN, ASYNCHRONOUSLIMITED -> manageAsynchronousLimitedExecution(externalTask, externalTaskService,
-          null, null);
+      case THREADTOKEN, ASYNCHRONOUSLIMITED ->
+          manageAsynchronousLimitedExecution(externalTask, externalTaskService, null, null);
       }
     }
 
@@ -192,7 +191,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         variables = RunZeebeOperation.getVariablesStep(flowServiceTask.getRunScenario(),
             flowServiceTask.getScenarioStep(), 0);
 
-      /**   This should be moved to the Camunda Engine implementation */
+        /**   This should be moved to the Camunda Engine implementation */
         /* C7 */
         if (externalTask != null) {
           currentVariables = externalTask.getAllVariables();
@@ -211,12 +210,9 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         flowServiceTask.runResult.registerAddStepExecution();
 
       } catch (Exception e) {
-        logger.error(
-            "Error task[{}] PI[{}] : {}",
-            flowServiceTask.getId(),
+        logger.error("Error task[{}] PI[{}] : {}", flowServiceTask.getId(),
             (externalTask != null ? externalTask.getProcessDefinitionKey() : activatedJob.getProcessInstanceKey()),
-            e.getMessage()
-            );
+            e.getMessage());
 
         flowServiceTask.runResult.registerAddErrorStepExecution();
 
