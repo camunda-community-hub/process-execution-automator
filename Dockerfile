@@ -1,4 +1,6 @@
-# docker build -t zeebe-cherry-officepdf:1.0.0 .
+# docker build -t pierre-yves-monnet/processautomator:1.5.0 .
+# JDK 17: openjdk:17-alpine
+# JDK 21: alpine/java:21-jdk
 FROM openjdk:17-alpine
 EXPOSE 9081
 COPY target/process-execution-automator-*-exec.jar /app.jar

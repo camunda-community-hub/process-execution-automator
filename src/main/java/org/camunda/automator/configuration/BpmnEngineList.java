@@ -27,6 +27,7 @@ public class BpmnEngineList {
   public static final String CONF_WORKER_MAX_JOBS_ACTIVE = "workerMaxJobsActive";
   public static final String CONF_WORKER_EXECUTION_THREADS = "workerExecutionThreads";
   public static final String CONF_TASK_LIST_URL = "taskListUrl";
+  public static final String CONF_IDENTITY_URL = "identityUrl";
   public static final String CONF_OPERATE_URL = "operateUrl";
   public static final String CONF_OPERATE_USER_PASSWORD = "operateUserPassword";
   public static final String CONF_OPERATE_USER_NAME = "operateUserName";
@@ -75,7 +76,7 @@ public class BpmnEngineList {
       for (BpmnServerDefinition server : allServers) {
         String serverDetails = "Configuration Server Type[" + server.serverType + "] ";
         if (server.serverType == null) {
-          logger.error("ServerType not declared for server [{}]",server.name);
+          logger.error("ServerType not declared for server [{}]", server.name);
           return;
         }
 
@@ -198,6 +199,8 @@ public class BpmnEngineList {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8;
         bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,
             true);
+
+        bpmnServerDefinition.identityUrl = getString(CONF_IDENTITY_URL, serverMap, null, contextLog, false);
         bpmnServerDefinition.operateUserName = getString(CONF_OPERATE_USER_NAME, serverMap, "Demo", contextLog, false);
         bpmnServerDefinition.operateUserPassword = getString(CONF_OPERATE_USER_PASSWORD, serverMap, "Demo", contextLog,
             false);
@@ -471,6 +474,7 @@ public class BpmnEngineList {
     public String zeebeSaasOAuthUrl;
     public String zeebeSaasAudience;
 
+    public String identityUrl;
     /**
      * Connection to Operate
      */
@@ -497,6 +501,19 @@ public class BpmnEngineList {
      */
     public Integer workerExecutionThreads = Integer.valueOf(DEFAULT_VALUE_EXECUTION_THREADS);
     public Integer workerMaxJobsActive = Integer.valueOf(DEFAULT_VALUE_MAX_JOBS_ACTIVE);
+
+    /**
+     * return true if the definition have an Operate connection valid
+     *
+     * @return true is Operate is required
+     */
+    public boolean isOperate() {
+      return !(operateUrl == null || operateUrl.isEmpty());
+    }
+
+    public boolean isTaskList() {
+      return !(taskListUrl == null || taskListUrl.isEmpty());
+    }
 
     public String getSynthesis() {
       String synthesis = serverType.name();
