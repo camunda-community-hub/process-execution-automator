@@ -53,7 +53,7 @@ public class BpmnEngineConfigurationInstance {
     serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
     serverDefinition.zeebeSaasRegion = zeebeCloudRegion;
     serverDefinition.zeebeSaasClusterId = zeebeCloudClusterId;
-    serverDefinition.zeebeSaasClientId = zeebeCloudClientId;
+    serverDefinition.zeebeClientId = zeebeCloudClientId;
 
     bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

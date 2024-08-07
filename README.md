@@ -109,7 +109,7 @@ The scenario does not contain any server information. It has only the server.
 Process-Automator references a list of servers in the configuration in multiple ways:
 * serverConnection : String, containing a list of connections separated by ;
 * serverList: List of records.
-* camunda7 : information to connnect a Camunda 7 server
+* camunda7 : information to connect a Camunda 7 server
 * camunda8 : information to connect a Camunda 8 server
 * camunda8Saas: information to connect a Camunda 8 Saas server
 
@@ -188,6 +188,7 @@ The application runs only these role. Doing that, in a cluster, it's possible to
 
 ## server connection
 
+
 ### String connection
 
 The string contains a list of connections, separate by a semi-colon (":").
@@ -218,17 +219,20 @@ The following parameters depend on the type.
 
 **CAMUNDA_8_SAAS**
 
-* zeebeCloudRegion,
-* zeebeCloudClusterId,
-* zeebeCloudClientId,
-* zeebeCloudOAuthUrl,
-* zeebeCloudAudience,
+* zeebeSaasRegion,
+* zeebeSaasClusterId,
+* zeebeSaasClientId,
 * clientSecret,
-* OperateUserName,
-* OperateUserPassword,
-* OperateUrl,
+* zeebeAudience
+* OperateClientId,
+* OperateClientPassword,
+* TaskClientId
+ TaskClientSecret
 * ExecutionThreads,
 * MaxJobActive
+
+
+
 
 **Example**
 
@@ -340,7 +344,7 @@ mvn clean install
 ````
 Now, create a docker image
 ````
-docker build -t pierre-yves-monnet/processautomator:1.5.0 .
+docker build -t pierre-yves-monnet/processautomator:1.5.1 .
 
 ````
 
@@ -348,15 +352,15 @@ docker build -t pierre-yves-monnet/processautomator:1.5.0 .
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/processautomator:1.5.0 ghcr.io/camunda-community-hub/process-execution-automator:1.5.0
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.0
+docker tag pierre-yves-monnet/processautomator:1.5.1 ghcr.io/camunda-community-hub/process-execution-automator:1.5.1
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.1
 
 ````
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/processautomator:1.5.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/processautomator:1.5.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
