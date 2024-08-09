@@ -127,6 +127,8 @@ When you execute a service task, you can set up multiple threads and ask for var
 
 Let's say you set up, for the service task "credit-charging", 3 threads and 3 jobs simultaneously. This service task takes 1 to 5 seconds to answer.
 
+Visit https://docs.camunda.io/docs/components/best-practices/development/writing-good-workers/#blocking--synchronous-code-and-thread-pools
+
 ## Synchronous
 In synchronous mode, the service task "handles" the call, and the execution is done using the handle method.
 Doing that, Zeebe's client
@@ -253,6 +255,12 @@ This may cause a heterogeneous cluster, which may affect the result.
 
 Considering linking the cluster size to the number of partitions is more reliable because the system is homogeneous. Adding then a partition is more predictable.
 
+Note: you can run a load test based on the thourghput expected in the next two years. Then, you can create a cluster with the number of partitions determined by the load test, and reduce the cluster size to reduce the cost of the cluster.
+The cluster will have fewer pods. The minimum size of ClusterSize is the replication factor. This make no sense to have two "streamer" for the same partition on the same broker: if the borker (the pod) stops, two streamers are lost.
+
+Then, when you need to increase the performance, scale the cluster size
+https://docs.camunda.io/docs/self-managed/zeebe-deployment/operations/cluster-scaling/
+
 ## number of partitions
 
 This is the main parameter to play with.
@@ -354,6 +362,7 @@ When a partition receives too many requests, it will reject them. This is the ba
 Having some back pressure from time to time is acceptable. Zeebe client manages that a process instance creation order will be retried. A worker will delay the request to get new jobs.
 However, having more than 1 % on a partition is counterproductive: more requests are sent (because the client will retry), which indicates that the cluster can't handle the throughput.
 
+Visit https://docs.camunda.io/docs/self-managed/zeebe-deployment/operations/backpressure/
 
 ## Worker – synchronous or asynchronous
 
@@ -381,6 +390,9 @@ Some are
 
 
 Visit "writing good worker" and "C8 implementation" documentation.
+https://docs.camunda.io/docs/components/best-practices/development/writing-good-workers/#blocking--synchronous-code-and-thread-pools
+
+https://github.com/camunda-community-hub/C8-workers-implementation-
 
 ## Flows: Zeebe, Exporter, Reindex
 
@@ -405,7 +417,7 @@ When the worker executes a job
 * Zeebe gateway sends the status to the partition
 * the partition contacts its follower to register the result
 * then, the partition returns the information to the worker
-* This information is exported to Elastic Search and will be imported by Operate/TaskList/Optimize
+* This information is exported to ElasticSearch and will be imported by Operate/TaskList/Optimize
 
 
 # Check metrics
@@ -453,7 +465,7 @@ A worker completes a job and sends the request to the cluster. Like the instance
 This metric is important because it's a vicious situation.
 Zeebe has a two-pointer in the stream
 * one to follow the execution
-* and one to follow the exporter to Elastic Search.
+* and one to follow the exporter to ElasticSearch.
 
 The Zeebe cluster can be correctly sized to handle the whole, but the two pointers will diverge if the Elastic search needs to be faster.
 The stream is saved in memory and on disk. The stream grows, and at one moment, when the disk is entire, zeebe will pause the execution.
@@ -504,18 +516,32 @@ There is two methods to scale Operate,
 
 This parameter pilot the importer. Each time a new record to import is detected by Operate, it submit the record to a Thread pool. 
 Then, a thread realize the import.
+There is two thread pool
+* to read record from ElasticSeach from Zeebe indexes
+* to write records to the Operate indexes
+* 
+This is possible to change the number of threads in these pools. Default value is 1. 
 
-This is possible to change the value of thread in this pool (the default value is 1). The first one is to change the value of
+The first one is to change the value of
 camunda.operate.importer.threadsCount
 you can change this parameter via the env section
 
 ````yaml
 env:
-  - name: CAMUNDA_OPERATE_IMPORTER_THREADSCOUNT
+  - name: CAMUNDA_OPERATE_IMPORTER_READERTHREADSCOUNT
     value: 10
+
+  - name: CAMUNDA_OPERATE_IMPORTER_THREADSCOUNT
+    value: 20
 ````
 
+The most efficient way is to double importer thread number. For one reader, set two importers.
+
+
 You have to check the CPU on the Operate pod. If the CPU and memory is high, it's counter-productive to increase the number of threads.
+
+https://docs.camunda.io/docs/self-managed/operate-deployment/importer-and-archiver/#scaling
+
 
 ### Create multiple pods
 Operate contains 3 applications:
@@ -548,10 +574,17 @@ The total number of nodes is the total number of partitions.
 It's possible to have less importer than partitions: then a node will import multiple partition. 
 This is why it's primordial to have the NODE_COUNT : each node calculate the number of partition to import.
 
+ATTENTION: only one Operate pod must import a partition. If you decide to go to that direction:
+* set up the helm Chart to create a pod only for the Archiver, or the Web Application. Disable the importer. Then, Helm will create all other component (Kubernetes service)
+* Create your own Kubernetes Deployment file. If you set the NODECOUNT to 5, you must create 5 (and only 5) deployment, each with a different CURRENTNODEID. These deployuments must have a replica of 1
+
+At any time, you can stop this collection of pod, and change it, moving from 5 to 10 if needed.
+
 
 # Action-Reaction
 
 ## No back pressure, but throughput is lower than expected
+<to describe>
 
 ## Backpressure
 A back pressure means a partition receives too many requests to handle.
