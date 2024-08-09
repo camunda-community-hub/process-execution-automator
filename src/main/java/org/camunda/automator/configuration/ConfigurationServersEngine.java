@@ -53,13 +53,15 @@ public class ConfigurationServersEngine {
   public String zeebeSaasClusterId;
   @Value("${automator.servers.camunda8Saas.clientId:''}")
   public String zeebeSaasClientId;
+
+  @Value("${automator.servers.camunda8Saas.secret:''}")
+  public String zeebeSaasClientSecret;
+
   @Value("${automator.servers.camunda8Saas.oAuthUrl:''}")
   public String zeebeSaasOAuthUrl;
   @Value("${automator.servers.camunda8Saas.audience:''}")
   public String zeebeSaasAudience;
 
-  @Value("${automator.servers.camunda8Saas.secret:''}")
-  public String zeebeSaasClientSecret;
   @Value("${automator.servers.camunda8Saas.operateUrl:''}")
   public String zeebeSaasOperateUrl;
   @Value("${automator.servers.camunda8Saas.operateUserName:''}")

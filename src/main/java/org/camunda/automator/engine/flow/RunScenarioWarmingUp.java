@@ -72,7 +72,7 @@ public class RunScenarioWarmingUp {
           .filter(t -> t.getType().equals(ScenarioStep.Step.SERVICETASK))
           .toList());
     }
-    if (warmingUp.useUserTasks  && runScenario.getRunParameters().isUserTask()) {
+    if (warmingUp.useUserTasks && runScenario.getRunParameters().isUserTask()) {
       listOperationWarmingUp.addAll(runScenario.getScenario()
           .getFlows()
           .stream()
@@ -80,15 +80,12 @@ public class RunScenarioWarmingUp {
           .toList());
     }
 
-
     logger.info("WarmingUp: Start ---- {} operations (Scenario/Policy: serviceTask:{}/{} userTask: {}/{})",
         listOperationWarmingUp.size(), // size of operations
         warmingUp.useServiceTasks, // scenario allow service task?
         runScenario.getRunParameters().isServiceTask(), // pod can run service task?
-        warmingUp.useUserTasks,
-        runScenario.getRunParameters().isUserTask() // pod can run User Task?
+        warmingUp.useUserTasks, runScenario.getRunParameters().isUserTask() // pod can run User Task?
     );
-
 
     for (ScenarioStep scenarioStep : listOperationWarmingUp) {
       switch (scenarioStep.getType()) {
@@ -114,9 +111,9 @@ public class RunScenarioWarmingUp {
         userTask.execute();
         listWarmingUpUserTask.add(userTask);
       }
-      default -> {
+      default ->
         logger.info("WarmingUp: Unknown [{}]", scenarioStep.getType());
-      }
+
       }
     }
 
@@ -177,6 +174,7 @@ public class RunScenarioWarmingUp {
     return Stream.concat(listWarmingUpServiceTask.stream(), listWarmingUpUserTask.stream())
         .collect(Collectors.toList());
   }
+
   /**
    * StartEventRunnable
    * Must be runnable because we will schedule it.
@@ -185,7 +183,6 @@ public class RunScenarioWarmingUp {
 
     private final TaskScheduler scheduler;
     private final ScenarioStep scenarioStep;
-    private final int index;
     private final RunScenario runScenario;
     private final RunResult runResult;
     public boolean stop = false;
@@ -203,7 +200,6 @@ public class RunScenarioWarmingUp {
                                        RunResult runResult) {
       this.scheduler = scheduler;
       this.scenarioStep = scenarioStep;
-      this.index = index;
       this.runScenario = runScenario;
       this.runResult = runResult;
     }

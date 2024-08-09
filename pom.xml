@@ -5,16 +5,18 @@
 
   <groupId>org.camunda.community.automator</groupId>
   <artifactId>process-execution-automator</artifactId>
-  <version>1.4.0</version>
+
+  <version>1.5.2</version>
   <!-- Change the banner.txt version -->
+  <!-- 1.5 Change OperateClient / TaskList Library -->
 
   <properties>
     <java.version>17</java.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
-    <zeebe.version>8.3.0</zeebe.version>
-    <zeebe-client.version>8.3.0</zeebe-client.version>
+    <version.zeebe>8.5.7</version.zeebe>
+    <version.zeebe-client>8.5.5</version.zeebe-client>
 
     <camunda7.version>7.19.0</camunda7.version>
 
@@ -48,15 +50,18 @@
 
 
   <dependencies>
+
+    <!-- Camunda operate client is included -->
     <dependency>
       <groupId>io.camunda.spring</groupId>
       <artifactId>spring-boot-starter-camunda</artifactId>
-      <version>${zeebe.version}</version>
+      <version>${version.zeebe}</version>
     </dependency>
+
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>zeebe-client-java</artifactId>
-      <version>${zeebe-client.version}</version>
+      <version>${version.zeebe-client}</version>
     </dependency>
 
     <dependency>
@@ -91,16 +96,17 @@
     </dependency>
 
 
-    <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>camunda-operate-client-java</artifactId>
-      <version>8.1.8.1</version>
-    </dependency>
+    <!-- 1.6.1, -->
+    <!-- 8.5.3.4 https://mvnrepository.com/artifact/io.camunda/camunda-tasklist-client-java  reference io.camunda
+    .tasklist.auth, not exist -->
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-tasklist-client-java</artifactId>
-      <version>1.6.1</version>
+      <version>8.5.3.5</version>
     </dependency>
+
+
+
 
     <!-- C7 external task client -->
     <dependency>
@@ -212,10 +218,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.10.1</version>
+        <version>3.13.0</version>
         <configuration>
           <source>17</source>
           <target>17</target>
+          <compilerArgs>
+            <arg>-parameters</arg>
+          </compilerArgs>
         </configuration>
       </plugin>
 

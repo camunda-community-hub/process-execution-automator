@@ -83,8 +83,6 @@ public class RunScenarioFlows {
     logger.info("ScenarioFlow: ------ TheEnd");
   }
 
-
-
   /**
    * Start execution
    *
@@ -157,11 +155,9 @@ public class RunScenarioFlows {
     return listFlows;
   }
 
-
   private Optional<RunScenarioFlowBasic> getFromList(List<RunScenarioFlowBasic> listTasks, String topic) {
     return listTasks.stream().filter(t -> t.getTopic().equals(topic)).findFirst();
   }
-
 
   /**
    * Wait end of execution.  according to the time in the scenario, wait this time
@@ -188,7 +184,7 @@ public class RunScenarioFlows {
 
     while (System.currentTimeMillis() < endTimeExpected) {
       long currentTime = System.currentTimeMillis();
-      long sleepTime = Math.min(30 * 1000, endTimeExpected - currentTime);
+      long sleepTime = Math.min(30 * 1000L, endTimeExpected - currentTime);
       try {
         Thread.sleep(sleepTime);
       } catch (InterruptedException e) {
@@ -269,7 +265,7 @@ public class RunScenarioFlows {
     // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
     logger.info("CollectingData... (sleep 30s)");
     try {
-      Thread.sleep(1000 * 30);
+      Thread.sleep(30 * 1000L);
     } catch (InterruptedException e) {
       // do nothing
     }
@@ -319,27 +315,27 @@ public class RunScenarioFlows {
         case STARTEVENT -> "PI[" + runResultFlow.getRecordCreationPI() + "] delta[" + (
             runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated
                 - previousValue) + "]";
-        case SERVICETASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
-            runResultFlow.getNumberOfSteps() - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps()
-            + "]";
-        case USERTASK -> "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (
-            runResultFlow.getNumberOfSteps() - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps()
-            + "]";
+        case SERVICETASK ->
+            "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (runResultFlow.getNumberOfSteps()
+                - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps() + "]";
+        case USERTASK ->
+            "StepsExecuted[" + runResultFlow.getNumberOfSteps() + "] delta [" + (runResultFlow.getNumberOfSteps()
+                - previousValue) + "] StepsErrors[" + runResultFlow.getNumberOfErrorSteps() + "]";
 
         default -> "]";
       };
       logger.info(key);
       switch (scenarioStep.getType()) {
-      case STARTEVENT -> {
+      case STARTEVENT ->
         previousValueMap.put(flowBasic.getId(),
             runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
-      }
-      case SERVICETASK -> {
+
+      case SERVICETASK ->
         previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
-      }
-      case USERTASK -> {
+
+      case USERTASK ->
         previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
-      }
+
       default -> {
       }
       }
