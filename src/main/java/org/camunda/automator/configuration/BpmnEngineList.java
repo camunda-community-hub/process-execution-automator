@@ -31,6 +31,8 @@ public class BpmnEngineList {
   public static final String CONF_TASK_LIST_PASSWORD = "taskListUserPassword";
   public static final String CONF_TASK_LIST_CLIENT_ID = "taskListClientId";
   public static final String CONF_TASK_LIST_CLIENT_SECRET = "taskListClientSecret";
+  // Example       taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
+  public static final String CONF_TASK_LIST_KEYCLOAK_URL = "taskListKeycloakUrl";
 
   public static final String CONF_IDENTITY_URL = "identityUrl";
   public static final String CONF_OPERATE_URL = "operateUrl";
@@ -53,6 +55,7 @@ public class BpmnEngineList {
   public static final String CONF_ZEEBE_SAAS_CLUSTER_ID = "clusterId";
   public static final String CONF_ZEEBE_CLIENT_ID = "zeebeClientId";
   public static final String CONF_ZEEBE_AUDIENCE = "zeebeAudience";
+  public static final String CONF_ZEEBE_PLAINTEXT = "zeebePlainText";
   public static final String ZEEBE_DEFAULT_AUDIENCE = "zeebe.camunda.io";
 
   static Logger logger = LoggerFactory.getLogger(BpmnEngineList.class);
@@ -132,7 +135,7 @@ public class BpmnEngineList {
    * @return a server
    * @throws AutomatorException on any error
    */
-  public BpmnEngineList.BpmnServerDefinition getByServerType(CamundaEngine serverType)  {
+  public BpmnEngineList.BpmnServerDefinition getByServerType(CamundaEngine serverType) {
     Optional<BpmnServerDefinition> first = allServers.stream()
         .filter(t -> sameType(t.serverType, serverType))
         .findFirst();
@@ -201,18 +204,16 @@ public class BpmnEngineList {
               "Incorrect Definition - [url] expected for [" + CONF_TYPE_V_CAMUNDA_7 + "] type " + contextLog);
       }
 
-
       if (CONF_TYPE_V_CAMUNDA_8.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog, true))) {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8;
         bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,
             true);
-        bpmnServerDefinition.zeebeClientId = getString(CONF_ZEEBE_CLIENT_ID, serverMap, null, contextLog,
-            false);
-        bpmnServerDefinition.zeebeClientSecret = getString(CONF_ZEEBE_SECRET, serverMap, null, contextLog,
-            false);
-        bpmnServerDefinition.zeebeAudience = getString(CONF_ZEEBE_AUDIENCE, serverMap, ZEEBE_DEFAULT_AUDIENCE, contextLog, false);
-        bpmnServerDefinition.authenticationUrl = getString(CONF_AUTHENTICATIONURL, serverMap, null, contextLog,
-            false);
+        bpmnServerDefinition.zeebeClientId = getString(CONF_ZEEBE_CLIENT_ID, serverMap, null, contextLog, false);
+        bpmnServerDefinition.zeebeClientSecret = getString(CONF_ZEEBE_SECRET, serverMap, null, contextLog, false);
+        bpmnServerDefinition.zeebeAudience = getString(CONF_ZEEBE_AUDIENCE, serverMap, ZEEBE_DEFAULT_AUDIENCE,
+            contextLog, false);
+        bpmnServerDefinition.zeebePlainText = getBoolean(CONF_ZEEBE_PLAINTEXT, serverMap, true, contextLog, false);
+        bpmnServerDefinition.authenticationUrl = getString(CONF_AUTHENTICATIONURL, serverMap, null, contextLog, false);
 
         bpmnServerDefinition.identityUrl = getString(CONF_IDENTITY_URL, serverMap, null, contextLog, false);
         bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog, false);
@@ -226,10 +227,14 @@ public class BpmnEngineList {
 
         bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog, false);
         bpmnServerDefinition.taskListUserName = getString(CONF_TASK_LIST_USER, serverMap, null, contextLog, false);
-        bpmnServerDefinition.taskListUserPassword = getString(CONF_TASK_LIST_PASSWORD, serverMap, null, contextLog, false);
+        bpmnServerDefinition.taskListUserPassword = getString(CONF_TASK_LIST_PASSWORD, serverMap, null, contextLog,
+            false);
         bpmnServerDefinition.taskListClientId = getString(CONF_TASK_LIST_CLIENT_ID, serverMap, null, contextLog, false);
         bpmnServerDefinition.taskListClientSecret = getString(CONF_TASK_LIST_CLIENT_SECRET, serverMap, null, contextLog,
             false);
+        bpmnServerDefinition.taskListKeycloakUrl = getString(CONF_TASK_LIST_KEYCLOAK_URL, serverMap, null, contextLog,
+            false);
+
         bpmnServerDefinition.workerExecutionThreads = getInteger(CONF_WORKER_EXECUTION_THREADS, serverMap,
             DEFAULT_VALUE_EXECUTION_THREADS, contextLog);
         if (bpmnServerDefinition.zeebeGatewayAddress == null)
@@ -237,19 +242,17 @@ public class BpmnEngineList {
               "Incorrect Definition - [zeebeGatewayAddress] expected for [" + CONF_TYPE_V_CAMUNDA_8 + "] type");
       }
 
-
       if (CONF_TYPE_V_CAMUNDA_8_SAAS.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog, true))) {
         bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8_SAAS;
         bpmnServerDefinition.zeebeSaasRegion = getString(CONF_ZEEBE_SAAS_REGION, serverMap, null, contextLog, true);
         bpmnServerDefinition.zeebeSaasClusterId = getString(CONF_ZEEBE_SAAS_CLUSTER_ID, serverMap, null, contextLog,
             true);
-        bpmnServerDefinition.zeebeClientId = getString(CONF_ZEEBE_CLIENT_ID, serverMap, null, contextLog,
-            true);
-        bpmnServerDefinition.zeebeClientSecret = getString(CONF_ZEEBE_SECRET, serverMap, null, contextLog,
-            true);
-        bpmnServerDefinition.zeebeAudience = getString(CONF_ZEEBE_AUDIENCE, serverMap, ZEEBE_DEFAULT_AUDIENCE, contextLog, true);
-        bpmnServerDefinition.authenticationUrl = getString(CONF_AUTHENTICATIONURL, serverMap, "https://login.cloud.camunda.io/oauth/token", contextLog,
-            false);
+        bpmnServerDefinition.zeebeClientId = getString(CONF_ZEEBE_CLIENT_ID, serverMap, null, contextLog, true);
+        bpmnServerDefinition.zeebeClientSecret = getString(CONF_ZEEBE_SECRET, serverMap, null, contextLog, true);
+        bpmnServerDefinition.zeebeAudience = getString(CONF_ZEEBE_AUDIENCE, serverMap, ZEEBE_DEFAULT_AUDIENCE,
+            contextLog, true);
+        bpmnServerDefinition.authenticationUrl = getString(CONF_AUTHENTICATIONURL, serverMap,
+            "https://login.cloud.camunda.io/oauth/token", contextLog, false);
 
         bpmnServerDefinition.workerExecutionThreads = getInteger(CONF_WORKER_EXECUTION_THREADS, serverMap,
             DEFAULT_VALUE_EXECUTION_THREADS, contextLog);
@@ -259,7 +262,8 @@ public class BpmnEngineList {
         bpmnServerDefinition.operateUrl = getString(CONF_OPERATE_URL, serverMap, null, contextLog, false);
         bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog, false);
         bpmnServerDefinition.taskListClientId = getString(CONF_TASK_LIST_CLIENT_ID, serverMap, null, contextLog, false);
-        bpmnServerDefinition.taskListClientSecret = getString(CONF_TASK_LIST_CLIENT_SECRET, serverMap, null, contextLog,false);
+        bpmnServerDefinition.taskListClientSecret = getString(CONF_TASK_LIST_CLIENT_SECRET, serverMap, null, contextLog,
+            false);
 
         if (bpmnServerDefinition.zeebeSaasRegion == null || bpmnServerDefinition.zeebeClientSecret == null
             || bpmnServerDefinition.zeebeSaasClusterId == null || bpmnServerDefinition.zeebeClientId == null)
@@ -424,6 +428,30 @@ public class BpmnEngineList {
     }
   }
 
+  private Boolean getBoolean(String name,
+                             Map<String, Object> recordData,
+                             Boolean defaultValue,
+                             String contextLog,
+                             boolean isMandatory) {
+    try {
+      if (!recordData.containsKey(name)) {
+        if (isMandatory) {
+          if (defaultValue == null)
+            logger.error("{}Variable [{}] not defined in {}", contextLog, name, contextLog);
+          else
+            logger.info("{} Variable [{}] not defined in {}", contextLog, name, contextLog);
+        }
+        return defaultValue;
+      }
+      if (recordData.get(name) instanceof Boolean valueBoolean)
+        return valueBoolean;
+      return Boolean.valueOf(recordData.get(name).toString());
+    } catch (Exception e) {
+      logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage());
+      return defaultValue;
+    }
+  }
+
   private Integer getInteger(String name, Map<String, Object> recordData, Integer defaultValue, String contextLog) {
     try {
       if (!recordData.containsKey(name)) {
@@ -485,7 +513,7 @@ public class BpmnEngineList {
      * My Zeebe Address
      */
     public String zeebeGatewayAddress;
-    public String zeebeSecurityPlainText;
+    public Boolean zeebePlainText;
 
     /**
      * SaaS Zeebe
@@ -495,6 +523,7 @@ public class BpmnEngineList {
     public String zeebeClientId;
     public String zeebeClientSecret;
     public String zeebeAudience;
+    public String zeebeTenantId = null;
 
     public String identityUrl;
     /**
@@ -515,6 +544,7 @@ public class BpmnEngineList {
     public String taskListUserPassword;
     public String taskListClientId;
     public String taskListClientSecret;
+    public String taskListKeycloakUrl;
 
     /**
      * Camunda 7

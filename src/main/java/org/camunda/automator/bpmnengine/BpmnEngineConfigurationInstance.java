@@ -7,13 +7,13 @@ import org.camunda.automator.configuration.BpmnEngineList;
  */
 public class BpmnEngineConfigurationInstance {
 
-  public static BpmnEngineList getZeebeSaas(String zeebeGatewayAddress, String zeebeSecurityPlainText) {
+  public static BpmnEngineList getZeebeSaas(String zeebeGatewayAddress, Boolean zeebePlainText) {
     BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
     BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
     serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
     serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
-    serverDefinition.zeebeSecurityPlainText = zeebeSecurityPlainText;
+    serverDefinition.zeebePlainText = zeebePlainText;
 
     bpmEngineConfiguration.addExplicitServer(serverDefinition);
     return bpmEngineConfiguration;

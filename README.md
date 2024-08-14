@@ -344,7 +344,7 @@ mvn clean install
 ````
 Now, create a docker image
 ````
-docker build -t pierre-yves-monnet/processautomator:1.5.1 .
+docker build -t pierre-yves-monnet/processautomator:1.5.2 .
 
 ````
 
@@ -352,15 +352,15 @@ docker build -t pierre-yves-monnet/processautomator:1.5.1 .
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/processautomator:1.5.1 ghcr.io/camunda-community-hub/process-execution-automator:1.5.1
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.1
+docker tag pierre-yves-monnet/processautomator:1.5.2 ghcr.io/camunda-community-hub/process-execution-automator:1.5.2
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.2
 
 ````
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/processautomator:1.5.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/processautomator:1.5.2 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 

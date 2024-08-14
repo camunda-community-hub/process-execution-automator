@@ -6,9 +6,9 @@ automator:
     # give the server to run all tests at startup. The name must be registered in the list of server after
     serverName:
 
-    scenarioPath: ./src/main/resources/loadtest
+    scenarioPath:
     # list of scenario separate by ;
-    scenarioFileAtStartup: DiscoverySeedExtraction.json
+    scenarioFileAtStartup:
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:
@@ -55,30 +55,34 @@ automator:
 
     - type: "camunda8"
       name: "Camunda8Lazuli"
+      description: "A Zeebe+Identity server"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeClientId: "zeebe"
-      zeebeClientSecret: "K7I5lemJsC"
-      zeebeAudience: "zeebe-api"
-      authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/openid-connect/token"
-      modelerUrk:        "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
+      zeebeClientSecret: "LHwdAq56bZ"
+      zeebeAudience: "zeebe"
+      zeebePlainText: true
+      authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
 
       operateClientId: "operate"
-      operateClientSecret : "Ns0ZGTrm24"
+      operateClientSecret: "Ns0ZGTrm24"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
 
       taskListClientId: "tasklist"
-      taskListClientSecret: "2lQb0p5dCv"
+      taskListClientSecret: "DCjtjiIwmd"
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
+      taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
+
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 
     - type: "camunda8"
       name: "Camunda8ZeebeOnly"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebePlainText: true
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 
