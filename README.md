@@ -87,6 +87,9 @@ The flow scenario has a duration and objective to verify.
 
 You can specify objectives: produce 1000 Process Instances, end 500 process instances, and produce 300 tasks in a user task.
 
+The method to conduct a [Load Test](doc/howRunLoadTest/README.md) is available here.
+
+
 Visit [Load Test Scenario](doc/loadtestscenario/README.md) and the [Load test Tutorial](doc/loadtestscenario/Tutorial.md)
 
 ## Scenario
@@ -106,7 +109,7 @@ The scenario does not contain any server information. It has only the server.
 Process-Automator references a list of servers in the configuration in multiple ways:
 * serverConnection : String, containing a list of connections separated by ;
 * serverList: List of records.
-* camunda7 : information to connnect a Camunda 7 server
+* camunda7 : information to connect a Camunda 7 server
 * camunda8 : information to connect a Camunda 8 server
 * camunda8Saas: information to connect a Camunda 8 Saas server
 
@@ -185,6 +188,7 @@ The application runs only these role. Doing that, in a cluster, it's possible to
 
 ## server connection
 
+
 ### String connection
 
 The string contains a list of connections, separate by a semi-colon (":").
@@ -215,17 +219,20 @@ The following parameters depend on the type.
 
 **CAMUNDA_8_SAAS**
 
-* zeebeCloudRegion,
-* zeebeCloudClusterId,
-* zeebeCloudClientId,
-* zeebeCloudOAuthUrl,
-* zeebeCloudAudience,
+* zeebeSaasRegion,
+* zeebeSaasClusterId,
+* zeebeSaasClientId,
 * clientSecret,
-* OperateUserName,
-* OperateUserPassword,
-* OperateUrl,
+* zeebeAudience
+* OperateClientId,
+* OperateClientPassword,
+* TaskClientId
+ TaskClientSecret
 * ExecutionThreads,
 * MaxJobActive
+
+
+
 
 **Example**
 
@@ -323,4 +330,39 @@ mvn springboot:build-image
 
 The docker image is build using the Dockerfile present on the root level.
 
-Push the image to ghcr.io/camunda-community-hub/process-execution-automator:
+
+Push the image to 
+```
+ghcr.io/camunda-community-hub/process-execution-automator:
+```
+
+## Detail
+
+Run command
+````
+mvn clean install
+````
+Now, create a docker image
+````
+docker build -t pierre-yves-monnet/processautomator:1.5.2 .
+
+````
+
+
+Push the image to the Camunda hub (you must be login first to the docker registry)
+
+````
+docker tag pierre-yves-monnet/processautomator:1.5.2 ghcr.io/camunda-community-hub/process-execution-automator:1.5.2
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.5.2
+
+````
+
+
+Tag as the latest:
+````
+docker tag pierre-yves-monnet/processautomator:1.5.2 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
+````
+
+Check on
+https://github.com/camunda-community-hub/process-execution-automator/pkgs/container/process-execution-automator

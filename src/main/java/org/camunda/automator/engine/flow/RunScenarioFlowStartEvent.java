@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   private final TaskScheduler scheduler;
   Logger logger = LoggerFactory.getLogger(RunScenarioFlowStartEvent.class);
+  StartEventRunnable startEventRunnable;
   private boolean stopping;
   private boolean isRunning;
   /**
@@ -40,8 +41,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
   public String getTopic() {
     return getScenarioStep().getTaskId();
   }
-
-  StartEventRunnable startEventRunnable;
 
   @Override
   public void execute() {
@@ -129,7 +128,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
           if (nbOverloaded > 0)
             runResult.addError(scenarioStep,
 
-                "Overloaded:" + "" + nbOverloaded + " TotalCreation:" + totalCreation // total creation we see
+                "Overloaded:" + nbOverloaded + " TotalCreation:" + totalCreation // total creation we see
                     + " TheoricNumberExpectred:" + (scenarioStep.getNumberOfExecutions() * executionBatchNumber)
                     // expected
 
@@ -155,7 +154,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
       createProcessInstanceThread = new CreateProcessInstanceThread(executionBatchNumber, scenarioStep, runScenario,
           runResult);
 
-
       // creates all process instances, return when finish OR when duration is reach
       createProcessInstanceThread.createProcessInstances(durationToCreateProcessInstances);
 
@@ -178,7 +176,6 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
         durationToWait = Duration.ZERO;
 
       }
-
 
       // report now
       if (runScenario.getRunParameters().showLevelMonitoring() || createProcessInstanceThread.isOverload()) {

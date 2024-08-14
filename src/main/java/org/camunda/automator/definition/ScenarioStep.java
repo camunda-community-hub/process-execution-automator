@@ -22,10 +22,15 @@ public class ScenarioStep {
   private final Map<String, String> variablesOperation = Collections.emptyMap();
   private final Long fixedBackOffDelay = 0L;
   private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
+  private final Boolean streamEnabled = true;
+  /**
+   * Receive a step range in the scenario, which help to identify the step
+   */
+  private final int stepNumber = -1;
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
-  private Integer numberOfWorkers;
+  private Integer nbWorkers = Integer.valueOf(1);
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -43,7 +48,6 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
-  private final Boolean streamEnable = false;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -66,11 +70,6 @@ public class ScenarioStep {
    * In case of FlowStep, the processId to execute the step
    */
   private String processId;
-
-  /**
-   * Receive a step range in the scenario, which help to identify the step
-   */
-  private int stepNumber = -1;
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;
@@ -134,17 +133,10 @@ public class ScenarioStep {
     return topic;
   }
 
-  public boolean isStreamEnable() {
-    return streamEnable;
+  public boolean isStreamEnabled() {
+    return streamEnabled == null || streamEnabled.booleanValue();
   }
 
-  public int getStepNumber() {
-    return stepNumber;
-  }
-
-  public void setStepNumber(int stepNumber) {
-    this.stepNumber = stepNumber;
-  }
   /* ******************************************************************** */
   /*                                                                      */
   /*  getter                                                              */
@@ -214,12 +206,12 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNumberOfWorkers() {
-    return numberOfWorkers == null || numberOfWorkers == 0 ? 1 : numberOfWorkers;
+  public int getNbWorkers() {
+    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
   }
 
-  public void setNumberOfWorkers(int nbWorkers) {
-    this.numberOfWorkers = nbWorkers;
+  public void setNbWorkers(int nbWorkers) {
+    this.nbWorkers = nbWorkers;
   }
 
   public String getProcessId() {
@@ -227,7 +219,7 @@ public class ScenarioStep {
   }
 
   public long getFixedBackOffDelay() {
-    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay;
+    return fixedBackOffDelay == null ? 0 : fixedBackOffDelay.longValue();
   }
 
   protected void afterUnSerialize(ScenarioExecution scnExecution) {

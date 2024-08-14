@@ -6,9 +6,9 @@ automator:
     # give the server to run all tests at startup. The name must be registered in the list of server after
     serverName:
 
-    scenarioPath: ./src/main/resources/loadtest
+    scenarioPath:
     # list of scenario separate by ;
-    scenarioFileAtStartup: D:\pym\CamundaDrive\MyWork\Challenge\loadtest\SCN_BankOfAndora.json;
+    scenarioFileAtStartup:
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:
@@ -18,7 +18,7 @@ automator:
     # string composed with DEPLOYPROCESS, WARMINGUP, CREATION, SERVICETASK, USERTASK
     # (ex: "CREATION|DEPLOYPROCESS|CREATION|SERVICETASK")
     policyExecution: DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK
-    filterService2: simple-task
+    filterService2: check-identity
 
     deepTracking: false
 
@@ -47,26 +47,66 @@ automator:
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
+      taskListUserName: "demo"
+      taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
+
+    - type: "camunda8"
+      name: "Camunda8Lazuli"
+      description: "A Zeebe+Identity server"
+      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeClientId: "zeebe"
+      zeebeClientSecret: "LHwdAq56bZ"
+      zeebeAudience: "zeebe"
+      zeebePlainText: true
+      authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
+
+      operateClientId: "operate"
+      operateClientSecret: "Ns0ZGTrm24"
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+      operateUrl: "http://localhost:8081"
+
+      taskListClientId: "tasklist"
+      taskListClientSecret: "DCjtjiIwmd"
+      taskListUserName: "demo"
+      taskListUserPassword: "demo"
+      taskListUrl: "http://localhost:8082"
+      taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
+
+      workerExecutionThreads: 10
+      workerMaxJobsActive: 10
+
+    - type: "camunda8"
+      name: "Camunda8ZeebeOnly"
+      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebePlainText: true
+      workerExecutionThreads: 10
+      workerMaxJobsActive: 10
+
 
     - type: "camunda8saas"
       name: "Camunda8Grena"
       workerExecutionThreads: 10
       workerMaxJobsActive: 10
 
-
+      region: "jfk-1"
+      clusterId: "b16d70cb-b654-4d76-a3a4-d4e438e4447c"
+      zeebeClientId: "nDyNLPuBqNrlQs4_3RsTDsFCgn~LkmJB"
+      zeebeClientSecret: "6HwNaOHVjHCUSjVmzm4J8zDtyohyxk7b~JF1PatZqnpDjujneQ62~dEh6M-j3APc"
       # Cluster 8.3.0
-      region: "bru-2"
-      clusterId: "4b...e2"
-      clientId: "bs...6a"
-      secret: "-Ez...ZG"
-      oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
-      audience: "zeebe.camunda.io"
-      operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
-      taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
+      authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
+      zeebeAudience: "zeebe.camunda.io"
 
+      operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
+      operateClientId: SJRsNvQ3sS~LeLh.bYkkIZsRCKs-Y3jr
+      operateClientSecret: zyB5ihdg62L5afrOcPU.RR~O4poL97BoF5k8YUv.f3WBg9QqadYypp09ffIEXchW
+
+      taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
+      taskListClientId: "H5uyrOHGkG8C8S~FlbA3EWsWsyzXP8mr"
+      taskListClientSecret: ".7~Lhx0~dntq5hfRc0kbD_5iZLyWWIZ6ZZXbg.LG5snMYIDIaaCDtj8~r~dq.yxk"
 
   # This definition is very simple to use in the K8 definition, because one variable can be override
   servers:

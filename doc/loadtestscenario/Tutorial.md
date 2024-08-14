@@ -45,7 +45,7 @@ he will decide to process the URL.
 
 200 orders must be processed every 30 seconds. An order contains multiple sub-searchs. This may vary from 10 to 20.
 
-To check the peak, the test will consider the number of sub-search is 20.
+The test will consider the number of sub-searchers to be 20 to reach the peak.
 The user task will be simulated to accept each request in less than 2 seconds.
 
 
@@ -84,7 +84,7 @@ The scenario created is
 ![Process Automator Scenario](images/ProcessAutomatorScenario.png)
 
 **STARTEVENT**
-Two types of Start event is created: one for the main flow (5 process instance per second) and the second one.
+Two types of Start events are created: one for the main flow (5 process instances per second) and the other for the second one.
 For the user task
 
 
@@ -122,7 +122,7 @@ For the user task
 
 ````
 
-Then, one service task simulator per service task and one for the user task.
+Then, one service task simulator is used per service task, and one is used for the user task.
 
 ````json
 [
@@ -215,7 +215,7 @@ On Intellij, run this command
 
 ### Via the application
 
-Specify in the application parameter what you want to run.
+Specify what you want to run in the application parameter.
 
 `````yaml
 Automator.startup:
@@ -235,7 +235,7 @@ Run the command
 mvn spring-boot:run
 ````
 
-or via Intellij:
+Or via Intellij:
 ![Intellij Automator Execution](images/IntellijAutomatorApplication.png)
 
 Note: The application will start the scenario automatically but will not stop.
@@ -247,13 +247,13 @@ To be close to the final platform, let's run the process-automator not locally b
 
 The main point is to provide the scenario to the pod.
 
-Create a config map for the scenario
+Create a config map for the scenario.
 ````
 cd doc/loadtestscenario/
 kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json 
 ````
 
-How this scenario is accessible in the pod? Check the `ku-c8CrawUrl.yaml` file
+How is this scenario accessible in the pod? Check the `ku-c8CrawUrl.yaml` file
 
 1. Create a volume and mount the configMap in that volume
 ````yaml
@@ -291,7 +291,7 @@ Follow the advance
 ````
 kubectl get pods
 ````
-Identify the correct pods, and access the log
+Identify the correct pods and access the log.
 ````
 kubectl logs -f ku-processautomator-xxxxxx
 ````
@@ -299,7 +299,7 @@ kubectl logs -f ku-processautomator-xxxxxx
 
 
 ### Generate the Docker image again
-An alternative consists of placing the scenario under `src/resources/` and building a new image.
+An alternative involves placing the scenario under `src/resources/` and building a new image.
 
 Build the docker image via the build command. Replace `pierreyvesmonnet` with your docker user ID,
 
@@ -340,7 +340,7 @@ o.c.a.engine.flow.RunScenarioFlows       : [SERVICETASK crawl-store-main#0] RUNN
 
 
 ## Check the result
-Via the CLI or via the command line, the first execution is
+Via the CLI or the command line, the first execution is
 
 ![First execution](images/RunCrawlUrl-1.png)
 
@@ -356,20 +356,82 @@ To improve the performance, the number of worker
 The requirement is 200 process instances every 30 seconds. Let's base the calculation per minute.
 This is then 400 process instances/minute.
 
+| Name               |       Value |
+|--------------------|------------:|
+| Process instances  | 200 PI/30 s |
+| Per minute         | 400 PI / mn |  
+
 
 The first task needs 2 seconds duration. To execute 400 process instances, it will need 2*400=800 s.
 Because this throughput is required by minute, multiple workers must do it in parallel.
-One worker has a throughput of 60 s per 60 s. Workers are mandatory to handle 800 s, 800/60=13.3 (so, 14).
+One worker has a throughput of 60 s per 60 s. Workers must handle 800 s, 800/60=13.3 (so, 14).
 
-This can be done in different ways:
-* one application(pod) manage multiple threads. A worker with 14 threads is mandatory (one thread= one worker)
-* or multiple applications(pods), with one thread, can be used (14 applications/pods)
-* A mix of the two approaches is possible. The adjustment is made according to the resource.
+The simple way to calculate the number of workers is to calculate
+* The Capacity for one thread. The capacity is how many tasks a thread can handle on a period
+* the Load. The Load is how many tasks can be performed in a period
 
-If the treatment of the worker is to manage a movie, one pod can maybe deal with two or three workers at the same time.
-So, to handle 14 workers, 14/3=5 pods may be necessary.
+First, fix the "period of time." To make the calculation simple, use the unit of time to execute a task. If a task is running in 12 seconds, choose the minute.
+If a task is running in milliseconds, choose the second.
 
-From the Zeebe client point of view, a pod can manage up to 200 threads after the multithreading is less efficient.
+Let's choose the minute.
+
+Capacity:
+```
+Capacity(mn) = 60/Duration(s)
+```
+
+| Name          | Duration | Capacity/mn |
+|---------------|---------:|------------:|
+| Retrieve Work |      2 s |          30 |   
+| Search        |     10 s |           6 |
+| Message       |      1 s |          60 |
+| Add           |      5 s |          12 | 
+| Filter        |      1 s |          60 |
+| Store         |      1 s |          60 |
+
+Load:
+```
+Load(mn)=NumberOfTask/s * 60
+```
+
+Load is the number of process instances per minute (400) * number of tasks per process instance.
+
+| Name          | Loop | Load/mn | 
+|---------------|-----:|--------:|
+| Retrieve Work |    1 |     400 |   
+| Search        |   10 |    4000 |
+| Message       |   10 |    4000 |
+| Add           |   10 |    4000 |
+| Filter        |   10 |    4000 |
+| Store         |   10 |    4000 |
+
+
+The number of worker threads is the Load divided by the capacity.
+```
+Number of threads worker = Load / Capacity
+```
+
+| Name          |            Load | Capacity | Worker threads | 
+|---------------|----------------:|---------:|---------------:|
+| Retrieve Work |             400 |       30 |           13.3 | 
+| Search        |            4000 |        6 |          666.7 |
+| Message       |            4000 |       60 |           66.7 |
+| Add           |            4000 |       12 |          333.3 |
+| Filter        |            4000 |       60 |           66.7 |
+| Store         |            4000 |       60 |           66.7 |
+
+How many worker threads can a worker (a pod) handle? It depends on the implementation.
+* If the implementation uses a lot of CPU, a worker can support only 5 threads. More may overflow the CPU.
+* If the implementation is very ligh, calling an external service and using the Reactiv Programming, a worker can support 500 to 1000 threads worker
+
+
+Visit https://docs.camunda.io/docs/components/best-practices/development/writing-good-workers/,
+https://blog.bernd-ruecker.com/writing-good-workers-for-camunda-cloud-61d322cad862
+and
+https://github.com/camunda-community-hub/C8-workers-implementation-
+
+
+In the "classical" implementation, with little CPU and memory consumption, a worker can manage up to 200 threads after multithreading becomes less efficient.
 
 We are in a simulation in our scenario, so the only limit is about 200 threads per pod.
 
@@ -417,7 +479,7 @@ kubectl delete -f ku-c8CrawlUrlMultiple.yaml
 
 During the load test, access the Grafana page.
 
-**Throughput / process Instance creation per second**
+**Throughput/process Instance creation per second**
 
 This is the first indicator. Do you have enough process instances created per second?
 
@@ -425,7 +487,7 @@ In our example, the scenario creates 200 Process Instances / 30 seconds. The gra
 
 ![Process Instance creation per second ](images/ThroughputProcessInstanceCreationPerSecond.png)
 
-**Throughput / process Instance completion per second**
+**Throughput/process Instance completion per second**
 
 This is the last indicator: if the scenario's objective consists of complete
 process instances, it should move to the same level as the creation. Executing a process may need time,
@@ -435,7 +497,7 @@ so this graph should be symmetric but may start after.
 
 **Job Creation per second**
 
-Job creation and job completion are the second key factors. Creating process instances is generally not a big deal for Zeebe. Executing jobs (service tasks) is more challenging.
+The second key factor is job creation and job completion. Creating process instances is generally not a big deal for Zeebe, but executing jobs (service tasks) is more challenging.
 For example, in our example, for a process instance, there is 1+(10*4)=41 service tasks.
 Creating 200 Process Instances / 30 seconds means 200*2*41=16400 jobs/minute, 273 jobs/second.
 
@@ -448,7 +510,7 @@ throughput.
 ![Job Completion per second ](images/ThroughputJobCompletionPerSecond.png)
 
 **CPU Usage**
-CPU and Memory usage is part of the excellent health of the platform. Elasticsearch is, in general, the most consumer for the CPU.
+CPU and Memory usage are part of the platform's excellent health. Elasticsearch is, in general, the most CPU-consuming component.
 If Zeebe is close to the value allocated, it's time to increase it or create new partitions.
 
 ![CPU Usage](images/CPU.png)
@@ -459,19 +521,19 @@ If Zeebe is close to the value allocated, it's time to increase it or create new
 **Gateway**
 
 The gateway is the first actor for the worker. Each worker communicates to a gateway, which asks Zeebe's broker.
-If the response time is terrible, increasing the number of gateways is the first option. However, the issue may come from the number of partitions: there may be insufficient partitions, and Zeebe needs time to process the request.
+If the response time could be better, increasing the number of gateways is the first option. However, the issue may come from the number of partitions: there may be insufficient partitions, and Zeebe needs time to process the request.
 
 ![Grafana Gateway](images/Gateway.png)
 
 **GRPC**
 
-GRPC graph is essential to see how the network is doing and if all the traffic gets a correct response time.
+The GRPC graph is essential for assessing the network's performance and determining whether all traffic gets a correct response time.
 If the response is high, consider increasing the number of gateways or partitions.
 
 ![Grafana GRPC](images/GRPC.png)
 
 **GRPC Jobs Latency**
-Jobs latency is essential. This metric gives the time when a worker asks for a job or submits a job the time Zeebe considers the request. If the response is high, consider increasing the number of gateways or partitions.
+Jobs latency is essential. This metric shows the time a worker asks for or submits a job and the time Zeebe considers the request. If the response is high, consider increasing the number of gateways or partitions.
 
 ![Jobs Latency](images/GRPCJobsLatency.png)
 
@@ -492,7 +554,7 @@ Zeebe maintains a stream to execute a process instance. In this stream, two poin
 
 Where there is a lot of data to process, the Elasticsearch pointer may be late behind the execution:
 The stream grows up. This may not be a big deal if, at one moment, the flow slows down, then the second pointer
-will catch up. But if this is not the situation, the stream may reach the PVC limit. If this happens, then
+will catch up. However, if this differs from the situation, the stream may reach the PVC limit. If this happens, then
 the first pointer will slow down, and the Zeebe Engine will stop to accept new jobs: the speed will be then the slowest limit.
 
 In the case of a high throughput test, it is nice to keep an eye on this indicator. If the positions differ a lot, you should enlarge the test period to check the performance when the stream is full because this
@@ -521,7 +583,7 @@ Looking Operate, we can identify which service task was the bottleneck.
 ![Operate](test_1/test-1-operate.png)
 
 
-Attention: When the test is finished, you must stop the cluster as soon as possible. Because
+Attention: When the test is finished, you must stop the cluster immediately. Because
 Multiple pods are created to execute service tasks. If you don't stop these workers, they will continue to process
 
 Note: To access this log after the creation, do a
@@ -557,7 +619,7 @@ replicas: 3
 During the execution, this log shows up
 ````
 STARTEVENT Step #1-STARTEVENT CrawlUrl-StartEvent-CrawlUrl-01#0 Error at creation: [Can't create in process [CrawlUrl] :Expected to execute the comma
-nd on one of the partitions, but all failed; there are no more partitions available to retry. Please try again. If the error persists contact your zeebe operator]
+nd on one of the partitions, but all failed; there are no more partitions available to retry. Please try again. If the error persists, contact your zeebe operator]
 ````
 Looking at the Grafana overview, one partition gets a backpressure
 ![Back pressure](test_2/test-2-Backpressure.png)
@@ -622,7 +684,7 @@ The execution went correctly.
 The back pressure is very low
 ![back pressure](test_3/test-3-Backpressure.png)
 
-CPU stays at a normal level
+CPU stays at an average level
 
 ![](test_3/test-3-CPU.png)
 
@@ -630,18 +692,18 @@ Jobs Latency stays under a reasonable level.
 
 ![](test_3/test-3-JobsLatency.png)
 
-Jobs per second can now reach 400 per second as a peak and then run at 300 per second. This level is stable.
+Jobs per second can reach 400 per second as a peak and then run at 300 per second. This level is stable.
 
 ![](test_3/test-3-JobsPerSeconds.png)
 
-At the end, Operate show that all process are mainly processed. Just some tasks are pending in 
+At the end, Operate shows that all processes are mainly processed. Just some tasks are pending in
 a worker (this node stopped before the other, maybe)
 
 ![](test_3/test-3-Operate.png)
 
 Objectives are mainly reached: 3800 process instances were processed.
 
-The reliqua comes from the startup of the different pods: the cluster starts different pods on the scenario.
+The reliability comes from the startup of the different pods: the cluster starts different pods in the scenario.
 
 ````log
 2023-09-07 19:10:53.400  INFO 1 --- [AutomatorSetup1] o.c.a.engine.flow.RunScenarioFlows       : Objective: SUCCESS type CREATED label [Creation} processId[CrawlUrl] reach 4010 (objective is 4000 ) analysis [Objective Creation: ObjectiveCreation[
@@ -662,7 +724,7 @@ To ensure the sizing is correct, we make a new test with more input
 * The number of process instances is set to 250 / 30 seconds (requirement is 200 / 30 seconds) - this is a 25% increase
 * Increase the number of threads in each worker by 25 %
 
-Load the new scenario
+Load the new scenario.
 ````
 cd doc/loadtestscenario
 kubectl create configmap crawurlscnmap250 --from-file=resources/C8CrawlUrlScn250.json 
