@@ -25,13 +25,12 @@
       {
         "label": "Ended (UserTask TheEnd) Verification",
         "processId": "SimpleTask",
-        "type" : "USERTASK",
-        "taskId" : "CheckTask",
+        "type": "USERTASK",
+        "taskId": "CheckTask",
         "value": 60000
       }
     ]
   },
-
   "flows": [
     {
       "type": "STARTEVENT",
@@ -50,5 +49,5 @@
       "waitingTime": "PT0S",
       "modeExecution": "ASYNCHRONOUS"
     }
-    ]
-  }
+  ]
+}

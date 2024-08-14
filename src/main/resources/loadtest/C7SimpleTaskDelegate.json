@@ -25,13 +25,12 @@
       {
         "label": "Ended (UserTask TheEnd) Verification",
         "processId": "SimpleTaskDelegate",
-        "type" : "USERTASK",
-        "taskId" : "CheckTask",
+        "type": "USERTASK",
+        "taskId": "CheckTask",
         "value": 60000
       }
     ]
   },
-
   "flows": [
     {
       "type": "STARTEVENT",
@@ -44,5 +43,5 @@
         "loopcrawl": "generaterandomlist(1000)"
       }
     }
-    ]
-  }
+  ]
+}

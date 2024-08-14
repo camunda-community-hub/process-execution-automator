@@ -25,21 +25,21 @@
       {
         "label": "Ended (UserTask TheEnd) Verification",
         "processId": "Verification",
-        "type" : "USERTASK",
-        "taskId" : "Activity_Verification_TheEnd",
+        "type": "USERTASK",
+        "taskId": "Activity_Verification_TheEnd",
         "value": 20820
       },
       {
         "label": "Flow per minutes",
         "processId": "Verification",
-        "type" : "FLOWRATEUSERTASKMN",
-        "taskId" : "Activity_Verification_TheEnd",
+        "type": "FLOWRATEUSERTASKMN",
+        "taskId": "Activity_Verification_TheEnd",
         "standardDeviation": 10,
         "value": 2082
       }
     ]
   },
-  "warmingUp" : {
+  "warmingUp": {
     "duration": "PT4M",
     "operations": [
       {
@@ -62,7 +62,7 @@
       "frequency": "PT10S",
       "numberOfExecutions": "347",
       "nbWorkers": "1",
-      "label" : "347 /1 worker"
+      "label": "347 /1 worker"
     },
     {
       "type": "SERVICETASK",

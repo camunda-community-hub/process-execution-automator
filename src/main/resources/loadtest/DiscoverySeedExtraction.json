@@ -24,8 +24,8 @@
         "processIdSubprocess": "DiscoverySeedExtraction",
         "processIdCallactivity": "DiscoverySeedExtraction-ca",
         "processId": "DiscoverySeedExtraction-ca",
-        "type" : "CREATED",
-        "value" : 150,
+        "type": "CREATED",
+        "value": 150,
         "real": "Frequency: 5/20S Duration:  10MN : 150"
       },
       {
@@ -33,16 +33,16 @@
         "processIdSubprocess": "DiscoverySeedExtraction",
         "processIdCallactivity": "DiscoverySeedExtraction-ca",
         "processId": "DiscoverySeedExtraction-ca",
-        "type" : "ENDED",
-        "value" : 0
+        "type": "ENDED",
+        "value": 0
       },
       {
         "label": "Ended (UserTask TheEnd) SeedExtraction",
         "processIdSubprocess": "DiscoverySeedExtraction",
         "processIdCallactivity": "DiscoverySeedExtraction-ca",
         "processId": "DiscoverySeedExtraction-ca",
-        "type" : "USERTASK",
-        "taskId" : "Activity_DiscoverySeedExtraction_TheEnd",
+        "type": "USERTASK",
+        "taskId": "Activity_DiscoverySeedExtraction_TheEnd",
         "value": 150
       },
       {
@@ -50,14 +50,14 @@
         "processIdSubprocess": "DiscoverySeedExtraction",
         "processIdCallactivity": "DiscoverySeedExtraction-ca",
         "processId": "DiscoverySeedExtraction-ca",
-        "type" : "FLOWRATEUSERTASKMN",
-        "taskId" : "Activity_DiscoverySeedExtraction_TheEnd",
+        "type": "FLOWRATEUSERTASKMN",
+        "taskId": "Activity_DiscoverySeedExtraction_TheEnd",
         "standardDeviation": 10,
         "value": 15
       }
     ]
   },
-  "warmingUp" : {
+  "warmingUp": {
     "duration": "PT4M",
     "operations": [
       {

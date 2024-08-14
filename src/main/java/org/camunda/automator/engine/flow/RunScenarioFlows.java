@@ -326,15 +326,12 @@ public class RunScenarioFlows {
       };
       logger.info(key);
       switch (scenarioStep.getType()) {
-      case STARTEVENT ->
-        previousValueMap.put(flowBasic.getId(),
-            runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
+      case STARTEVENT -> previousValueMap.put(flowBasic.getId(),
+          runResultFlow.getRecordCreationPI().get(flowBasic.getScenarioStep().getProcessId()).nbCreated);
 
-      case SERVICETASK ->
-        previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
+      case SERVICETASK -> previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
 
-      case USERTASK ->
-        previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
+      case USERTASK -> previousValueMap.put(flowBasic.getId(), (long) runResultFlow.getNumberOfSteps());
 
       default -> {
       }

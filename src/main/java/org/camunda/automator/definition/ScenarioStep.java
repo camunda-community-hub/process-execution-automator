@@ -22,6 +22,11 @@ public class ScenarioStep {
   private final Map<String, String> variablesOperation = Collections.emptyMap();
   private final Long fixedBackOffDelay = 0L;
   private final MODEEXECUTION modeExecution = MODEEXECUTION.CLASSICAL;
+  private final Boolean streamEnabled = true;
+  /**
+   * Receive a step range in the scenario, which help to identify the step
+   */
+  private final int stepNumber = -1;
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
@@ -43,7 +48,6 @@ public class ScenarioStep {
    * to execute a service task in C8, topic is mandatory
    */
   private String topic;
-  private final Boolean streamEnabled = true;
   private Map<String, Object> variables = Collections.emptyMap();
   private String userId;
   /**
@@ -66,11 +70,6 @@ public class ScenarioStep {
    * In case of FlowStep, the processId to execute the step
    */
   private String processId;
-
-  /**
-   * Receive a step range in the scenario, which help to identify the step
-   */
-  private final int stepNumber = -1;
 
   public ScenarioStep(ScenarioExecution scnExecution) {
     this.scnExecution = scnExecution;

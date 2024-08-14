@@ -111,8 +111,7 @@ public class RunScenarioWarmingUp {
         userTask.execute();
         listWarmingUpUserTask.add(userTask);
       }
-      default ->
-        logger.info("WarmingUp: Unknown [{}]", scenarioStep.getType());
+      default -> logger.info("WarmingUp: Unknown [{}]", scenarioStep.getType());
 
       }
     }
