@@ -139,11 +139,12 @@ public class RunScenario {
   public RunResult runExecutions() {
     RunResult result = new RunResult(this);
     result.setStartDate(new Date());
-    // each execution is run in a different thread
-    ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
 
     // the scenario can be an Execution or a Flow
     if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
+      // each execution is run in a different thread
+      ExecutorService executor = Executors.newFixedThreadPool(runParameters.getNumberOfThreadsPerScenario());
+
       List<Future<?>> listFutures = new ArrayList<>();
       logger.info("RunScenario: ------ execution UNIT scenario [{}] {} execution on {} Threads", scenario.getName(),
           scenario.getExecutions().size(), runParameters.getNumberOfThreadsPerScenario());

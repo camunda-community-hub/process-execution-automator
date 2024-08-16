@@ -134,21 +134,35 @@ The parent attribute is "executions"
 |------------------------|-----------------------------------------------------------------------------------------------------------|---------------------------------|
 | Name                   | Name of execution                                                                                         | "name": "This is the first run" |
 | policy                 | "STOPATFIRSTERROR" or "CONTINUE": In case of an error, what is the next move. Default is STOPATFIRSTERROR | "policy": "STOPATFIRSTERROR"    |
-| numberProcessInstances | Number of process instances to create. Each process instance follows steps.                               | "numberProcessInstances": 45    |
-| Number of threads      | Number of threads to execute in parallel. Default is 1.                                                   | "numberOfThreads": 5            |
-| execution              | If false, the execution does not start. If not present, the default value is TRUE.                        | "execution" : false             | 
+
 
 Then, the execution contains a list of steps.
+
 
 ## STARTEVENT step
 
 Start a new process instance.
 
-| Parameter | Explanation                   | Example                          |
-|-----------|-------------------------------|----------------------------------|
-| name      | name of the step, optional    | "name": "Happy path start event" |
-| type      | Specify the type (STARTEVENT) | "type": "STARTEVENT"             |
-| taskId    | Activity ID of start event    | "activityId": "StartEvent_1"     |
+| Parameter          | Explanation                                                     | Example                                                                             |
+|--------------------|-----------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| name               | name of the step, optional                                      | "name": "Happy path start event"                                                    |
+| type               | Specify the type (STARTEVENT)                                   | "type": "STARTEVENT"                                                                |
+| taskId             | Activity ID of start event                                      | "activityId": "StartEvent_1"                                                        |
+| numberOfExecutions | Number of execution: number of process instance to create       | "numberOfExecutions" : 300                                                          |
+| frequency          | Frequence to create the <numberOfExecution>. ISO format (PT10S) | "frequency": "PT30S"                                                                | 
+| nbThreads          | Number of threads to execute the creation in parallel (1)       | "nbThreads": 30                                                                     |   
+| variables          | List of variables (JSON file) to update                         | "variables": {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]}  |
+| variablesOperation | List of variables, but the value is an operation                |                                                                                     | 
+
+(1) see multithreading section
+
+The startup wake up every <frequency> time. Then, it created the <numberOfExecution> process instances during the period. 
+if after the period it can't create all the process instance, then it stop, and a warning is sent.
+For example, with a frequency of 30 S and a number of execution of 300, two scenario:
+* it wake up, and create the 300 PI in 5 second. So, it waits 25 seconds, wake up again and create 300 new PI
+* it wake up. In 30 seconds, it creates only 240 PI. So, it stop the creation, send an error. Because the period is finish and a new one start, it start create again a new batch of 300.
+
+
 
 Example
 
@@ -194,19 +208,21 @@ certain position, you may want to simulate the worker. Then, the Process-Aautoma
 service task. The real worker shouldbe deactivated then. If the service task is not found, then the
 scenario will have an error.
 
-| Parameter          | Explanation                                                                                                                                          | Example                                                                            |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| name               | name of the step, optional                                                                                                                           | "name": "get Score"                                                                |
-| type               | Specify the type (SERVICETASK)                                                                                                                       | "type": "SERVICETASK"                                                              |
-| delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                              | "delay" : "PT0.1S" waits 100 ms                                                    |
-| waitingTime        | Wait for maximum this time before returning an error. Process-Automator queries the engine every 500 ms until this delay. Default value is 5 minutes | "waitingTime" : "PT10S"                                                            |
-| taskId             | Activity ID to query                                                                                                                                 | "activityId": "review"                                                             |
-| topic              | Topic to search the task (mandatory in C8)                                                                                                           | "topic" : "get-score"                                                              |
-| streamEnqbled      | Specify if the worker use the streamEnabled function . Default is true.                                                                              | "streamEnabled: true                                                               |  
-| variables          | List of variables (JSON file) to update                                                                                                              | "variables": {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]} |
-| variablesOperation | List of variables, but the value is an operation                                                                                                     |                                                                                    | 
-| modeExecution      | Implementation: options are CLASSICAL, THREAD, THREADTOKEN. Default is CLASSICAL                                                                     | "modeExecution" : "CLASSICAL"                                                      |
-| numberOfExecutions | Number of execution, the task may be multi-instance. Default is 1                                                                                    | "numberOfExecutions" : 3                                                           |
+| Parameter          | Explanation                                                                                                                                          | Example                                                                             |
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| name               | name of the step, optional                                                                                                                           | "name": "get Score"                                                                 |
+| type               | Specify the type (SERVICETASK)                                                                                                                       | "type": "SERVICETASK"                                                               |
+| delay              | Deplay to wait before looking for the task, in ISO 8601                                                                                              | "delay" : "PT0.1S" waits 100 ms                                                     |
+| waitingTime        | Wait for maximum this time before returning an error. Process-Automator queries the engine every 500 ms until this delay. Default value is 5 minutes | "waitingTime" : "PT10S"                                                             |
+| taskId             | Activity ID to query                                                                                                                                 | "activityId": "review"                                                              |
+| topic              | Topic to search the task (mandatory in C8)                                                                                                           | "topic" : "get-score"                                                               |
+| streamEnqbled      | Specify if the worker use the streamEnabled function . Default is true.                                                                              | "streamEnabled: true                                                                |  
+| variables          | List of variables (JSON file) to update                                                                                                              | "variables": {"amount": 450, "account": "myBankAccount", "colors": ["blue","red"]}  |
+| variablesOperation | List of variables, but the value is an operation                                                                                                     |                                                                                     | 
+| modeExecution      | Implementation: options are CLASSICAL, THREAD, THREADTOKEN. Default is CLASSICAL                                                                     | "modeExecution" : "CLASSICAL"                                                       |
+| nbTokens           | Number of token (modeExecution==THREADTOKEN).Default is 1                                                                                            | "nbTokens" : 200                                                                    |
+
+See the Multithreading section
 
 There is different implementation for the worker. Choose the one you will use for the simulation.
 
@@ -231,7 +247,7 @@ just send 300 requests and wait for the return.
 
 To control the number of threads working on the worker and to get maximum efficiency, this
 implementation can be used. This is the same implementation as before, but a token acquisition is
-added. To start the thread, the
+added. The number of token is setup in <numberOfExecutions> value
 
 ## ENDEVENT step
 
@@ -360,4 +376,68 @@ UserTaskThreshold(Activity_DiscoverySeedExtraction_TheEnd,7)
 ````
 
 
+# multi threading
+
+To send more request on server, it's possible to scale the different topic
+
+## Start event
+During the start event operation, process instance are created. They are created per period.
+Parameters are:
+
+| Parameter          | Explanation                                                     | Example                                                                             |
+|--------------------|-----------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| numberOfExecutions | Number of execution: number of process instance to create       | "numberOfExecutions" : 300                                                          |
+| frequency          | Frequency to create the <numberOfExecution>. ISO format (PT10S) | "frequency": "PT30S"                                                                |
+| nbThreads          | Number of threads to execute the creation in parallel (1)       | "nbThreads": 30                                                                     |   
+
+The frequency is the period to create the process instance. Let's use a frequency of 30 Seconds. Each 30 seconds, it will create numberOfExecutions process instances.
+If it can't create this number, it will send a error.
+To access this number, it's possible to multithreads the creation. This is the "nbWorkers" parameters. A threadPool is created with this value, and the numberOfExecutions creation is sent to this thread pool.
+
+The numberOfWorkers is part of the scenario.
+It's possible to override this value via the application.yaml
+```yaml
+automator:
+  startevent:
+    nbThreads: 45
+```
+or by an environment variable in a kubernetes deployment
+```yaml
+
+env:
+  - name: JAVA_TOOL_OPTIONS
+    value: >-
+      -Dautomator.startevent.nbThreads=200
+```
+
+## Workers
+A workers can be multi thread by two different mechanism: the asynchrounous execution and the multi threading execution
+
+**asynchronous execution**
+it consist to not execute the treatment in the handle() or execute() method. This is done via a ThreadToken or an Asynchrounous mode.
+
+**Worker thread**
+This section is only for Camunda 8. Camunda 7 have only one thread per worker.
+
+The number of threads for a worker is set at the Zeebe connection, not worker per worker.
+These parameter are
+```yaml
+      workerExecutionThreads: 100
+      workerMaxJobsActive: 100
+```
+
+It can be overridden by a environment variable in the Kubernetes file
+```yaml
+
+env:
+  - name: JAVA_TOOL_OPTIONS
+    value: >-
+      -Dautomator.startup.serverName=zeebeCloud
+      -Dautomator.servers.camunda8.name=zeebeCloud
+      -Dautomator.servers.camunda8.workerExecutionThreads=100
+```
+By this method:
+* you set up the server name (`automator.startup.serverName`) to use for the Zeebe Connection to `zeebeCloud`
+* then, you qualify the camunda8 variable (`automator.servers.camunda8.name`) with this name. The Zeebe connection can be configured via the `automator.servers.camunda8`variables
+* the number of threads are set to 100 via the `automator.servers.camunda8.workerExecutionThreads` variable.
 

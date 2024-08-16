@@ -11,6 +11,12 @@ public class RunParameters {
   private int numberOfThreadsPerScenario = 10;
 
   /**
+   * Return the number of thread to use in the start event. Coming from the configuration.
+   * it may be n
+   */
+  private Integer startEventNbThreads;
+
+  /**
    * Execute the scenario (execution part): create process instance, execute user & service task
    */
   private boolean execution = false;
@@ -183,6 +189,20 @@ public class RunParameters {
   public RunParameters setNumberOfThreadsPerScenario(int numberOfThreadsPerScenario) {
     this.numberOfThreadsPerScenario = numberOfThreadsPerScenario;
     return this;
+  }
+
+  /**
+   * return the nbThreads to use in a start event, comming from the configuration
+   * If the configuration does not specify anything, then return null.
+   *
+   * @return the number of thread to use for the start event
+   */
+  public Integer getStartEventNbThreads() {
+    return startEventNbThreads;
+  }
+
+  public void setStartEventNbThreads(Integer startEventNbThreads) {
+    this.startEventNbThreads = startEventNbThreads;
   }
 
   public boolean showLevelDebug() {

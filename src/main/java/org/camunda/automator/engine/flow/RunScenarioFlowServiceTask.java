@@ -49,8 +49,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
                                     RunResult runResult) {
     super(scenarioStep, runScenario, runResult);
     this.scheduler = scheduler;
-    this.semaphore = new Semaphore(runScenario.getBpmnEngine().getWorkerExecutionThreads());
-
+    this.semaphore = new Semaphore(Math.max(1, scenarioStep.getNbTokens()));
   }
 
   @Override

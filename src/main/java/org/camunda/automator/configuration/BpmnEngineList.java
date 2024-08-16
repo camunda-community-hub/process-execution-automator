@@ -27,7 +27,7 @@ public class BpmnEngineList {
   public static final String CONF_WORKER_MAX_JOBS_ACTIVE = "workerMaxJobsActive";
   public static final String CONF_WORKER_EXECUTION_THREADS = "workerExecutionThreads";
   public static final String CONF_TASK_LIST_URL = "taskListUrl";
-  public static final String CONF_TASK_LIST_USER = "taskListUserName";
+  public static final String CONF_TASK_LIST_USER_NAME = "taskListUserName";
   public static final String CONF_TASK_LIST_PASSWORD = "taskListUserPassword";
   public static final String CONF_TASK_LIST_CLIENT_ID = "taskListClientId";
   public static final String CONF_TASK_LIST_CLIENT_SECRET = "taskListClientSecret";
@@ -226,7 +226,7 @@ public class BpmnEngineList {
         bpmnServerDefinition.operateAudience = getString(CONF_OPERATE_AUDIENCE, serverMap, null, contextLog, false);
 
         bpmnServerDefinition.taskListUrl = getString(CONF_TASK_LIST_URL, serverMap, null, contextLog, false);
-        bpmnServerDefinition.taskListUserName = getString(CONF_TASK_LIST_USER, serverMap, null, contextLog, false);
+        bpmnServerDefinition.taskListUserName = getString(CONF_TASK_LIST_USER_NAME, serverMap, null, contextLog, false);
         bpmnServerDefinition.taskListUserPassword = getString(CONF_TASK_LIST_PASSWORD, serverMap, null, contextLog,
             false);
         bpmnServerDefinition.taskListClientId = getString(CONF_TASK_LIST_CLIENT_ID, serverMap, null, contextLog, false);
@@ -370,6 +370,8 @@ public class BpmnEngineList {
       camunda8.operateUserName = configurationServersEngine.zeebeOperateUserName;
       camunda8.operateUserPassword = configurationServersEngine.zeebeOperateUserPassword;
       camunda8.taskListUrl = configurationServersEngine.zeebeTaskListUrl;
+      camunda8.taskListUserName = configurationServersEngine.zeebeTaskListUserName;
+      camunda8.taskListUserPassword = configurationServersEngine.zeebeTaskListUserPassword;
       list.add(camunda8);
       logger.info(
           "Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] " + "OperateURL[{}]",
