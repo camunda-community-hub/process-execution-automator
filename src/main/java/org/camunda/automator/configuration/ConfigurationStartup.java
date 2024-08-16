@@ -97,6 +97,7 @@ public class ConfigurationStartup {
   public Integer getStartEventNbThreads() {
     return startEventNbThreads;
   }
+
   public List<String> getScenarioFileAtStartup() {
     return recalibrateAfterSplit(scenarioFileAtStartup);
   }

@@ -371,7 +371,7 @@ public class BpmnEngineList {
       camunda8.operateUserPassword = configurationServersEngine.zeebeOperateUserPassword;
       camunda8.taskListUrl = configurationServersEngine.zeebeTaskListUrl;
       camunda8.taskListUserName = configurationServersEngine.zeebeTaskListUserName;
-      camunda8.taskListUserPassword= configurationServersEngine.zeebeTaskListUserPassword;
+      camunda8.taskListUserPassword = configurationServersEngine.zeebeTaskListUserPassword;
       list.add(camunda8);
       logger.info(
           "Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] " + "OperateURL[{}]",

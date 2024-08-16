@@ -191,10 +191,10 @@ public class RunParameters {
     return this;
   }
 
-
   /**
    * return the nbThreads to use in a start event, comming from the configuration
    * If the configuration does not specify anything, then return null.
+   *
    * @return the number of thread to use for the start event
    */
   public Integer getStartEventNbThreads() {
@@ -204,6 +204,7 @@ public class RunParameters {
   public void setStartEventNbThreads(Integer startEventNbThreads) {
     this.startEventNbThreads = startEventNbThreads;
   }
+
   public boolean showLevelDebug() {
     return getLogLevelAsNumber() >= 5;
   }

@@ -32,7 +32,7 @@ public class ScenarioStep {
    */
   private Integer nbThreads = Integer.valueOf(1);
 
-  private Integer nbTokens = null;
+  private final Integer nbTokens = null;
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -217,8 +217,9 @@ public class ScenarioStep {
   }
 
   public int getNbTokens() {
-    return nbTokens==null? 1: nbTokens;
+    return nbTokens == null ? 1 : nbTokens;
   }
+
   public String getProcessId() {
     return processId;
   }
