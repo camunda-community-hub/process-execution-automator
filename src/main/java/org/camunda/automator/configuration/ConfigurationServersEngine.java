@@ -40,8 +40,14 @@ public class ConfigurationServersEngine {
   public String zeebeOperateUserName;
   @Value("${automator.servers.camunda8.operateUserPassword:''}")
   public String zeebeOperateUserPassword;
+
   @Value("${automator.servers.camunda8.taskListUrl:''}")
   public String zeebeTaskListUrl;
+  @Value("${automator.servers.camunda8.taskListUserName:''}")
+  public String zeebeTaskListUserName;
+  @Value("${automator.servers.camunda8.taskListUserPassword:''}")
+  public String zeebeTaskListUserPassword;
+
   @Value("${automator.servers.camunda8.workerExecutionThreads:''}")
   public String zeebeWorkerExecutionThreads;
   @Value("${automator.servers.camunda8.workerMaxJobsActive:''}")

@@ -48,14 +48,25 @@ public class CreateProcessInstanceThread {
    */
   public void createProcessInstances(Duration durationToCreateProcessInstances) {
 
-    int numberOfThreads = scenarioStep.getNbWorkers() == 0 ? 1 : scenarioStep.getNbWorkers();
+    int nbThreads = scenarioStep.getNbThreads() == 0 ? 1 : scenarioStep.getNbThreads();
 
-    ExecutorService executor = Executors.newFixedThreadPool(numberOfThreads);
+    // the configuration may overload this value
+    Integer configurationNbThreads = runScenario.getRunParameters().getStartEventNbThreads();
+    String additionalComment = "";
+    if (configurationNbThreads != null) {
+      additionalComment = "(nbThreads overrided by the configuration: " + configurationNbThreads + ")";
+      nbThreads = configurationNbThreads.intValue();
+    }
+
+    ExecutorService executor = Executors.newFixedThreadPool(nbThreads);
     int totalNumberOfPi = 0;
 
-    int processInstancePerThread = (int) Math.ceil(1.0 * scenarioStep.getNumberOfExecutions() / numberOfThreads);
+    int processInstancePerThread = (int) Math.ceil(1.0 * scenarioStep.getNumberOfExecutions() / nbThreads);
+    logger.info("StartNbThreads Step:[{}] PI:{} Duration:[{}] Thread:{} {} PI/thread:{}", scenarioStep.getTaskId(),
+        scenarioStep.getNumberOfExecutions(), durationToCreateProcessInstances, nbThreads, additionalComment,
+        processInstancePerThread);
     // Submit tasks to the executor
-    for (int i = 0; i < numberOfThreads; i++) {
+    for (int i = 0; i < nbThreads; i++) {
       int numberOfProcessInstanceToStart = Math.min(processInstancePerThread,
           scenarioStep.getNumberOfExecutions() - totalNumberOfPi);
       totalNumberOfPi += numberOfProcessInstanceToStart;
@@ -122,7 +133,7 @@ public class CreateProcessInstanceThread {
     Duration durationToCreateProcessInstances;
 
     /**
-     * @param executionBatchNumber
+     * @param executionBatchNumber             batch number executed
      * @param indexInBatch                     the component number, when multiple component where generated to handle the flow
      * @param numberOfProcessInstanceToStart   number of process instance to start by this object
      * @param durationToCreateProcessInstances duration max allowed to create process instance

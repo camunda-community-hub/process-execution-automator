@@ -153,7 +153,8 @@ public class AutomatorStartup {
           .setUserTask(configurationStartup.isPolicyExecutionUserTask())
           .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
           .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
-          .setDeepTracking(configurationStartup.deepTracking());
+          .setDeepTracking(configurationStartup.deepTracking())
+          .setStartEventNbThreads(configurationStartup.getStartEventNbThreads());
       List<String> filterService = configurationStartup.getFilterService();
       if (filterService != null) {
         runParameters.setFilterExecutionServiceTask(filterService);

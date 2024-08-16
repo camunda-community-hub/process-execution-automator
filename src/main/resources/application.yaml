@@ -24,6 +24,11 @@ automator:
 
   logDebug: false
 
+  # override the nbThread values in the scenario
+  # startEvent:
+  #   nbThreads: 100
+
+
   # servers connection is a list of connection separate by ;
   # each connection contains a name and a type. then, other parameters depends on the type
   # <name>,CAMUNDA_7,<url>
@@ -42,6 +47,7 @@ automator:
       workerMaxJobsActive: 20
 
     - type: "camunda8"
+      description: "Simple authentication"
       name: "Camunda8Ruby"
       zeebeGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
@@ -122,6 +128,8 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
       taskListUrl: "http://localhost:8082"
+      taskListUserName: "demo"
+      taskListUserPassword: "demo"
       workerExecutionThreads: 200
       workerMaxJobsActive: 200
 

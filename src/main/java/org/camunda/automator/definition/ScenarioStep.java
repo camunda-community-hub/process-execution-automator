@@ -30,7 +30,9 @@ public class ScenarioStep {
   /**
    * In case of a Flow Step, the number of workers to execute this tasks
    */
-  private Integer nbWorkers = Integer.valueOf(1);
+  private Integer nbThreads = Integer.valueOf(1);
+
+  private Integer nbTokens = null;
   /**
    * if the step is used in a WarmingUp operation, it can decide this is the time to finish it
    * Expression is
@@ -206,14 +208,17 @@ public class ScenarioStep {
     return frequency;
   }
 
-  public int getNbWorkers() {
-    return nbWorkers == null || nbWorkers == 0 ? 1 : nbWorkers;
+  public int getNbThreads() {
+    return nbThreads == null || nbThreads == 0 ? 1 : nbThreads;
   }
 
-  public void setNbWorkers(int nbWorkers) {
-    this.nbWorkers = nbWorkers;
+  public void setNbThreads(int nbThreads) {
+    this.nbThreads = nbThreads;
   }
 
+  public int getNbTokens() {
+    return nbTokens==null? 1: nbTokens;
+  }
   public String getProcessId() {
     return processId;
   }
@@ -266,10 +271,10 @@ public class ScenarioStep {
    * CLASSICAL, WAIT: the worker wait the waitingTime time
    * THREAD, ASYNCHRONOUS: the worker release the method, wait asynchronously the waiting time and send back the answer
    * THREADTOKEN, ASYNCHRONOUSLIMITED: same as THREAD, but use the maxClient information to not accept more than this number
-   * In ASYNCHRONOUS, the method can potentially having millions of works in parallel (it accept <NumberOfClients> works,
-   * but because it finish the method, then Zeebe Client will accept more works. So, with a waiting time of 1 mn, it may have a lot
+   * In ASYNCHRONOUS, the method can potentially have millions of works in parallel (it accept <NumberOfClients> works,
+   * but because it finishes the method, then Zeebe Client will accept more works. So, with a waiting time of 1 mn, it may have a lot
    * of works in progress in the client.
-   * This mode limit the number of current execution on the worker. it redeem immediately the method, but when we reach this
+   * This mode limit the number of current execution on the worker. it redeems immediately the method, but when we reach this
    * limitation, it froze the worker, waiting for a slot.
    */
   public enum MODEEXECUTION {CLASSICAL, THREAD, THREADTOKEN, WAIT, ASYNCHRONOUS, ASYNCHRONOUSLIMITED}

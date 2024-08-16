@@ -27,6 +27,9 @@ public class ConfigurationStartup {
   @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}")
   public String policyExecution;
 
+  @Value("${automator.startEvent.nbThreads:#{null}}")
+  public Integer startEventNbThreads;
+
   /**
    * it may be necessary to wait the other component to warm up
    */
@@ -91,6 +94,9 @@ public class ConfigurationStartup {
     return policyExtended.contains("|DEPLOYPROCESS|");
   }
 
+  public Integer getStartEventNbThreads() {
+    return startEventNbThreads;
+  }
   public List<String> getScenarioFileAtStartup() {
     return recalibrateAfterSplit(scenarioFileAtStartup);
   }
