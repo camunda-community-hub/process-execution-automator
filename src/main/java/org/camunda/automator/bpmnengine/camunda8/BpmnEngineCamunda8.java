@@ -412,6 +412,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     }
     RegisteredTask registeredTask = new RegisteredTask();
 
+    logger.info("Create worker[{}] Topic[{}] StreamEnabled[{}] LockTime[{}] WorkerExecutionThreads[{}] MaxJobsActive[{}]", // label
+        workerId,topic,streamEnabled,lockTime,
+        serverDefinition.workerExecutionThreads,
+    serverDefinition.workerMaxJobsActive);
+
+
     JobWorkerBuilderStep1.JobWorkerBuilderStep3 step3 = zeebeClient.newWorker()
         .jobType(topic)
         .handler((JobHandler) jobHandler)
@@ -891,7 +897,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
       analysis.append("] ");
       if (serverDefinition.workerMaxJobsActive == -1) {
         serverDefinition.workerMaxJobsActive = serverDefinition.workerExecutionThreads;
-        analysis.append("No workerMaxJobsActive defined, align to the number of threads, ");
+        analysis.append("No workerMaxJobsActive defined, align to ExecutionThread[");
+        analysis.append(serverDefinition.workerExecutionThreads);
+        analysis.append("]");
       }
       if (serverDefinition.workerExecutionThreads > serverDefinition.workerMaxJobsActive) {
         logger.error(
