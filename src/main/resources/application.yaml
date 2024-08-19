@@ -44,7 +44,7 @@ automator:
     - type: "camunda7"
       name: "camunda7Emeraud"
       url: "http://localhost:8080/engine-rest"
-      workerMaxJobsActive: 20
+      workerMaxJobsActive: 1
 
     - type: "camunda8"
       description: "Simple authentication"
@@ -56,8 +56,9 @@ automator:
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
     - type: "camunda8"
       name: "Camunda8Lazuli"
@@ -82,21 +83,24 @@ automator:
       taskListUrl: "http://localhost:8082"
       taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
 
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
     - type: "camunda8"
       name: "Camunda8ZeebeOnly"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebePlainText: true
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
 
     - type: "camunda8saas"
       name: "Camunda8Grena"
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
       region: "jfk-1"
       clusterId: "b16d70cb-b654-4d76-a3a4-d4e438e4447c"
@@ -119,7 +123,7 @@ automator:
     camunda7:
       name: "Camunda7Granit"
       url: "http://localhost:8080/engine-rest"
-      workerMaxJobsActive: 20
+      workerMaxJobsActive: 1
 
     camunda8:
       name: "Camunda8Calcair"
@@ -131,12 +135,14 @@ automator:
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       workerExecutionThreads: 200
-      workerMaxJobsActive: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
     camunda8Saas:
       name: "Camunda8Marbble"
-      workerExecutionThreads: 10
-      workerMaxJobsActive: 10
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
 
       operateUserName: "demo"
       operateUserPassword: "demo"
