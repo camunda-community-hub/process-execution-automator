@@ -813,6 +813,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     // ---------------------------- Camunda Saas
     if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(this.typeCamundaEngine)) {
+      analysis.append("SaaS;");
+
       String gatewayAddressCloud =
           serverDefinition.zeebeSaasClusterId + "." + serverDefinition.zeebeSaasRegion + ".zeebe.camunda.io:443";
       isOk = stillOk(gatewayAddressCloud, "GatewayAddress", analysis, true, true, isOk);
@@ -849,8 +851,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     //---------------------------- Camunda 8 Self Manage
     else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(this.typeCamundaEngine)) {
+      analysis.append("SelfManage;");
       isOk = stillOk(serverDefinition.zeebeGatewayAddress, "GatewayAddress", analysis, true, true, isOk);
       if (serverDefinition.isAuthenticationUrl()) {
+        analysis.append("WithAuthentication;");
         isOk = stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
         isOk = stillOk(serverDefinition.zeebeAudience, "zeebeAudience", analysis, true, true, isOk);
         isOk = stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
@@ -878,6 +882,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
               "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
         }
       } else {
+        analysis.append("NoAuthentication;");
         // connect to local deployment; assumes that authentication is disabled
         clientBuilder = ZeebeClient.newClientBuilder()
             .gatewayAddress(serverDefinition.zeebeGatewayAddress)

@@ -104,7 +104,7 @@ Process-Automator does not contain any Camunda server. It connects to an existin
 communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a
 Camunda 7 or a Camunda 8 server.
 
-The scenario does not contain any server information. It has only the server.
+The scenario does not contain any server information.
 
 Process-Automator references a list of servers in the configuration in multiple ways:
 * serverConnection : String, containing a list of connections separated by ;
@@ -113,6 +113,7 @@ Process-Automator references a list of servers in the configuration in multiple 
 * camunda8 : information to connect a Camunda 8 server
 * camunda8Saas: information to connect a Camunda 8 Saas server
 
+So, you can choose the best way to overide the information to connect to your own server.
 
 At the execution, two parameters are mandatory:
 * the scenario to run
@@ -120,7 +121,105 @@ At the execution, two parameters are mandatory:
 
 In this way, using the same scenario in different environments is possible.
 
+For example, let's say you want to start the tool in a Kubernetes deployment.
+The best way is then to use the Spring capability's to override a parameter via the -D options.
+You check the application.yaml, and decided the simple ways is to override the `automator.servers.camunda8` section.
+
+1/ you specify which server the tool will connect the server given at the configuration.
+For example, using the SpringBoot functionality to override a configuration variable: 
+```
+-Dautomator.startup.serverName=MyTestServer
+```
+
+
+2/ Now, the tool will search the `MyTestServer` in the list of servers.
+
+The simple way is to override the `automator.servers.camunda8` values (or camunda7 to connect to a Camunda 7 server).
+
+To know the different parameters, check the example in the serverList section in the YAML file.
+To connect to a C8 self-manage with no authentication, the Camunda8Ruby is the best way
+
+```
+-Dautomator.servers.camunda8.name=MyTestServer
+-Dautomator.servers.camunda8.zeebeGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.operateUserName="demo"
+-Dautomator.servers.camunda8.operateUserPassword="demo"
+-Dautomator.servers.camunda8.operateUrl="http://localhost:8081"
+-Dautomator.servers.camunda8.taskListUserName="demo"
+-Dautomator.servers.camunda8.taskListUserPassword="demo"
+-Dautomator.servers.camunda8.taskListUrl="http://localhost:8082"
+-Dautomator.servers.camunda8.workerExecutionThreads=200
+```
+
+So, the application starts,know it will search for the server name `MyTestServer`, and search for that
+server name definition in all sources. It will found it behind of the definition of `automator.servers.camunda8` and use this definition to connect.
+
+### Example to connect a Self manage server, no authentication
+ The example in the list of server is `Camunda8Ruby`
+
+```
+-Dautomator.servers.camunda8.name=MyTestServer
+-Dautomator.servers.camunda8.zeebeGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.operateUserName="demo"
+-Dautomator.servers.camunda8.operateUserPassword="demo"
+-Dautomator.servers.camunda8.operateUrl="http://localhost:8081"
+-Dautomator.servers.camunda8.taskListUserName="demo"
+-Dautomator.servers.camunda8.taskListUserPassword="demo"
+-Dautomator.servers.camunda8.taskListUrl="http://localhost:8082"
+-Dautomator.servers.camunda8.workerExecutionThreads=200
+```
+
+### Example to connect a Self manage server, with authentication
+The example in the list of server is `Camunda8Lazuli`
+
+```
+-Dautomator.servers.camunda8.zeebeGatewayAddress=127.0.0.1:26500
+-Dautomator.servers.camunda8.zeebeClientId=zeebe
+-Dautomator.servers.camunda8.zeebeClientSecret=LHwdAq56bZ
+-Dautomator.servers.camunda8.zeebeAudience=zeebe
+-Dautomator.servers.camunda8.zeebePlainText=true
+-Dautomator.servers.camunda8.authenticationUrl=http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token
+-Dautomator.servers.camunda8.operateClientId=operate
+-Dautomator.servers.camunda8.operateClientSecret=Ns0ZGTrm24
+-Dautomator.servers.camunda8.operateUserName=demo
+-Dautomator.servers.camunda8.operateUserPassword=demo
+-Dautomator.servers.camunda8.operateUrl=http://localhost:8081
+-Dautomator.servers.camunda8.taskListClientId=tasklist
+-Dautomator.servers.camunda8.taskListClientSecret=DCjtjiIwmd
+-Dautomator.servers.camunda8.taskListUserName=demo
+-Dautomator.servers.camunda8.taskListUserPassword=demo
+-Dautomator.servers.camunda8.taskListUrl=http://localhost:8082
+-Dautomator.servers.camunda8.taskListKeycloakUrl=http://localhost:18080/auth/realms/camunda-platform
+-Dautomator.servers.camunda8.workerExecutionThreads=200
+```
+
+### Example to connect a SaaS
+The example in the list of server is `Camunda8Grena`
+
+```
+-Dautomator.servers.camunda8.zeebeGatewayAddress=127.0.0.1:26500
+-Dautomator.servers.camunda8.region=jfk-1
+-Dautomator.servers.camunda8.clusterId=b16d70cb-b654-4d76-a3a4-d4e438e4447c
+-Dautomator.servers.camunda8.zeebeClientId=nDyNLPuBqNrlQs4_3RsTDsFCgn~LkmJB
+-Dautomator.servers.camunda8.zeebeClientSecret=6HwNaOHVjHCUSjVmzm4J8zDtyohyxk7b~JF1PatZqnpDjujneQ62~dEh6M-j3APc
+-Dautomator.servers.camunda8.authenticationUrl=https://login.cloud.camunda.io/oauth/token
+-Dautomator.servers.camunda8.zeebeAudience=zeebe.camunda.io
+-Dautomator.servers.camunda8.operateUrl=https://bru-2.operate.camunda.io/4b..e2
+-Dautomator.servers.camunda8.operateClientId=SJRsNvQ3sS~LeLh.bYkkIZsRCKs-Y3jr
+-Dautomator.servers.camunda8.operateClientSecret=zyB5ihdg62L5afrOcPU.RR~O4poL97BoF5k8YUv.f3WBg9QqadYypp09ffIEXchW
+-Dautomator.servers.camunda8.taskListUrl=https://bru-2.tasklist.camunda.io/4b..e2
+-Dautomator.servers.camunda8.taskListClientId=H5uyrOHGkG8C8S~FlbA3EWsWsyzXP8mr
+-Dautomator.servers.camunda8.taskListClientSecret=.7~Lhx0~dntq5hfRc0kbD_5iZLyWWIZ6ZZXbg.LG5snMYIDIaaCDtj8~r~dq.yxk
+```
+
+
+
+## Using the CLI command
+
 Example to run the CLI command
+
+in the CLI command, the connection information must be stored in the application.yaml. To address multiple server, the simple way is to use the list of server.
+
 
 ````
 `java -jar target/process-execution-automator.jar \
@@ -182,9 +281,9 @@ The application runs only these role. Doing that, in a cluster, it's possible to
 ## main information
 
 
-| parameter                  | explanation                     | default |
-|----------------------------|---------------------------------|--|
-| logDebug  | Specify the information to log  | false  |
+| parameter | explanation                     | default |
+|-----------|---------------------------------|---------|
+| logDebug  | Specify the information to log  | false   |
 
 ## server connection
 
@@ -344,23 +443,22 @@ mvn clean install
 ````
 Now, create a docker image
 ````
-docker build -t pierre-yves-monnet/processautomator:1.7.0 .
-
+docker build -t pierre-yves-monnet/processautomator:1.7.1 .
 ````
 
 
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/processautomator:1.7.0 ghcr.io/camunda-community-hub/process-execution-automator:1.7.0
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.7.0
+docker tag pierre-yves-monnet/processautomator:1.7.1 ghcr.io/camunda-community-hub/process-execution-automator:1.7.1
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.7.1
 
 ````
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/processautomator:1.7.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/processautomator:1.7.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
