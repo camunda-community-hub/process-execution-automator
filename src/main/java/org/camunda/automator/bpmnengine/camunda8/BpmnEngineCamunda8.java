@@ -962,7 +962,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
         SaaSAuthenticationBuilder saaSAuthenticationBuilder = SaaSAuthentication.builder();
         JwtConfig jwtConfig = new JwtConfig();
-        jwtConfig.addProduct(Product.TASKLIST,
+        jwtConfig.addProduct(Product.OPERATE,
             new JwtCredential(serverDefinition.zeebeClientId, serverDefinition.zeebeClientSecret,
                 serverDefinition.operateAudience != null ? serverDefinition.operateAudience : "operate.camunda.io",
                 serverDefinition.authenticationUrl != null ?
