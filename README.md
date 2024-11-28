@@ -55,7 +55,7 @@ What Process-Automator do:
 Process-Automator do not
 
 * Execute service task in unit-scenario
-* It is not expected to throw a BPMN Message in the flow:  Process-Automator piloted a real system.
+* It is not expected to catch a BPMN Message in the flow:  Process-Automator piloted a real system.
 
 ## Requirement
 
@@ -69,7 +69,6 @@ A scenario can be executed on a Camunda 7 or a Camunda 8 server. Process-Automat
 * An API to be integrated into any other tools
 
 ## Different usages
-
 
 ### Unit test and regression, unit performance test (unit-scenario)
 
@@ -93,6 +92,32 @@ The method to conduct a [Load Test](doc/howRunLoadTest/README.md) is available h
 Visit [Load Test Scenario](doc/loadtestscenario/README.md) and the [Load test Tutorial](doc/loadtestscenario/Tutorial.md)
 
 ## Scenario
+
+Process-Execution-Automator execute a scenario.
+
+A scenario define
+* a list of robots. A robot 
+  * Create process instances, 
+  * Execute service task,
+  * Execute user tasks
+* some objectives
+  * How many process instance must be created
+  * How many service task has to be executed
+  * Time to execute a section in the process
+* a warm up section
+
+Due to the “backoff strategy”, workers need to be wake up
+
+Robots can be registered in the same pod
+![C8CrawlUrl.png](doc/scenarioreference/C8CrawlUrl.png)
+
+Or multiple pods can be defined. Each pod run the process-execution-automator on the same scenario, but limit which robots are executed
+![C8CrawlUrl-multiple-pods.png](doc/scenarioreference/C8CrawlUrl-multiple-pods.png)
+
+
+For unit testing, the execution is different. The pod is started, but don't start immediately the scenario.
+
+
 
 This section references all the information to build a scenario.
 Visit [Scenario reference](doc/scenarioreference/README.md)

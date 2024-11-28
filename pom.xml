@@ -6,7 +6,7 @@
   <groupId>org.camunda.community.automator</groupId>
   <artifactId>process-execution-automator</artifactId>
 
-  <version>1.7.1</version>
+  <version>1.8.0</version>
   <!-- Change the banner.txt version -->
   <!-- 1.5 Change OperateClient / TaskList Library -->
   <!-- 1.6 Increase option multithreading-->

@@ -16,20 +16,20 @@ import org.springframework.stereotype.Service;
 @Configuration
 public class ServiceAccess {
 
-  private final Logger logger = LoggerFactory.getLogger(ServiceAccess.class);
-  @Autowired
-  public ServiceDataOperation serviceDataOperation;
-  @Value("${scheduler.poolSize}")
-  private int schedulerPoolSize;
+    private final Logger logger = LoggerFactory.getLogger(ServiceAccess.class);
+    @Autowired
+    public ServiceDataOperation serviceDataOperation;
+    @Value("${scheduler.poolSize}")
+    private int schedulerPoolSize;
 
-  /**
-   * Executor to run everything that is scheduled (also @Scheduled)
-   */
-  public TaskScheduler getTaskScheduler(String schedulerName) {
-    ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-    scheduler.setPoolSize(schedulerPoolSize);
-    scheduler.setThreadNamePrefix(schedulerName);
-    scheduler.initialize();
-    return scheduler;
-  }
+    /**
+     * Executor to run everything that is scheduled (also @Scheduled)
+     */
+    public TaskScheduler getTaskScheduler(String schedulerName) {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(schedulerPoolSize);
+        scheduler.setThreadNamePrefix(schedulerName);
+        scheduler.initialize();
+        return scheduler;
+    }
 }

@@ -25,129 +25,129 @@ import java.io.InputStream;
 
 @Component
 public class AutomatorAPI {
-  static Logger logger = LoggerFactory.getLogger(AutomatorAPI.class);
+    static Logger logger = LoggerFactory.getLogger(AutomatorAPI.class);
 
-  @Autowired
-  ServiceAccess serviceAccess;
+    @Autowired
+    ServiceAccess serviceAccess;
 
-  /**
-   * Create an empty scenario.
-   * The scenario can be created from scratch by the caller
-   *
-   * @return the scenario
-   * see scenario class to create from scratch a scenario
-   */
-  public Scenario createScenario() {
-    return new Scenario();
-  }
-
-  /**
-   * Load the scenario from a file
-   *
-   * @param scenarioFile file to read the scenario
-   * @return the scenario
-   * @throws AutomatorException if scenario can't be read
-   */
-  public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
-    return Scenario.createFromFile(scenarioFile);
-  }
-
-  /**
-   * Create from an input Stream.
-   *
-   * @param scenarioInputStream inputStream
-   * @param origin              origin of inputStream
-   * @return scenario
-   * @throws AutomatorException if scenario can't be read
-   */
-  public Scenario loadFromInputStream(InputStream scenarioInputStream, String origin) throws AutomatorException {
-    return Scenario.createFromInputStream(scenarioInputStream, origin);
-  }
-
-  /**
-   * Search the engine from the scenario
-   *
-   * @param scenario       scenario
-   * @param bpmnEngineList different engine configuration
-   * @return the engine, null if no engine exist, an exception if the connection is not possible
-   */
-  public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList bpmnEngineList)
-      throws AutomatorException {
-    try {
-
-      if (scenario.getServerName() != null) {
-        return getBpmnEngine(bpmnEngineList.getByServerName(scenario.getServerName()), true);
-      }
-
-      return null;
-    } catch (AutomatorException e) {
-      logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
-          scenario.getServerName(), e.getMessage());
-      throw e;
+    /**
+     * Create an empty scenario.
+     * The scenario can be created from scratch by the caller
+     *
+     * @return the scenario
+     * see scenario class to create from scratch a scenario
+     */
+    public Scenario createScenario() {
+        return new Scenario();
     }
 
-  }
-
-  /**
-   * Execute a scenario
-   *
-   * @param bpmnEngine    Access the Camunda engine. if null, then the value in the scenario are used
-   * @param runParameters parameters use to run the scenario
-   * @param scenario      the scenario to execute
-   */
-  public RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-    RunScenario runScenario = null;
-
-    try {
-      runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-    } catch (Exception e) {
-      RunResult result = new RunResult(runScenario);
-      result.addError(null, "Initialization error");
-      return result;
+    /**
+     * Load the scenario from a file
+     *
+     * @param scenarioFile file to read the scenario
+     * @return the scenario
+     * @throws AutomatorException if scenario can't be read
+     */
+    public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
+        return Scenario.createFromFile(scenarioFile);
     }
 
-    RunResult runResult = new RunResult(runScenario);
-    runResult.add(runScenario.runScenario());
-
-    return runResult;
-  }
-
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Additional tool                                                    */
-  /*                                                                      */
-  /*  Deploy Process                                                      */
-  /*  Deploy a process in the server                                      */
-  /* ******************************************************************** */
-
-  public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug)
-      throws AutomatorException {
-    return BpmnEngineFactory.getInstance().getEngineFromConfiguration(serverDefinition, logDebug);
-  }
-
-  /**
-   * Deploy a process, bpmEngine is given by the caller
-   *
-   * @param bpmnEngine    Engine to deploy
-   * @param runParameters parameters used to deploy the version
-   * @param scenario      scenario
-   * @return the result object
-   */
-  public RunResult deployProcess(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-    RunScenario runScenario = null;
-    try {
-      long begin = System.currentTimeMillis();
-      runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-      RunResult runResult = new RunResult(runScenario);
-      runResult.add(runScenario.runDeployment());
-      runResult.addTimeExecution(System.currentTimeMillis() - begin);
-      return runResult;
-    } catch (Exception e) {
-      RunResult result = new RunResult(runScenario);
-      result.addError(null, "Process deployment error error " + e.getMessage());
-      return result;
+    /**
+     * Create from an input Stream.
+     *
+     * @param scenarioInputStream inputStream
+     * @param origin              origin of inputStream
+     * @return scenario
+     * @throws AutomatorException if scenario can't be read
+     */
+    public Scenario loadFromInputStream(InputStream scenarioInputStream, String origin) throws AutomatorException {
+        return Scenario.createFromInputStream(scenarioInputStream, origin);
     }
 
-  }
+    /**
+     * Search the engine from the scenario
+     *
+     * @param scenario       scenario
+     * @param bpmnEngineList different engine configuration
+     * @return the engine, null if no engine exist, an exception if the connection is not possible
+     */
+    public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList bpmnEngineList)
+            throws AutomatorException {
+        try {
+
+            if (scenario.getServerName() != null) {
+                return getBpmnEngine(bpmnEngineList.getByServerName(scenario.getServerName()), true);
+            }
+
+            return null;
+        } catch (AutomatorException e) {
+            logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
+                    scenario.getServerName(), e.getMessage());
+            throw e;
+        }
+
+    }
+
+    /**
+     * Execute a scenario
+     *
+     * @param bpmnEngine    Access the Camunda engine. if null, then the value in the scenario are used
+     * @param runParameters parameters use to run the scenario
+     * @param scenario      the scenario to execute
+     */
+    public RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
+        RunScenario runScenario = null;
+
+        try {
+            runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
+        } catch (Exception e) {
+            RunResult result = new RunResult(runScenario);
+            result.addError(null, "Initialization error");
+            return result;
+        }
+
+        RunResult runResult = new RunResult(runScenario);
+        runResult.merge(runScenario.runScenario());
+
+        return runResult;
+    }
+
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Additional tool                                                    */
+    /*                                                                      */
+    /*  Deploy Process                                                      */
+    /*  Deploy a process in the server                                      */
+    /* ******************************************************************** */
+
+    public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug)
+            throws AutomatorException {
+        return BpmnEngineFactory.getInstance().getEngineFromConfiguration(serverDefinition, logDebug);
+    }
+
+    /**
+     * Deploy a process, bpmEngine is given by the caller
+     *
+     * @param bpmnEngine    Engine to deploy
+     * @param runParameters parameters used to deploy the version
+     * @param scenario      scenario
+     * @return the result object
+     */
+    public RunResult deployProcess(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
+        RunScenario runScenario = null;
+        try {
+            long begin = System.currentTimeMillis();
+            runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
+            RunResult runResult = new RunResult(runScenario);
+            runResult.merge(runScenario.runDeployment());
+            runResult.addTimeExecution(System.currentTimeMillis() - begin);
+            return runResult;
+        } catch (Exception e) {
+            RunResult result = new RunResult(runScenario);
+            result.addError(null, "Process deployment error error " + e.getMessage());
+            return result;
+        }
+
+    }
 }

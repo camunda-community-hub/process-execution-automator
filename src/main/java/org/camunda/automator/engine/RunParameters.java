@@ -4,247 +4,247 @@ import java.util.Collections;
 import java.util.List;
 
 public class RunParameters {
-  private LOGLEVEL logLevel = LOGLEVEL.MONITORING;
+    private LOGLEVEL logLevel = LOGLEVEL.MONITORING;
 
-  private String serverName;
+    private String serverName;
 
-  private int numberOfThreadsPerScenario = 10;
+    private int numberOfThreadsPerScenario = 10;
 
-  /**
-   * Return the number of thread to use in the start event. Coming from the configuration.
-   * it may be n
-   */
-  private Integer startEventNbThreads;
+    /**
+     * Return the number of thread to use in the start event. Coming from the configuration.
+     * it may be n
+     */
+    private Integer startEventNbThreads;
 
-  /**
-   * Execute the scenario (execution part): create process instance, execute user & service task
-   */
-  private boolean execution = false;
+    /**
+     * Execute the scenario (execution part): create process instance, execute user & service task
+     */
+    private boolean execution = false;
 
-  /**
-   * On execution, it's possible to pilot each item, one by one
-   */
-  private boolean creation = true;
-  private boolean servicetask = true;
-  private boolean usertask = true;
-  /**
-   * Verify the scenario (verification part) : check that tasks exist
-   */
-  private boolean verification = false;
+    /**
+     * On execution, it's possible to pilot each item, one by one
+     */
+    private boolean creation = true;
+    private boolean servicetask = true;
+    private boolean usertask = true;
+    /**
+     * Verify the scenario (verification part) : check that tasks exist
+     */
+    private boolean verification = false;
 
-  /**
-   * After the execution, clean the processInstance
-   */
-  private boolean clearAllAfter = false;
+    /**
+     * After the execution, clean the processInstance
+     */
+    private boolean clearAllAfter = false;
 
-  /**
-   * Allow any deployment
-   */
-  private boolean deploymentProcess = true;
+    /**
+     * Allow any deployment
+     */
+    private boolean deploymentProcess = true;
 
-  private boolean fullDetailsSynthesis = false;
-  private List<String> filterServiceTask = Collections.emptyList();
+    private boolean fullDetailsSynthesis = false;
+    private List<String> filterServiceTask = Collections.emptyList();
 
-  private boolean deepTracking = true;
-  /**
-   * Load the scenario path here. Some functions may be relative to this path
-   */
-  private String scenarioPath;
+    private boolean deepTracking = true;
+    /**
+     * Load the scenario path here. Some functions may be relative to this path
+     */
+    private String scenarioPath;
 
-  private boolean warmingUp = true;
+    private boolean warmingUp = true;
 
-  public RunParameters() {
-  }
+    public RunParameters() {
+    }
 
-  public LOGLEVEL getLogLevel() {
-    return logLevel;
-  }
+    public LOGLEVEL getLogLevel() {
+        return logLevel;
+    }
 
-  public RunParameters setLogLevel(LOGLEVEL logLevel) {
-    this.logLevel = logLevel;
-    return this;
-  }
+    public RunParameters setLogLevel(LOGLEVEL logLevel) {
+        this.logLevel = logLevel;
+        return this;
+    }
 
-  public String getServerName() {
-    return this.serverName;
-  }
+    public String getServerName() {
+        return this.serverName;
+    }
 
-  public RunParameters setServerName(String serverName) {
-    this.serverName = serverName;
-    return this;
-  }
+    public RunParameters setServerName(String serverName) {
+        this.serverName = serverName;
+        return this;
+    }
 
-  public boolean isExecution() {
-    return execution;
-  }
+    public boolean isExecution() {
+        return execution;
+    }
 
-  public RunParameters setExecution(boolean execution) {
-    this.execution = execution;
-    return this;
-  }
+    public RunParameters setExecution(boolean execution) {
+        this.execution = execution;
+        return this;
+    }
 
-  public boolean isCreation() {
-    return creation;
-  }
+    public boolean isCreation() {
+        return creation;
+    }
 
-  public RunParameters setCreation(boolean creation) {
-    this.creation = creation;
-    return this;
-  }
+    public RunParameters setCreation(boolean creation) {
+        this.creation = creation;
+        return this;
+    }
 
-  public boolean isServiceTask() {
-    return servicetask;
-  }
+    public boolean isServiceTask() {
+        return servicetask;
+    }
 
-  public RunParameters setServiceTask(boolean servicetask) {
-    this.servicetask = servicetask;
-    return this;
-  }
+    public RunParameters setServiceTask(boolean servicetask) {
+        this.servicetask = servicetask;
+        return this;
+    }
 
-  public boolean isUserTask() {
-    return usertask;
-  }
+    public boolean isUserTask() {
+        return usertask;
+    }
 
-  public RunParameters setUserTask(boolean usertask) {
-    this.usertask = usertask;
-    return this;
-  }
+    public RunParameters setUserTask(boolean usertask) {
+        this.usertask = usertask;
+        return this;
+    }
 
-  public boolean isVerification() {
-    return verification;
-  }
+    public boolean isVerification() {
+        return verification;
+    }
 
-  public RunParameters setVerification(boolean verification) {
-    this.verification = verification;
-    return this;
-  }
+    public RunParameters setVerification(boolean verification) {
+        this.verification = verification;
+        return this;
+    }
 
-  public boolean isClearAllAfter() {
-    return clearAllAfter;
-  }
+    public boolean isClearAllAfter() {
+        return clearAllAfter;
+    }
 
-  public RunParameters setClearAllAfter(boolean clearAllAfter) {
-    this.clearAllAfter = clearAllAfter;
-    return this;
-  }
+    public RunParameters setClearAllAfter(boolean clearAllAfter) {
+        this.clearAllAfter = clearAllAfter;
+        return this;
+    }
 
-  public boolean isDeploymentProcess() {
-    return deploymentProcess;
-  }
+    public boolean isDeploymentProcess() {
+        return deploymentProcess;
+    }
 
-  public RunParameters setDeploymentProcess(boolean deploymentProcess) {
-    this.deploymentProcess = deploymentProcess;
-    return this;
-  }
+    public RunParameters setDeploymentProcess(boolean deploymentProcess) {
+        this.deploymentProcess = deploymentProcess;
+        return this;
+    }
 
-  public boolean isFullDetailsSynthesis() {
-    return fullDetailsSynthesis;
-  }
+    public boolean isFullDetailsSynthesis() {
+        return fullDetailsSynthesis;
+    }
 
-  public RunParameters setFullDetailsSynthesis(boolean fullDetailsSynthesis) {
-    this.fullDetailsSynthesis = fullDetailsSynthesis;
-    return this;
-  }
+    public RunParameters setFullDetailsSynthesis(boolean fullDetailsSynthesis) {
+        this.fullDetailsSynthesis = fullDetailsSynthesis;
+        return this;
+    }
 
-  public List<String> getFilterServiceTask() {
-    return filterServiceTask;
-  }
+    public List<String> getFilterServiceTask() {
+        return filterServiceTask;
+    }
 
-  public RunParameters setFilterServiceTask(List<String> filterServiceTask) {
-    this.filterServiceTask = filterServiceTask;
-    return this;
-  }
+    public RunParameters setFilterServiceTask(List<String> filterServiceTask) {
+        this.filterServiceTask = filterServiceTask;
+        return this;
+    }
 
-  public boolean isDeepTracking() {
-    return deepTracking;
-  }
+    public boolean isDeepTracking() {
+        return deepTracking;
+    }
 
-  public RunParameters setDeepTracking(boolean deepTracking) {
-    this.deepTracking = deepTracking;
-    return this;
-  }
+    public RunParameters setDeepTracking(boolean deepTracking) {
+        this.deepTracking = deepTracking;
+        return this;
+    }
 
-  public String getScenarioPath() {
-    return scenarioPath;
-  }
+    public String getScenarioPath() {
+        return scenarioPath;
+    }
 
-  public RunParameters setScenarioPath(String scenarioPath) {
-    this.scenarioPath = scenarioPath;
-    return this;
-  }
+    public RunParameters setScenarioPath(String scenarioPath) {
+        this.scenarioPath = scenarioPath;
+        return this;
+    }
 
-  public boolean isWarmingUp() {
-    return warmingUp;
-  }
+    public boolean isWarmingUp() {
+        return warmingUp;
+    }
 
-  public RunParameters setWarmingUp(boolean warmingUp) {
-    this.warmingUp = warmingUp;
-    return this;
-  }
+    public RunParameters setWarmingUp(boolean warmingUp) {
+        this.warmingUp = warmingUp;
+        return this;
+    }
 
-  public int getNumberOfThreadsPerScenario() {
-    return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
-  }
+    public int getNumberOfThreadsPerScenario() {
+        return (numberOfThreadsPerScenario <= 0 ? 1 : numberOfThreadsPerScenario);
+    }
 
-  public RunParameters setNumberOfThreadsPerScenario(int numberOfThreadsPerScenario) {
-    this.numberOfThreadsPerScenario = numberOfThreadsPerScenario;
-    return this;
-  }
+    public RunParameters setNumberOfThreadsPerScenario(int numberOfThreadsPerScenario) {
+        this.numberOfThreadsPerScenario = numberOfThreadsPerScenario;
+        return this;
+    }
 
-  /**
-   * return the nbThreads to use in a start event, comming from the configuration
-   * If the configuration does not specify anything, then return null.
-   *
-   * @return the number of thread to use for the start event
-   */
-  public Integer getStartEventNbThreads() {
-    return startEventNbThreads;
-  }
+    /**
+     * return the nbThreads to use in a start event, comming from the configuration
+     * If the configuration does not specify anything, then return null.
+     *
+     * @return the number of thread to use for the start event
+     */
+    public Integer getStartEventNbThreads() {
+        return startEventNbThreads;
+    }
 
-  public void setStartEventNbThreads(Integer startEventNbThreads) {
-    this.startEventNbThreads = startEventNbThreads;
-  }
+    public void setStartEventNbThreads(Integer startEventNbThreads) {
+        this.startEventNbThreads = startEventNbThreads;
+    }
 
-  public boolean showLevelDebug() {
-    return getLogLevelAsNumber() >= 5;
-  }
+    public boolean showLevelDebug() {
+        return getLogLevelAsNumber() >= 5;
+    }
 
-  public boolean showLevelInfo() {
-    return getLogLevelAsNumber() >= 4;
-  }
+    public boolean showLevelInfo() {
+        return getLogLevelAsNumber() >= 4;
+    }
 
-  public boolean showLevelMonitoring() {
-    return getLogLevelAsNumber() >= 3;
-  }
+    public boolean showLevelMonitoring() {
+        return getLogLevelAsNumber() >= 3;
+    }
 
-  public boolean showLevelDashboard() {
-    return getLogLevelAsNumber() >= 2;
-  }
+    public boolean showLevelDashboard() {
+        return getLogLevelAsNumber() >= 2;
+    }
 
-  public void setFilterExecutionServiceTask(List<String> filterServiceTask) {
-    this.filterServiceTask = filterServiceTask;
-  }
+    public void setFilterExecutionServiceTask(List<String> filterServiceTask) {
+        this.filterServiceTask = filterServiceTask;
+    }
 
-  public boolean blockExecutionServiceTask(String topic) {
-    // no filter: execute everything
-    if (filterServiceTask.isEmpty())
-      return false;
-    // filter in place: only if the topic is registered
-    return !filterServiceTask.contains(topic);
-  }
+    public boolean blockExecutionServiceTask(String topic) {
+        // no filter: execute everything
+        if (filterServiceTask.isEmpty())
+            return false;
+        // filter in place: only if the topic is registered
+        return !filterServiceTask.contains(topic);
+    }
 
-  private int getLogLevelAsNumber() {
-    return switch (logLevel) {
-      case NOTHING -> 0;
-      case MAIN -> 1;
-      case DASHBOARD -> 2;
-      case MONITORING -> 3;
-      case INFO -> 4;
-      case DEBUG -> 5;
-      default -> 0;
-    };
-  }
+    private int getLogLevelAsNumber() {
+        return switch (logLevel) {
+            case NOTHING -> 0;
+            case MAIN -> 1;
+            case DASHBOARD -> 2;
+            case MONITORING -> 3;
+            case INFO -> 4;
+            case DEBUG -> 5;
+            default -> 0;
+        };
+    }
 
-  public enum LOGLEVEL {DEBUG, INFO, MONITORING, DASHBOARD, MAIN, NOTHING}
+    public enum LOGLEVEL {DEBUG, INFO, MONITORING, DASHBOARD, MAIN, NOTHING}
 
 }

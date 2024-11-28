@@ -15,75 +15,75 @@ import java.util.concurrent.TimeUnit;
  */
 public class RefactoredCommandWrapper extends CommandWrapper {
 
-  private final FinalCommandStep<Void> command;
-  private final long deadline;
-  private final String entityLogInfo;
-  private final DefaultCommandExceptionHandlingStrategy commandExceptionHandlingStrategy;
-  private final int maxRetries = 20;
-  private long currentRetryDelay = 50L;
-  private int invocationCounter = 0;
+    private final FinalCommandStep<Void> command;
+    private final long deadline;
+    private final String entityLogInfo;
+    private final DefaultCommandExceptionHandlingStrategy commandExceptionHandlingStrategy;
+    private final int maxRetries = 20;
+    private long currentRetryDelay = 50L;
+    private int invocationCounter = 0;
 
-  public RefactoredCommandWrapper(FinalCommandStep<Void> command,
-                                  long deadline,
-                                  String entityLogInfo,
-                                  DefaultCommandExceptionHandlingStrategy commandExceptionHandlingStrategy) {
-    super(command, null, commandExceptionHandlingStrategy);
-    this.command = command;
-    this.deadline = deadline;
-    this.entityLogInfo = entityLogInfo;
-    this.commandExceptionHandlingStrategy = commandExceptionHandlingStrategy;
-  }
-
-  @Override
-  public void executeAsync() {
-    ++this.invocationCounter;
-    ZeebeFuture<Void> zeebeFuture = this.command.send();
-    if (commandExceptionHandlingStrategy != null)
-      zeebeFuture.exceptionally(t -> {
-        this.commandExceptionHandlingStrategy.handleCommandError(this, t);
-        return null;
-      });
-  }
-
-  public Object executeSync() {
-    ++this.invocationCounter;
-    ZeebeFuture<Void> zeebeFutur = this.command.send();
-    if (commandExceptionHandlingStrategy != null)
-      zeebeFutur.exceptionally(t -> {
-        this.commandExceptionHandlingStrategy.handleCommandError(this, t);
-        return null;
-      });
-    return zeebeFutur.join();
-  }
-
-  @Override
-  public void increaseBackoffUsing(BackoffSupplier backoffSupplier) {
-    this.currentRetryDelay = backoffSupplier.supplyRetryDelay(this.currentRetryDelay);
-  }
-
-  @Override
-  public void scheduleExecutionUsing(ScheduledExecutorService scheduledExecutorService) {
-    scheduledExecutorService.schedule(this::executeAsync, this.currentRetryDelay, TimeUnit.MILLISECONDS);
-  }
-
-  @Override
-  public String toString() {
-    return "{command=" + this.command.getClass() + ", entity=" + this.entityLogInfo + ", currentRetryDelay="
-        + this.currentRetryDelay + '}';
-  }
-
-  @Override
-  public boolean hasMoreRetries() {
-    if (this.jobDeadlineExceeded()) {
-      return false;
-    } else {
-      return this.invocationCounter < this.maxRetries;
+    public RefactoredCommandWrapper(FinalCommandStep<Void> command,
+                                    long deadline,
+                                    String entityLogInfo,
+                                    DefaultCommandExceptionHandlingStrategy commandExceptionHandlingStrategy) {
+        super(command, null, commandExceptionHandlingStrategy);
+        this.command = command;
+        this.deadline = deadline;
+        this.entityLogInfo = entityLogInfo;
+        this.commandExceptionHandlingStrategy = commandExceptionHandlingStrategy;
     }
-  }
 
-  @Override
-  public boolean jobDeadlineExceeded() {
-    return Instant.now().getEpochSecond() > this.deadline;
-  }
+    @Override
+    public void executeAsync() {
+        ++this.invocationCounter;
+        ZeebeFuture<Void> zeebeFuture = this.command.send();
+        if (commandExceptionHandlingStrategy != null)
+            zeebeFuture.exceptionally(t -> {
+                this.commandExceptionHandlingStrategy.handleCommandError(this, t);
+                return null;
+            });
+    }
+
+    public Object executeSync() {
+        ++this.invocationCounter;
+        ZeebeFuture<Void> zeebeFutur = this.command.send();
+        if (commandExceptionHandlingStrategy != null)
+            zeebeFutur.exceptionally(t -> {
+                this.commandExceptionHandlingStrategy.handleCommandError(this, t);
+                return null;
+            });
+        return zeebeFutur.join();
+    }
+
+    @Override
+    public void increaseBackoffUsing(BackoffSupplier backoffSupplier) {
+        this.currentRetryDelay = backoffSupplier.supplyRetryDelay(this.currentRetryDelay);
+    }
+
+    @Override
+    public void scheduleExecutionUsing(ScheduledExecutorService scheduledExecutorService) {
+        scheduledExecutorService.schedule(this::executeAsync, this.currentRetryDelay, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
+    public String toString() {
+        return "{command=" + this.command.getClass() + ", entity=" + this.entityLogInfo + ", currentRetryDelay="
+                + this.currentRetryDelay + '}';
+    }
+
+    @Override
+    public boolean hasMoreRetries() {
+        if (this.jobDeadlineExceeded()) {
+            return false;
+        } else {
+            return this.invocationCounter < this.maxRetries;
+        }
+    }
+
+    @Override
+    public boolean jobDeadlineExceeded() {
+        return Instant.now().getEpochSecond() > this.deadline;
+    }
 
 }

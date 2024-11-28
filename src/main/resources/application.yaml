@@ -2,9 +2,12 @@ automator:
 
   scheduler:
 
+  content:
+    repositoryPath: "c:/temp/processautomator"
+    uploadPath: "C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources"
   startup:
     # give the server to run all tests at startup. The name must be registered in the list of server after
-    serverName:
+    serverName: Camunda8Ruby
 
     scenarioPath:
     # list of scenario separate by ;

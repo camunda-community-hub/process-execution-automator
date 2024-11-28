@@ -24,230 +24,230 @@ import java.util.List;
 
 @Component
 public class AutomatorCLI implements CommandLineRunner {
-  public static boolean isRunningCLI = false;
-  static Logger logger = LoggerFactory.getLogger(AutomatorCLI.class);
-  @Autowired
-  AutomatorAPI automatorAPI;
-  @Autowired
-  BpmnEngineList engineConfiguration;
+    public static boolean isRunningCLI = false;
+    static Logger logger = LoggerFactory.getLogger(AutomatorCLI.class);
+    @Autowired
+    AutomatorAPI automatorAPI;
+    @Autowired
+    BpmnEngineList engineConfiguration;
 
-  @Autowired
-  ConfigurationStartup configurationStartup;
+    @Autowired
+    ConfigurationStartup configurationStartup;
 
-  public static void main(String[] args) {
-    isRunningCLI = true;
-    SpringApplication app = new SpringApplication(AutomatorCLI.class);
-    app.setBannerMode(Banner.Mode.OFF);
-    System.exit(SpringApplication.exit(app.run(args)));
-  }
-
-  /* ******************************************************************** */
-  /*                                                                      */
-  /*  Usage                                                               */
-  /*  -c, --conf <file>                                                   */
-  /*     configuration file contains connection to engine                 */
-  /*                                                                      */
-  /*  -e, --engine ConnectionUrlString                                    */
-  /*    CAMUNDA7;<URL>                                                    */
-  /*    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>     */
-  /*      CAMUNDA8;LOCAL;<gateway>;<plaintext>                            */
-  /*                                                                      */
-  /*  -d, --debug                                                         */
-  /*       logs all steps                                                 */
-  /*  -n, --numberofexecution <number>                                    */
-  /*     override the number of execution for the scenario                */
-  /*  -r, --recursive                                                     */
-  /*    all *.json in the folder and sub-folder are monitored and executed*/
-  /*                                                                      */
-  /*    run <scenarioFile>                                                */
-  /*                                                                      */
-  /* ******************************************************************** */
-
-  private static void printUsage() {
-    logOutLn("Usage: <option> <action> <parameter>");
-    logOutLn("  -s, --server <serverName>");
-    logOutLn("    Which server to use in the configuration");
-    logOutLn("  -e, --engine ConnectionUrlString");
-    logOutLn("    CAMUNDA7;<URL>");
-    logOutLn("    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>");
-    logOutLn("      CAMUNDA8;LOCAL;<gateway>;<plaintext>");
-    logOutLn("  -l, --level <DEBUG|COMPLETE|MONITORING|MAIN|NOTHING>");
-    logOutLn("       Define the level of log (MONITORING is the default)");
-    logOutLn("  -n, --numberofexecution <number>");
-    logOutLn("     override the number of execution for the scenario");
-    logOutLn("  -d, --deploy <TRUE|FALSE>");
-    logOutLn("     Allow deployment of process is defined in the scenario (default is TRUE)");
-
-    logOutLn("  -x, --execute");
-    logOutLn("     execute the scenario");
-    logOutLn("  -v, --verification");
-    logOutLn("     verify the scenario");
-    logOutLn("  -f, --fullreport");
-    logOutLn("     Full report");
-
-    logOutLn("");
-    logOutLn("ACTIONS: ");
-    logOutLn("   run <scenarioFile>");
-    logOutLn("       execute one scenario");
-    logOutLn("   recursive <folder>");
-    logOutLn("      all *.json in the folder and sub-folder are monitored and executed");
-
-  }
-
-  private static BpmnEngineList decodeConfiguration(String propertiesFileName) throws Exception {
-    throw new Exception("Not yet implemented");
-  }
-
-  private static List<File> detectRecursiveScenario(File folderRecursive) {
-    List<File> listFiles = new ArrayList<>();
-    for (File file : folderRecursive.listFiles()) {
-      if (file.isDirectory()) {
-        listFiles.addAll(detectRecursiveScenario(file));
-      } else if (file.getName().endsWith(".json")) {
-        listFiles.add(file);
-      }
+    public static void main(String[] args) {
+        isRunningCLI = true;
+        SpringApplication app = new SpringApplication(AutomatorCLI.class);
+        app.setBannerMode(Banner.Mode.OFF);
+        System.exit(SpringApplication.exit(app.run(args)));
     }
-    return listFiles;
-  }
 
-  /**
-   * To reduce the number of warning
-   *
-   * @param message message to log out
-   */
-  private static void logOutLn(String message) {
-    System.out.println(message);
-  }
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Usage                                                               */
+    /*  -c, --conf <file>                                                   */
+    /*     configuration file contains connection to engine                 */
+    /*                                                                      */
+    /*  -e, --engine ConnectionUrlString                                    */
+    /*    CAMUNDA7;<URL>                                                    */
+    /*    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>     */
+    /*      CAMUNDA8;LOCAL;<gateway>;<plaintext>                            */
+    /*                                                                      */
+    /*  -d, --debug                                                         */
+    /*       logs all steps                                                 */
+    /*  -n, --numberofexecution <number>                                    */
+    /*     override the number of execution for the scenario                */
+    /*  -r, --recursive                                                     */
+    /*    all *.json in the folder and sub-folder are monitored and executed*/
+    /*                                                                      */
+    /*    run <scenarioFile>                                                */
+    /*                                                                      */
+    /* ******************************************************************** */
 
-  public void run(String[] args) {
-    if (!isRunningCLI)
-      return;
-    File scenarioFile = null;
-    File folderRecursive = null;
+    private static void printUsage() {
+        logOutLn("Usage: <option> <action> <parameter>");
+        logOutLn("  -s, --server <serverName>");
+        logOutLn("    Which server to use in the configuration");
+        logOutLn("  -e, --engine ConnectionUrlString");
+        logOutLn("    CAMUNDA7;<URL>");
+        logOutLn("    CAMUNDA8;CLOUD;<region>;<clusterId>;<clientIs>;<clientSecret>");
+        logOutLn("      CAMUNDA8;LOCAL;<gateway>;<plaintext>");
+        logOutLn("  -l, --level <DEBUG|COMPLETE|MONITORING|MAIN|NOTHING>");
+        logOutLn("       Define the level of log (MONITORING is the default)");
+        logOutLn("  -n, --numberofexecution <number>");
+        logOutLn("     override the number of execution for the scenario");
+        logOutLn("  -d, --deploy <TRUE|FALSE>");
+        logOutLn("     Allow deployment of process is defined in the scenario (default is TRUE)");
 
-    RunParameters runParameters = new RunParameters();
-    runParameters.setExecution(true)
-        .setServerName(configurationStartup.getServerName())
-        .setLogLevel(configurationStartup.getLogLevelEnum())
-        .setCreation(configurationStartup.isPolicyExecutionCreation())
-        .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
-        .setUserTask(configurationStartup.isPolicyExecutionUserTask())
-        .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
-        .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
-        .setDeepTracking(configurationStartup.deepTracking())
-        .setStartEventNbThreads(configurationStartup.getStartEventNbThreads());
-    List<String> filterService = configurationStartup.getFilterService();
-    if (filterService != null) {
-      runParameters.setFilterExecutionServiceTask(filterService);
+        logOutLn("  -x, --execute");
+        logOutLn("     execute the scenario");
+        logOutLn("  -v, --verification");
+        logOutLn("     verify the scenario");
+        logOutLn("  -f, --fullreport");
+        logOutLn("     Full report");
+
+        logOutLn("");
+        logOutLn("ACTIONS: ");
+        logOutLn("   run <scenarioFile>");
+        logOutLn("       execute one scenario");
+        logOutLn("   recursive <folder>");
+        logOutLn("      all *.json in the folder and sub-folder are monitored and executed");
+
     }
-    Integer overrideNumberOfExecution = null;
-    int i = 0;
-    ACTION action = null;
-    String serverName = null;
-    try {
-      while (i < args.length) {
-        if ("-h".equals(args[i]) || "--help".equals(args[i])) {
-          printUsage();
-          return;
-        } else if ("-s".equals(args[i]) || "--server".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : -c <ServerName>");
-          serverName = args[i + 1];
-          i++;
-        } else if ("-e".equals(args[i]) || "--engine".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : -e <ConnectionUrlString>");
-          engineConfiguration = decodeConfiguration(args[i + 1]);
-          i++;
-        } else if ("-l".equals(args[i]) || "--level".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : -l <DEBUG|MONITORING|MAIN|NOTHING>");
-          runParameters.setLogLevel(RunParameters.LOGLEVEL.valueOf(args[i + 1]));
-          i++;
-        } else if ("-n".equals(args[i]) || "--numberofexecution".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : n <numberofexecution>");
-          overrideNumberOfExecution = Integer.parseInt(args[i + 1]);
-          i++;
-        } else if ("-d".equals(args[i]) || "--deploy".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : -d TRUE|FALSE");
-          runParameters.setDeploymentProcess("TRUE".equalsIgnoreCase(args[i + 1]));
-          i++;
-        } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
-          runParameters.setExecution(true);
-        } else if ("-v".equals(args[i]) || "--verification".equals(args[i])) {
-          runParameters.setVerification(true);
-        } else if ("-f".equals(args[i]) || "--fullreport".equals(args[i])) {
-          runParameters.setFullDetailsSynthesis(true);
-        } else if ("run".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : run <scenarioFile>");
-          action = ACTION.RUN;
-          scenarioFile = new File(args[i + 1]);
-          i++;
-        } else if ("recursive".equals(args[i])) {
-          if (args.length < i + 1)
-            throw new AutomatorException("Bad usage : recursive <folder>");
-          action = ACTION.RECURSIVE;
-          folderRecursive = new File(args[i + 1]);
-          i++;
-        } else {
-          printUsage();
-          throw new AutomatorException("Bad usage : unknown parameters [" + args[i] + "]");
+
+    private static BpmnEngineList decodeConfiguration(String propertiesFileName) throws Exception {
+        throw new Exception("Not yet implemented");
+    }
+
+    private static List<File> detectRecursiveScenario(File folderRecursive) {
+        List<File> listFiles = new ArrayList<>();
+        for (File file : folderRecursive.listFiles()) {
+            if (file.isDirectory()) {
+                listFiles.addAll(detectRecursiveScenario(file));
+            } else if (file.getName().endsWith(".json")) {
+                listFiles.add(file);
+            }
         }
-        i++;
-      }
-
-      if (action == null) {
-        throw new AutomatorException("Bad usage : missing action (" + ACTION.RUN + ")");
-      }
-      if (!runParameters.isExecution() && !runParameters.isVerification()) {
-        runParameters.setExecution(true); // default
-      }
-
-      // get the correct server configuration
-      BpmnEngineList.BpmnServerDefinition serverDefinition = null;
-
-      serverDefinition = engineConfiguration.getByServerName(serverName);
-      if (serverDefinition == null) {
-        throw new AutomatorException("Check configuration: Server name (from parameter)[" + serverName
-            + "] does not exist in the list of servers in application.yaml file");
-      }
-
-      long beginTime = System.currentTimeMillis();
-      BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
-
-      switch (action) {
-      case RUN -> {
-        Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
-        BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
-
-        // execution
-        RunResult scenarioExecutionResult = automatorAPI.executeScenario(
-            bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
-
-        logger.info(scenarioExecutionResult.getSynthesis(runParameters.isFullDetailsSynthesis()));
-      }
-      case RECURSIVE -> {
-        List<File> listScenario = detectRecursiveScenario(folderRecursive);
-        for (File scenarioFileIndex : listScenario) {
-          Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
-          BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
-          RunResult scenarioExecutionResult = automatorAPI.executeScenario(
-              bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
-
-          logger.info(scenarioExecutionResult.getSynthesis(false));
-        }
-      }
-      }
-      logger.info("That's all folks! " + (System.currentTimeMillis() - beginTime) + " ms.");
-
-    } catch (Exception e) {
-      logger.error("Error during execution " + e);
+        return listFiles;
     }
 
-  }
+    /**
+     * To reduce the number of warning
+     *
+     * @param message message to log out
+     */
+    private static void logOutLn(String message) {
+        System.out.println(message);
+    }
 
-  public enum ACTION {RUN, RECURSIVE, VERIFY, RUNVERIFY, RECURSIVVERIFY}
+    public void run(String[] args) {
+        if (!isRunningCLI)
+            return;
+        File scenarioFile = null;
+        File folderRecursive = null;
+
+        RunParameters runParameters = new RunParameters();
+        runParameters.setExecution(true)
+                .setServerName(configurationStartup.getServerName())
+                .setLogLevel(configurationStartup.getLogLevelEnum())
+                .setCreation(configurationStartup.isPolicyExecutionCreation())
+                .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
+                .setUserTask(configurationStartup.isPolicyExecutionUserTask())
+                .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
+                .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
+                .setDeepTracking(configurationStartup.deepTracking())
+                .setStartEventNbThreads(configurationStartup.getStartEventNbThreads());
+        List<String> filterService = configurationStartup.getFilterService();
+        if (filterService != null) {
+            runParameters.setFilterExecutionServiceTask(filterService);
+        }
+        Integer overrideNumberOfExecution = null;
+        int i = 0;
+        ACTION action = null;
+        String serverName = null;
+        try {
+            while (i < args.length) {
+                if ("-h".equals(args[i]) || "--help".equals(args[i])) {
+                    printUsage();
+                    return;
+                } else if ("-s".equals(args[i]) || "--server".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : -c <ServerName>");
+                    serverName = args[i + 1];
+                    i++;
+                } else if ("-e".equals(args[i]) || "--engine".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : -e <ConnectionUrlString>");
+                    engineConfiguration = decodeConfiguration(args[i + 1]);
+                    i++;
+                } else if ("-l".equals(args[i]) || "--level".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : -l <DEBUG|MONITORING|MAIN|NOTHING>");
+                    runParameters.setLogLevel(RunParameters.LOGLEVEL.valueOf(args[i + 1]));
+                    i++;
+                } else if ("-n".equals(args[i]) || "--numberofexecution".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : n <numberofexecution>");
+                    overrideNumberOfExecution = Integer.parseInt(args[i + 1]);
+                    i++;
+                } else if ("-d".equals(args[i]) || "--deploy".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : -d TRUE|FALSE");
+                    runParameters.setDeploymentProcess("TRUE".equalsIgnoreCase(args[i + 1]));
+                    i++;
+                } else if ("-x".equals(args[i]) || "--execute".equals(args[i])) {
+                    runParameters.setExecution(true);
+                } else if ("-v".equals(args[i]) || "--verification".equals(args[i])) {
+                    runParameters.setVerification(true);
+                } else if ("-f".equals(args[i]) || "--fullreport".equals(args[i])) {
+                    runParameters.setFullDetailsSynthesis(true);
+                } else if ("run".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : run <scenarioFile>");
+                    action = ACTION.RUN;
+                    scenarioFile = new File(args[i + 1]);
+                    i++;
+                } else if ("recursive".equals(args[i])) {
+                    if (args.length < i + 1)
+                        throw new AutomatorException("Bad usage : recursive <folder>");
+                    action = ACTION.RECURSIVE;
+                    folderRecursive = new File(args[i + 1]);
+                    i++;
+                } else {
+                    printUsage();
+                    throw new AutomatorException("Bad usage : unknown parameters [" + args[i] + "]");
+                }
+                i++;
+            }
+
+            if (action == null) {
+                throw new AutomatorException("Bad usage : missing action (" + ACTION.RUN + ")");
+            }
+            if (!runParameters.isExecution() && !runParameters.isVerification()) {
+                runParameters.setExecution(true); // default
+            }
+
+            // get the correct server configuration
+            BpmnEngineList.BpmnServerDefinition serverDefinition = null;
+
+            serverDefinition = engineConfiguration.getByServerName(serverName);
+            if (serverDefinition == null) {
+                throw new AutomatorException("Check configuration: Server name (from parameter)[" + serverName
+                        + "] does not exist in the list of servers in application.yaml file");
+            }
+
+            long beginTime = System.currentTimeMillis();
+            BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(serverDefinition, true);
+
+            switch (action) {
+                case RUN -> {
+                    Scenario scenario = automatorAPI.loadFromFile(scenarioFile);
+                    BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
+
+                    // execution
+                    RunResult scenarioExecutionResult = automatorAPI.executeScenario(
+                            bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
+
+                    logger.info(scenarioExecutionResult.getSynthesis(runParameters.isFullDetailsSynthesis()));
+                }
+                case RECURSIVE -> {
+                    List<File> listScenario = detectRecursiveScenario(folderRecursive);
+                    for (File scenarioFileIndex : listScenario) {
+                        Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
+                        BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
+                        RunResult scenarioExecutionResult = automatorAPI.executeScenario(
+                                bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
+
+                        logger.info(scenarioExecutionResult.getSynthesis(false));
+                    }
+                }
+            }
+            logger.info("That's all folks! " + (System.currentTimeMillis() - beginTime) + " ms.");
+
+        } catch (Exception e) {
+            logger.error("Error during execution " + e);
+        }
+
+    }
+
+    public enum ACTION {RUN, RECURSIVE, VERIFY, RUNVERIFY, RECURSIVVERIFY}
 }
