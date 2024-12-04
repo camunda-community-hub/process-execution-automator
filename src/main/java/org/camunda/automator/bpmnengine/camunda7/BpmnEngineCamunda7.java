@@ -1,6 +1,6 @@
 package org.camunda.automator.bpmnengine.camunda7;
 
-import io.camunda.operate.search.DateFilter;
+
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
@@ -422,7 +422,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     /* ******************************************************************** */
 
     @Override
-    public long countNumberOfProcessInstancesCreated(String processName, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesCreated(String processName, Date startDate, Date endDate)
             throws AutomatorException {
 
         try {
@@ -445,7 +445,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
                     Date datePI = stringToDate(t.getBusinessKey());
                     if (datePI == null)
                         return false;
-                    return datePI.after(startDate.getDate());
+                    return datePI.after(startDate);
                 }).count();
 
             } while (processInstanceDtos.size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
@@ -458,7 +458,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     }
 
     @Override
-    public long countNumberOfProcessInstancesEnded(String processName, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesEnded(String processName, Date startDate, Date endDate)
             throws AutomatorException {
         throw new AutomatorException("Not yet implemented");
     }

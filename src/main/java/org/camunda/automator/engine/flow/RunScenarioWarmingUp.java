@@ -6,7 +6,6 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine.flow;
 
-import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.definition.ScenarioWarmingUp;
 import org.camunda.automator.engine.AutomatorException;
@@ -311,7 +310,7 @@ public class RunScenarioWarmingUp {
 
                     long value = runScenario.getBpmnEngine()
                             .countNumberOfProcessInstancesEnded(runScenario.getScenario().getProcessId(),
-                                    new DateFilter(runResult.getStartDate()), new DateFilter(new Date()));
+                                    runResult.getStartDate(), new Date());
                     return new CheckFunctionResult(value >= threshold,
                             "End[" + endId + "] value [" + value + "] / threshold[" + threshold + "]");
 

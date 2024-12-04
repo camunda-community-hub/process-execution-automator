@@ -17,8 +17,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @SpringBootApplication
 
@@ -98,14 +103,20 @@ public class AutomatorCLI implements CommandLineRunner {
         throw new Exception("Not yet implemented");
     }
 
-    private static List<File> detectRecursiveScenario(File folderRecursive) {
-        List<File> listFiles = new ArrayList<>();
-        for (File file : folderRecursive.listFiles()) {
-            if (file.isDirectory()) {
-                listFiles.addAll(detectRecursiveScenario(file));
-            } else if (file.getName().endsWith(".json")) {
-                listFiles.add(file);
-            }
+    private static List<Path> detectRecursiveScenario(Path folderRecursive) {
+        List<Path> listFiles = new ArrayList<>();
+        try (Stream<Path> files = Files.list(folderRecursive)) {
+            // Iterate over all files in the directory
+            files.forEach(file -> {
+                if (Files.isRegularFile(file)) {
+                    listFiles.add(file);
+                }
+                if (Files.isDirectory(file)) {
+                    listFiles.addAll(detectRecursiveScenario(file));
+                }
+            });
+        } catch (IOException e) {
+            logger.error("During detection scenario file: {}", e.getMessage());
         }
         return listFiles;
     }
@@ -122,8 +133,8 @@ public class AutomatorCLI implements CommandLineRunner {
     public void run(String[] args) {
         if (!isRunningCLI)
             return;
-        File scenarioFile = null;
-        File folderRecursive = null;
+        Path scenarioFile = null;
+        Path folderRecursive = null;
 
         RunParameters runParameters = new RunParameters();
         runParameters.setExecution(true)
@@ -184,13 +195,13 @@ public class AutomatorCLI implements CommandLineRunner {
                     if (args.length < i + 1)
                         throw new AutomatorException("Bad usage : run <scenarioFile>");
                     action = ACTION.RUN;
-                    scenarioFile = new File(args[i + 1]);
+                    scenarioFile = Paths.get(args[i + 1]);
                     i++;
                 } else if ("recursive".equals(args[i])) {
                     if (args.length < i + 1)
                         throw new AutomatorException("Bad usage : recursive <folder>");
                     action = ACTION.RECURSIVE;
-                    folderRecursive = new File(args[i + 1]);
+                    folderRecursive = Paths.get(args[i + 1]);
                     i++;
                 } else {
                     printUsage();
@@ -230,8 +241,8 @@ public class AutomatorCLI implements CommandLineRunner {
                     logger.info(scenarioExecutionResult.getSynthesis(runParameters.isFullDetailsSynthesis()));
                 }
                 case RECURSIVE -> {
-                    List<File> listScenario = detectRecursiveScenario(folderRecursive);
-                    for (File scenarioFileIndex : listScenario) {
+                    List<Path> listScenario = detectRecursiveScenario(folderRecursive);
+                    for (Path scenarioFileIndex : listScenario) {
                         Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
                         BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
                         RunResult scenarioExecutionResult = automatorAPI.executeScenario(

@@ -1,6 +1,7 @@
 package org.camunda.automator.bpmnengine;
 
-import io.camunda.operate.search.DateFilter;
+// import io.camunda.operate.search.DateFilter;
+
 import io.camunda.zeebe.client.api.worker.JobWorker;
 import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
@@ -186,10 +187,10 @@ public interface BpmnEngine {
     /*  CountInformation                                                    */
     /*                                                                      */
     /* ******************************************************************** */
-    long countNumberOfProcessInstancesCreated(String processId, DateFilter startDate, DateFilter endDate)
+    long countNumberOfProcessInstancesCreated(String processId, Date startDate, Date endDate)
             throws AutomatorException;
 
-    long countNumberOfProcessInstancesEnded(String processId, DateFilter startDate, DateFilter endDate)
+    long countNumberOfProcessInstancesEnded(String processId, Date startDate, Date endDate)
             throws AutomatorException;
 
     long countNumberOfTasks(String processId, String taskId) throws AutomatorException;

@@ -5,6 +5,7 @@ import org.camunda.automator.AutomatorCLI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationStartup;
+import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
@@ -16,7 +17,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,8 @@ public class AutomatorStartup {
 
     @Autowired
     ServiceAccess serviceAccess;
+    @Autowired
+    private ContentManager contentManager;
 
     @PostConstruct
     public void init() {
@@ -69,57 +75,6 @@ public class AutomatorStartup {
         }
     }
 
-    /**
-     * Load all scenario. List of File or Resource
-     *
-     * @return list of scenario
-     */
-    private List<Object> registerScenario() {
-        List<Object> scenarioList = new ArrayList<>();
-        // File
-        if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
-            logger.info("No scenario [File] from variable {} given", configurationStartup.getScenarioFileAtStartupName());
-        } else {
-            logger.info("Detect {} scenario [File] from variable [{}] ScenarioPath[{}]",
-                    configurationStartup.getScenarioFileAtStartup().size(), configurationStartup.getScenarioFileAtStartupName(),
-                    configurationStartup.scenarioPath);
-
-            for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
-                logger.info("Register scenario [File] [{}]", scenarioFileName);
-
-                File scenarioFile = new File(configurationStartup.scenarioPath + "/" + scenarioFileName);
-                if (!scenarioFile.exists()) {
-                    scenarioFile = new File(scenarioFileName);
-                }
-                if (!scenarioFile.exists()) {
-                    logger.error("ScenarioFile: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
-                            scenarioFileName, scenarioFileName);
-                    continue;
-                }
-                scenarioList.add(scenarioFile);
-            }
-        }
-        // Resource
-        if (configurationStartup.getScenarioResourceAtStartup().isEmpty()) {
-            logger.info("No scenario [Resource] from variable {} given",
-                    configurationStartup.getScenarioResourceAtStartupName());
-        } else {
-            List<Resource> scenarioResource = configurationStartup.getScenarioResourceAtStartup().stream()
-                    .filter(t -> t != null)
-                    .collect(Collectors.toList());
-
-            logger.info("Detect {} scenario [Resource] from variable [{}]",
-                    scenarioResource.size(),
-                    configurationStartup.getScenarioResourceAtStartupName());
-
-            for (Resource resource : scenarioResource) {
-                logger.info("Load scenario [Resource] from [{}]", resource.getDescription());
-                scenarioList.add(resource);
-            }
-        }
-
-        return scenarioList;
-    }
 
     /**
      * AutomatorSetupRunnable - run in parallel
@@ -179,27 +134,19 @@ public class AutomatorStartup {
             runFixedWarmup();
 
             // Load scenario
-            List<Object> scenarioList = registerScenario();
+            List<Path> scenarioList = loadStartupScenario();
 
             // now proceed all scenario
-            for (Object scenarioObject : scenarioList) {
+            for (Path scenarioPath : scenarioList) {
                 Scenario scenario = null;
-                if (scenarioObject instanceof File scenarioFile)
-                    try {
-                        scenario = automatorAPI.loadFromFile(scenarioFile);
-                    } catch (Exception e) {
-                        logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.getAbsolutePath(),
-                                e.getMessage());
-                    }
-                else if (scenarioObject instanceof Resource scenarioResource) {
-                    try {
-                        scenario = automatorAPI.loadFromInputStream(scenarioResource.getInputStream(),
-                                scenarioResource.getDescription());
-                    } catch (Exception e) {
-                        logger.error("Error during accessing InputStream from resource [{}]: {}", scenarioResource.getDescription(),
-                                e.getMessage());
-                    }
+                try {
+                    scenario = automatorAPI.loadFromFile(scenarioPath);
+                } catch (Exception e) {
+                    logger.error("Error during accessing InputStream from File [{}]: {}", scenarioPath.getFileName(),
+                            e.getMessage());
                 }
+
+
                 if (scenario == null)
                     continue;
                 logger.info("Start scenario [{}] on (1)ScenarioServerName[{}] (2)ConfigurationServerName[{}]",
@@ -272,5 +219,62 @@ public class AutomatorStartup {
             }
         }
     }
+
+    private List<Path> loadStartupScenario() {
+        List<Path> scenarioList = new ArrayList<>();
+        // File
+        if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
+            logger.info("AutomatorStartup/StartupScenario: no scenario [File] from {} given", configurationStartup.getScenarioFileAtStartupName());
+        } else {
+            logger.info("Detect {} scenario [File] from variable [{}] ScenarioPath[{}]",
+                    configurationStartup.getScenarioFileAtStartup().size(), configurationStartup.getScenarioFileAtStartupName(),
+                    configurationStartup.scenarioPath);
+
+            for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
+                logger.info("AutomatorStartup/StartupScenario: Register scenario [File] [{}]", scenarioFileName);
+
+                Path scenarioFile = Paths.get(configurationStartup.scenarioPath + "/" + scenarioFileName);
+                if (!Files.exists(scenarioFile)) {
+                    scenarioFile = Paths.get(scenarioFileName);
+                }
+                if (Files.exists(scenarioFile)) {
+                    try {
+                        contentManager.addFile(scenarioFile);
+                    }catch (IOException e) {
+                        logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath().toString(), e.getMessage());
+                    }
+                } else {
+                    logger.error("AutomatorStartup/StartupScenario:: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
+                            scenarioFileName, scenarioFileName);
+                    continue;
+                }
+            }
+
+        }
+
+        // Resource
+        if (configurationStartup.getScenarioResourceAtStartup().isEmpty()) {
+            logger.info("No scenario [Resource] from variable {} given",
+                    configurationStartup.getScenarioResourceAtStartupName());
+        } else {
+            List<Resource> scenarioResource = configurationStartup.getScenarioResourceAtStartup().stream()
+                    .filter(t -> t != null)
+                    .collect(Collectors.toList());
+
+            logger.info("Detect {} scenario [Resource] from variable [{}]",
+                    scenarioResource.size(),
+                    configurationStartup.getScenarioResourceAtStartupName());
+            for (Resource resource : scenarioResource) {
+                try {
+                    scenarioList.add(contentManager.addResource(resource));
+                } catch (IOException e) {
+                    logger.error("Error loading resource [{}]", resource.getFilename());
+                }
+            }
+        }
+
+        return scenarioList;
+    }
+
 }
 

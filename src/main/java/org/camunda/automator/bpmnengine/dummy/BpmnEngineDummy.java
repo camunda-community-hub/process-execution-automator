@@ -1,6 +1,5 @@
 package org.camunda.automator.bpmnengine.dummy;
 
-import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
@@ -12,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -123,13 +123,13 @@ public class BpmnEngineDummy implements BpmnEngine {
     /* ******************************************************************** */
 
     @Override
-    public long countNumberOfProcessInstancesCreated(String processName, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesCreated(String processName, Date startDate, Date endDate)
             throws AutomatorException {
         throw new AutomatorException("Not yet implemented");
     }
 
     @Override
-    public long countNumberOfProcessInstancesEnded(String processName, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesEnded(String processName, Date startDate, Date endDate)
             throws AutomatorException {
         throw new AutomatorException("Not yet implemented");
     }

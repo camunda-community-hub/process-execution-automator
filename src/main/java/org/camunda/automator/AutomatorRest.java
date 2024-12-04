@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -116,11 +116,11 @@ public class AutomatorRest {
         // now proceed the scenario
         try {
             Scenario scenario = null;
-            File scenarioFile = contentManager.getFromName(scenarioName);
+            Path scenarioFile = contentManager.getFromName(scenarioName);
             try {
                 scenario = automatorAPI.loadFromFile(scenarioFile);
             } catch (Exception e) {
-                logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.getAbsolutePath(),
+                logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.toAbsolutePath().toString(),
                         e.getMessage());
             }
             if (scenario == null) {
@@ -140,13 +140,13 @@ public class AutomatorRest {
                 return;
             }
 
-            bpmnEngine.turnHighFlowMode(true);
+            bpmnEngine.turnHighFlowMode(false);
             logger.info("Scenario [{}] file[{}] use BpmnEngine {}", scenario.getName(), scenario.getName(),
                     bpmnEngine.getSignature());
             RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
             logger.info("AutomatorRest: end scenario [{}] in {} ms", scenario.getName(),
                     scenarioExecutionResult.getTimeExecution());
-            bpmnEngine.turnHighFlowMode(false);
+
             resultMap.put(JSON_STATUS, "EXECUTED");
             resultMap.putAll(resultToJson(scenarioExecutionResult));
 

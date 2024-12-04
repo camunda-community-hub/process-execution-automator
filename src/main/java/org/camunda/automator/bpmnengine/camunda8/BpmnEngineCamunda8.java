@@ -10,7 +10,6 @@ import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.CamundaOperateClientBuilder;
 import io.camunda.operate.exception.OperateException;
 import io.camunda.operate.model.*;
-import io.camunda.operate.search.DateFilter;
 import io.camunda.operate.search.*;
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.CamundaTaskListClientBuilder;
@@ -51,7 +50,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     private final BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy;
     boolean hightFlowMode = false;
     /**
-     * It is not possible to search user task for a specfic processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
+     * It is not possible to search user task for a specific processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
      * the process instance can be found and correction can be done
      */
     Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
@@ -93,6 +92,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
      * @param tasklistUrl             Url to access TaskList
      */
     public static BpmnEngineCamunda8 getFromCamunda8(String zeebeSelfGatewayAddress,
+                                                     String zeebeGrpcAddress,
+                                                     String zeebeRestAddress,
                                                      Boolean zeebePlainText,
                                                      String operateUrl,
                                                      String operateUserName,
@@ -104,6 +105,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         bpmnEngineCamunda8.serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
         bpmnEngineCamunda8.serverDefinition = new BpmnEngineList.BpmnServerDefinition();
         bpmnEngineCamunda8.serverDefinition.zeebeGatewayAddress = zeebeSelfGatewayAddress;
+        bpmnEngineCamunda8.serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
+        bpmnEngineCamunda8.serverDefinition.zeebeRestAddress = zeebeRestAddress;
         bpmnEngineCamunda8.serverDefinition.zeebePlainText = zeebePlainText;
 
 
@@ -303,24 +306,31 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             taskSearch.setPagination(new Pagination().setPageSize(maxResult));
 
             TaskList tasksList = taskClient.getTasks(taskSearch);
+            boolean getAllTasks = tasksList.size() < maxResult;
             List<String> listTasksResult = new ArrayList<>();
             do {
-                listTasksResult.addAll(tasksList.getItems().stream().filter(t -> {
-                            List<Variable> listVariables = t.getVariables();
-                            Optional<Variable> markerTask = listVariables.stream()
-                                    .filter(v -> v.getName().equals(THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME))
-                                    .findFirst();
+                if (!hightFlowMode) {
+                    // We check that the task is the one expected
+                    listTasksResult.addAll(tasksList.getItems().stream().filter(t -> {
+                                List<Variable> listVariables = t.getVariables();
+                                Optional<Variable> markerTask = listVariables.stream()
+                                        .filter(v -> v.getName().equals(THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME))
+                                        .findFirst();
+                                if (markerTask.isEmpty())
+                                    return false;
+                                Long processInstanceIdTask = cacheProcessInstanceMarker.get(markerTask.get().getValue());
+                                return (processInstanceIdLong.equals(processInstanceIdTask));
+                            }).map(Task::getId) // Task to ID
+                            .toList());
+                } else {
+                    listTasksResult.addAll(tasksList.getItems().stream()
+                            .map(Task::getId) // Task to ID
+                            .toList());
+                }
 
-                            if (markerTask.isEmpty())
-                                return false;
-                            Long processInstanceIdTask = cacheProcessInstanceMarker.get(markerTask.get().getValue());
-                            return (processInstanceIdLong.equals(processInstanceIdTask));
-                        }).map(Task::getId) // Task to ID
-                        .toList());
-
-                if (tasksList.size() > 0)
+                if (tasksList.size() > 0 && !getAllTasks)
                     tasksList = taskClient.after(tasksList);
-            } while (tasksList.size() > 0);
+            } while (tasksList.size() > 0 && !getAllTasks);
 
             return listTasksResult;
 
@@ -408,6 +418,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             taskClient.claim(userTaskId, serverDefinition.operateUserName);
             taskClient.completeTask(userTaskId, variables);
         } catch (TaskListException e) {
+            throw new AutomatorException("Can't execute task [" + userTaskId + "]");
+        } catch (Exception e) {
             throw new AutomatorException("Can't execute task [" + userTaskId + "]");
         }
     }
@@ -622,7 +634,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     /*  CountInformation                                                    */
     /*                                                                      */
     /* ******************************************************************** */
-    public long countNumberOfProcessInstancesCreated(String processId, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesCreated(String processId, Date startDate, Date endDate)
             throws AutomatorException {
         if (operateClient == null) {
             throw new AutomatorException("No Operate connection was provided");
@@ -644,7 +656,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                 searchQuery.setSize(SEARCH_MAX_SIZE);
                 searchResult = operateClient.searchProcessInstanceResults(searchQuery);
 
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().after(startDate.getDate())).count();
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
@@ -653,7 +665,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         }
     }
 
-    public long countNumberOfProcessInstancesEnded(String processId, DateFilter startDate, DateFilter endDate)
+    public long countNumberOfProcessInstancesEnded(String processId, Date startDate, Date endDate)
             throws AutomatorException {
         if (operateClient == null) {
             throw new AutomatorException("No Operate connection was provided");
@@ -679,7 +691,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                 SearchQuery searchQuery = queryBuilder.build();
                 searchQuery.setSize(SEARCH_MAX_SIZE);
                 searchResult = operateClient.searchProcessInstanceResults(searchQuery);
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().after(startDate.getDate())).count();
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
@@ -855,6 +867,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                             .build();
                     clientBuilder = ZeebeClient.newClientBuilder()
                             .gatewayAddress(serverDefinition.zeebeGatewayAddress)
+                            .grpcAddress(new URI(serverDefinition.zeebeGrpcAddress))
+                            .restAddress(new URI(serverDefinition.zeebeRestAddress))
                             .defaultTenantId(serverDefinition.zeebeTenantId == null ? "<default>" : serverDefinition.zeebeTenantId)
                             .credentialsProvider(credentialsProvider);
                     if (Boolean.TRUE.equals(serverDefinition.zeebePlainText))
@@ -867,11 +881,24 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                             "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
             } else {
-                analysis.append("NoAuthentication;");
-                // connect to local deployment; assumes that authentication is disabled
-                clientBuilder = ZeebeClient.newClientBuilder()
-                        .gatewayAddress(serverDefinition.zeebeGatewayAddress)
-                        .usePlaintext();
+                try {
+                    analysis.append("NoAuthentication;");
+                    // connect to local deployment; assumes that authentication is disabled
+                    clientBuilder = ZeebeClient.newClientBuilder()
+                            .gatewayAddress(serverDefinition.zeebeGatewayAddress);
+                    if (serverDefinition.zeebeGrpcAddress != null) {
+                        clientBuilder = clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
+                    }
+                    if (serverDefinition.zeebeRestAddress != null) {
+                        clientBuilder = clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
+                    }
+                    clientBuilder = clientBuilder.usePlaintext();
+                } catch (Exception e) {
+                    zeebeClient = null;
+                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                    throw new AutomatorException(
+                            "badURL[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
+                }
             }
         } else
             throw new AutomatorException("Invalid configuration");
@@ -1136,8 +1163,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
         // ---------------- connection
         try {
-
+            taskListBuilder.zeebeClient(zeebeClient);
+            taskListBuilder.useZeebeUserTasks();
             taskClient = taskListBuilder.build();
+
             analysis.append("successfully, ");
 
         } catch (Exception e) {

@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 @Component
 public class AutomatorAPI {
@@ -48,7 +48,7 @@ public class AutomatorAPI {
      * @return the scenario
      * @throws AutomatorException if scenario can't be read
      */
-    public Scenario loadFromFile(File scenarioFile) throws AutomatorException {
+    public Scenario loadFromFile(Path scenarioFile) throws AutomatorException {
         return Scenario.createFromFile(scenarioFile);
     }
 

@@ -31,12 +31,14 @@ public class BpmnEngineConfigurationInstance {
         return bpmEngineConfiguration;
     }
 
-    public static BpmnEngineList getCamunda8(String zeebeGatewayAddress) {
+    public static BpmnEngineList getCamunda8(String zeebeGatewayAddress, String zeebeGrpcAddress, String zeebeRestAddress) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
         BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
         serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
         serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
+        serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
+        serverDefinition.zeebeRestAddress = zeebeRestAddress;
 
         bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

@@ -4,7 +4,9 @@ automator:
 
   content:
     repositoryPath: "c:/temp/processautomator"
-    uploadPath: "C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources"
+    uploadPath: "C:/temp/upload"
+    scenario:
+
   startup:
     # give the server to run all tests at startup. The name must be registered in the list of server after
     serverName: Camunda8Ruby
@@ -15,6 +17,8 @@ automator:
 
     # one scenario resource - to be accessible in a Docker container via a configMap
     scenarioResourceAtStartup:
+
+
 
     # DEBUG, INFO, MONITORING, MAIN, NOTHING
     logLevel: MONITORING
@@ -53,6 +57,7 @@ automator:
       description: "Simple authentication"
       name: "Camunda8Ruby"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeRestAddress: "http://localhost:9600"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
@@ -67,6 +72,7 @@ automator:
       name: "Camunda8Lazuli"
       description: "A Zeebe+Identity server"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeRestAddress: "http://localhost:9600"
       zeebeClientId: "zeebe"
       zeebeClientSecret: "LHwdAq56bZ"
       zeebeAudience: "zeebe"
@@ -93,6 +99,7 @@ automator:
     - type: "camunda8"
       name: "Camunda8ZeebeOnly"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeRestAddress: "http://localhost:9600"
       zeebePlainText: true
       workerExecutionThreads: 200
       # -1 means : align the jobsActive to the workerExecutionThreads

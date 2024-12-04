@@ -23,7 +23,6 @@ import org.camunda.bpm.client.task.ExternalTaskHandler;
 import org.camunda.bpm.client.task.ExternalTaskService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Duration;
@@ -41,7 +40,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     private BpmnEngine.RegisteredTask registeredTask;
     private boolean stopping;
 
-    private BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy=null;
+    private final BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy = null;
 
     public RunScenarioFlowServiceTask(TaskScheduler scheduler,
                                       ScenarioStep scenarioStep,

@@ -38,18 +38,16 @@ public class RunResult {
      * Keep a photo of process instance created/failed per processid
      */
     private final Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
+    private final List<RunResult> listRunResults = new ArrayList<>();
     Logger logger = LoggerFactory.getLogger(RunResult.class);
     private int numberOfSteps = 0;
     private int numberOfErrorSteps = 0;
-
     /**
      * Time to execute it
      */
     private long timeExecution;
-
     private Date startDate;
     private Date endDate;
-    private final List<RunResult> listRunResults = new ArrayList<>();
 
     public RunResult(RunScenario runScenario) {
         this.runScenario = runScenario;

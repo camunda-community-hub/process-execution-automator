@@ -34,6 +34,10 @@ public class ConfigurationServersEngine {
     public String zeebeName;
     @Value("${automator.servers.camunda8.zeebeGatewayAddress:''}")
     public String zeebeGatewayAddress;
+    @Value("${automator.servers.camunda8.zeebeGrpcAddress:''}")
+    public String zeebeGrpcAddress;
+    @Value("${automator.servers.camunda8.zeebeRestAddress:''}")
+    public String zeebeRestAddress;
     @Value("${automator.servers.camunda8.operateUrl:''}")
     public String zeebeOperateUrl;
     @Value("${automator.servers.camunda8.operateUserName:''}")

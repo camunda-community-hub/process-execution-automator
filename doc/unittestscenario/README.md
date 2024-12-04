@@ -16,26 +16,18 @@ There is multiple use case:
 
 ### Verification (path and performance)
 
-![Process](../explanationProcess.png)
+![ScoreAcceptance.png](resources/ScoreAcceptance.png)
 
 in a CD/CI, you want to verify that a process follows the same behavior in the same performance
 time. Running every day (or hours) or asking via an API call to replay a scenario is useful to
-verify there is no difference. If the customer is 4555, do we still move the process instance to
-Review Level 1"? The second verification is the performance. The scenario can record an expected
-duration target (for example, 4 seconds to execute the Get Context service task. Does the execution
-still at this time?
+verify there is no difference. If the score is 200, do we still move the process instance to
+Send Acceptation? 
 
-### Coverage report
-
-Execute multiple scenarios to be sure that all the process is covered correctly. An "Execution
-round" is a set of scenarios executed at the same time. At the end of the execution, a coverage test
-can be performed. A CD/CI verification may be to check the scenario execution, the target time, and
-the coverage.
 
 ### Advance process instances to a step for development
 
-During the development, you verify the task "Notify applicant". To test it in the situation, you
-must have a process instance in the process and pass four user tasks. Each test takes time: when you
+During the development, you debug the task "Send rejection". To test it in the situation, you
+must have a process instance in the process and pass all user tasks. Each test takes time: when you
 deploy a new process or want a new process instance, you need to execute again the different user
 task. Using Automator with the correct scenario solves the issue. Deploy a new process, but instead
 of starting from the beginning of a new process instance, start it via Automator. The scenario will
@@ -50,27 +42,55 @@ In the unit scenario, you should place some Event (for example, the end event): 
 
 This verification implies to give an Operate access.
 
-The scenario will contains:
+The scenario contain:
 
-The name, the process ID 
+* The name, the process ID, 
 
-A list of flow to execute under the attribut `executions`
+* A list of flow to execute under attribut `executions`
+* A list of verification under attribut `verifications`
 
-
-* a STARTEVENT, to start one process instance
-* the list of all SERVICETASK
 
 ## Scenario definition
 
-## Generate from a real execution
-Automator can generate a scenario from a real execution. The user creates a process instance and
-executes it. It executes user tasks until the end of the process instance or at a certain point. Via
-the UI (or the API), the user gives the process instance. Automator queries Camunda Engine to
-collect the history of the process and, for each user task, which variable was provided. A new
-scenario is created from this example.
+Check the scenario:
 
-Note: this function is yet available
+[ScoreAcceptanceScn.json](resources/ScoreAcceptanceScn.json)
 
 ## execute
 
-In progress
+1. First, upload the scenario file in a config map
+
+```
+kubectl create configmap scoreacceptancescn --from-file=doc/unittestscenario/resources/scoreacceptancescn.json -n camunda
+```
+
+2. Deploy the scenario on the cluster, via the Modeler
+
+3. Create the pod process-execution-automator
+
+```
+kubectl create -f doc/unittestscenario/resources/UnittestAutomator.yaml  -n camunda
+```
+This configuration will upload the scenario 
+
+
+4. Port forward
+
+```
+kubectl port-forward svc/process-execution-automator 8381:8381 -n camunda
+```
+
+6. Check the scenario is uploaded
+
+```
+curl -X GET "http://localhost:8381/api/content/list" -H "Content-Type: application/json"
+```
+
+
+7. upload the scenario
+```
+curl -X POST -F "file=@/path/to/your/file.txt" http://localhost:8080/api/files/upload
+
+curl -X GET "http://localhost:8381/api/unittest/get?id=1732767184446" -H "Content-Type: application/json"
+```
+

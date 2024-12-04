@@ -449,43 +449,36 @@ automator.servers:
 Rebuilt the image via
 ````
 mvn clean install
-mvn springboot:build-image
 ````
 
+# Push the docker image
 The docker image is build using the Dockerfile present on the root level.
 
 
 Push the image to 
-```
-ghcr.io/camunda-community-hub/process-execution-automator:
-```
-
-## Detail
-
-Run command
 ````
-mvn clean install
-````
-Now, create a docker image
-````
-docker build -t pierre-yves-monnet/processautomator:1.7.1 .
+docker build -t pierre-yves-monnet/process-execution-automator:1.8.0 .
+docker build pycamunda/camunda-community-hub/process-execution-automator:1.8.0
 ````
 
 
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/processautomator:1.7.1 ghcr.io/camunda-community-hub/process-execution-automator:1.7.1
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.7.1
-
+docker tag pierre-yves-monnet/process-execution-automator:1.8.0 ghcr.io/camunda-community-hub/process-execution-automator:1.8.0
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.0
 ````
+docker tag pierre-yves-monnet/process-execution-automator:1.8.0 pycamunda/camunda-hub:process-execution-automator-1.8.0
+docker push pycamunda/camunda-hub:process-execution-automator-1.8.0
+
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/processautomator:1.7.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/process-execution-automator:1.8.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
 Check on
-https://github.com/camunda-community-hub/process-execution-automator/pkgs/container/process-execution-automator
+https://github.com/camunda-community-hub/zeebe-cherry-runtime/pkgs/container/process-execution-automator
+

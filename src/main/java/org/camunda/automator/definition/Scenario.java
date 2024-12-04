@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * the Scenario Head group a scenario definition
@@ -50,30 +52,34 @@ public class Scenario {
      */
     private String scenarioFile = null;
 
-    public static Scenario createFromJson(String jsonContent) {
+    public static Scenario createFromJson(String jsonContent) throws AutomatorException {
         GsonBuilder builder = new GsonBuilder();
         builder.setPrettyPrinting();
-
-        Gson gson = builder.create();
-        Scenario scenario = gson.fromJson(jsonContent, Scenario.class);
-        if (scenario == null) {
-            logger.error("Scenario: Can't build scenario from content [{}]", jsonContent);
-            return null;
+        try {
+            Gson gson = builder.create();
+            Scenario scenario = gson.fromJson(jsonContent, Scenario.class);
+            if (scenario == null) {
+                logger.error("Scenario: Can't build scenario from content [{}]", jsonContent);
+                return null;
+            }
+            scenario.afterUnSerialize();
+            return scenario;
+        } catch (Exception e) {
+            logger.error("Scenario: can't unparse Json content [{}]", jsonContent);
+            throw new AutomatorException("Scenario: can't unparse GSon file:" + e.getMessage());
         }
-        scenario.afterUnSerialize();
-        return scenario;
     }
 
-    public static Scenario createFromFile(File scenarioFile) throws AutomatorException {
+    public static Scenario createFromFile(Path scenarioFile) throws AutomatorException {
         try {
 
-            Scenario scenario = createFromInputStream(new FileInputStream(scenarioFile), scenarioFile.getAbsolutePath());
-            scenario.scenarioFile = scenarioFile.getAbsolutePath();
+            Scenario scenario = createFromInputStream(new FileInputStream(scenarioFile.toFile()), scenarioFile.toAbsolutePath().toString());
+            scenario.scenarioFile = scenarioFile.toAbsolutePath().toString();
             scenario.initialize();
             return scenario;
 
         } catch (FileNotFoundException e) {
-            throw new AutomatorException("Can't access file [" + scenarioFile.getAbsolutePath() + "] " + e.getMessage());
+            throw new AutomatorException("Can't access file [" + scenarioFile.getFileName() + "] " + e.getMessage());
         } catch (AutomatorException e) {
             throw e;
         }
@@ -189,6 +195,15 @@ public class Scenario {
         for (ScenarioExecution scnExecution : getExecutions()) {
             scnExecution.afterUnSerialize(this);
         }
+    }
+
+
+    public Map<String, Object> getDescription() {
+        return Map.of("name", name==null?"":name,//
+                "server", serverName==null? "": serverName, //
+                "serverType", serverType==null?"": serverType, //
+                "processId", processId==null?"":processId, //
+                "typeScenario", typeScenario==null? "": typeScenario.toString());
     }
 
     public enum TYPESCENARIO {FLOW, UNIT}

@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class TestSimpleUserTask {
 
@@ -58,7 +60,7 @@ public class TestSimpleUserTask {
         assert(true);
         return;
       }
-      File userTaskFile = new File("./test/resources/simpleusertask/AutomatorSimpleUserTask.json");
+      Path userTaskFile = Paths.get("./test/resources/simpleusertask/AutomatorSimpleUserTask.json");
       Scenario scenario = automatorApi.loadFromFile(userTaskFile);
       assert(scenario!=null);
     } catch (Exception e) {

@@ -1,5 +1,5 @@
 ### POST Request
-POST http://localhost:8381/api/unittest/run?name=ScoreAcceptanceScn&server=Camunda8Ruby&wait=false
+POST http://localhost:8381/api/unittest/run?name=ScoreAcceptanceScn&server=Camunda8Ruby&wait=true
 Content-Type: application/json
 
 {
@@ -19,3 +19,22 @@ Content-Type: application/json
 
 {
 }
+
+### Content Manager
+GET http://localhost:8381/api/content/list
+Content-Type: application/json
+
+{
+}
+
+### Upload file
+POST http://localhost:8381/api/content/add
+Content-Type: multipart/form-data
+
+--boundary
+Content-Disposition: form-data; name="File"; filename="file1.txt"
+Content-Type: text/plain
+
+< ./resources/ScoreAcceptanceScn.json
+
+--boundary--

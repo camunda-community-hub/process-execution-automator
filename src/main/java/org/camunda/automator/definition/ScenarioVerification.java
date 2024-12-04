@@ -8,6 +8,11 @@ import java.util.Map;
 public class ScenarioVerification {
     private final ScenarioExecution scenarioExecution;
     /**
+     * List of duration to check
+     * Maybe null due the Gson deserializer if there is no definition
+     */
+    private final List<ScenarioVerificationPerformance> performances = new ArrayList<>();
+    /**
      * List of activities to check
      * Maybe null due the Gson deserializer if there is no definition
      */
@@ -17,13 +22,6 @@ public class ScenarioVerification {
      * Maybe null due the Gson deserializer if there is no definition
      */
     private List<ScenarioVerificationVariable> variables = new ArrayList<>();
-
-    /**
-     * List of duration to check
-     * Maybe null due the Gson deserializer if there is no definition
-     */
-    private final List<ScenarioVerificationPerformance> performances = new ArrayList<>();
-
     /**
      * Variable to search the process instance, if only the verification is running
      * Maybe null due the Gson deserializer if there is no definition

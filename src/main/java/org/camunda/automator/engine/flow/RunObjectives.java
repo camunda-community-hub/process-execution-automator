@@ -6,7 +6,6 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine.flow;
 
-import io.camunda.operate.search.DateFilter;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.definition.ScenarioFlowControl;
 import org.camunda.automator.engine.AutomatorException;
@@ -22,8 +21,8 @@ public class RunObjectives {
     private final Map<Integer, List<SavePhoto>> flowRateMnObjective = new HashMap<>();
     private final List<ScenarioFlowControl.Objective> listObjectives;
     Logger logger = LoggerFactory.getLogger(RunObjectives.class);
-    private DateFilter startDateFilter;
-    private DateFilter endDateFilter;
+    private Date startDateFilter;
+    private Date endDateFilter;
     private long lastHeartBeat;
 
     public RunObjectives(List<ScenarioFlowControl.Objective> listObjectives,
@@ -39,12 +38,12 @@ public class RunObjectives {
     }
 
     public void setStartDate(Date startTestDate) {
-        this.startDateFilter = new DateFilter(startTestDate);
+        this.startDateFilter = startTestDate;
         this.lastHeartBeat = System.currentTimeMillis();
     }
 
     public void setEndDate(Date endTestDate) {
-        this.endDateFilter = new DateFilter(endTestDate);
+        this.endDateFilter = endTestDate;
     }
 
     /**

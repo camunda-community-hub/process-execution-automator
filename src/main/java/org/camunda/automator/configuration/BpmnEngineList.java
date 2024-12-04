@@ -40,6 +40,8 @@ public class BpmnEngineList {
     public static final String CONF_OPERATE_AUDIENCE = "operateAudientce";
 
     public static final String CONF_ZEEBE_GATEWAY_ADDRESS = "zeebeGatewayAddress";
+    public static final String CONF_ZEEBE_GRPC_ADDRESS = "zeebeGrpcAddress";
+    public static final String CONF_ZEEBE_REST_ADDRESS = "zeebeRestAddress";
     public static final String CONF_URL = "url";
     public static final String CONF_TYPE = "type";
     public static final String CONF_TYPE_V_CAMUNDA_8 = "camunda8";
@@ -204,6 +206,12 @@ public class BpmnEngineList {
                 bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8;
                 bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,
                         true);
+                bpmnServerDefinition.zeebeGrpcAddress = getString(CONF_ZEEBE_GRPC_ADDRESS, serverMap, null, contextLog,
+                        false);
+
+                bpmnServerDefinition.zeebeRestAddress = getString(CONF_ZEEBE_REST_ADDRESS, serverMap, null, contextLog,
+                        false);
+
                 bpmnServerDefinition.zeebeClientId = getString(CONF_ZEEBE_CLIENT_ID, serverMap, null, contextLog, false);
                 bpmnServerDefinition.zeebeClientSecret = getString(CONF_ZEEBE_SECRET, serverMap, null, contextLog, false);
                 bpmnServerDefinition.zeebeAudience = getString(CONF_ZEEBE_AUDIENCE, serverMap, ZEEBE_DEFAULT_AUDIENCE,
@@ -358,6 +366,9 @@ public class BpmnEngineList {
             camunda8.serverType = CamundaEngine.CAMUNDA_8;
             camunda8.name = configurationServersEngine.zeebeName;
             camunda8.zeebeGatewayAddress = configurationServersEngine.zeebeGatewayAddress;
+            camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress;
+            camunda8.zeebeRestAddress = configurationServersEngine.zeebeRestAddress;
+
             camunda8.workerExecutionThreads = parseInt("Camunda8." + CONF_WORKER_EXECUTION_THREADS,
                     configurationServersEngine.zeebeWorkerExecutionThreads, DEFAULT_VALUE_EXECUTION_THREADS, "");
             camunda8.workerMaxJobsActive = parseInt("Camunda8." + CONF_WORKER_MAX_JOBS_ACTIVE,
@@ -511,6 +522,8 @@ public class BpmnEngineList {
          * My Zeebe Address
          */
         public String zeebeGatewayAddress;
+        public String zeebeGrpcAddress;
+        public String zeebeRestAddress;
         public Boolean zeebePlainText;
 
         /**
@@ -580,7 +593,7 @@ public class BpmnEngineList {
                 synthesis += " url[" + camunda7ServerUrl + "] userName[" + camunda7UserName + "]";
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8)) {
-                synthesis += " address[" + zeebeGatewayAddress + "] workerThread[" + workerExecutionThreads + "] MaxJobActive["
+                synthesis += " GrpcAddress[" + zeebeGatewayAddress + "] RestAddress[" + zeebeRestAddress + "] workerThread[" + workerExecutionThreads + "] MaxJobActive["
                         + workerMaxJobsActive + "]";
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
