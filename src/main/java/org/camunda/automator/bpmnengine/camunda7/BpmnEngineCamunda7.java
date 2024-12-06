@@ -287,7 +287,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
      * @throws AutomatorException any error during search
      */
     @Override
-    public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
+    public List<String> activateServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
             throws AutomatorException {
         if (logDebug) {
             logger.info("BpmnEngine7.searchForActivity: Process[{}] taskName[{}]", processInstanceId, serviceTaskId);

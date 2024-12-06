@@ -86,7 +86,7 @@ public class BpmnEngineDummy implements BpmnEngine {
     }
 
     @Override
-    public List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
+    public List<String> activateServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
             throws AutomatorException {
         return Collections.emptyList();
     }

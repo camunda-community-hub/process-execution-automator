@@ -58,27 +58,34 @@ Check the scenario:
 
 ## execute
 
-1. First, upload the scenario file in a config map
 
-```
-kubectl create configmap scoreacceptancescn --from-file=doc/unittestscenario/resources/scoreacceptancescn.json -n camunda
-```
+1. Deploy the scenario on the cluster, via the Modeler
 
-2. Deploy the scenario on the cluster, via the Modeler
-
-3. Create the pod process-execution-automator
+2. Create the pod process-execution-automator
 
 ```
 kubectl create -f doc/unittestscenario/resources/UnittestAutomator.yaml  -n camunda
 ```
-This configuration will upload the scenario 
 
-
-4. Port forward
+3. Port forward
 
 ```
 kubectl port-forward svc/process-execution-automator 8381:8381 -n camunda
 ```
+
+4. Upload the scenario
+
+
+```
+curl -X POST http://localhost:8381/api/files/upload \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@doc/unittestscenario/resources/ScoreAcceptanceScn.json"
+  
+curl -X GET "http://localhost:8381/api/content/list" -H "Content-Type: application/json"
+
+```
+
+
 
 6. Check the scenario is uploaded
 
@@ -94,3 +101,11 @@ curl -X POST -F "file=@/path/to/your/file.txt" http://localhost:8080/api/files/u
 curl -X GET "http://localhost:8381/api/unittest/get?id=1732767184446" -H "Content-Type: application/json"
 ```
 
+Option: give the scenario via the configMap
+
+a. create the configMap
+```` 
+kubectl create configmap scoreacceptancescn --from-file=doc/unittestscenario/resources/scoreacceptancescn.json -n camunda
+````
+
+b. Chheck the configuration

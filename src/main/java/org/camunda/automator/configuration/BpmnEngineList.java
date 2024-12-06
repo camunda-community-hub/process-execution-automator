@@ -516,7 +516,8 @@ public class BpmnEngineList {
     public static class BpmnServerDefinition {
         public String name;
 
-        public CamundaEngine serverType;
+        public CamundaEngine serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
+
 
         /**
          * My Zeebe Address

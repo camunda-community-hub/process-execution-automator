@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1v4ppib" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.29.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.6.0">
+  <bpmn:process id="ScoreAcceptance" isExecutable="true">
+    <bpmn:startEvent id="StartScoreApplication" name="score application">
+      <bpmn:outgoing>Flow_1wuzgpt</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1wuzgpt" sourceRef="StartScoreApplication" targetRef="ActGetScore" />
+    <bpmn:scriptTask id="ActGetScore" name="getScore">
+      <bpmn:extensionElements>
+        <zeebe:script expression="=score&#62;100" resultVariable="accepted" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1wuzgpt</bpmn:incoming>
+      <bpmn:outgoing>Flow_0gi4xk6</bpmn:outgoing>
+    </bpmn:scriptTask>
+    <bpmn:exclusiveGateway id="Gateway_01ox9rs" name="Accepted?" default="Flow_0a4sjzy">
+      <bpmn:incoming>Flow_0gi4xk6</bpmn:incoming>
+      <bpmn:outgoing>Flow_16hd1bd</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0a4sjzy</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_0gi4xk6" sourceRef="ActGetScore" targetRef="Gateway_01ox9rs" />
+    <bpmn:task id="ActSendAcceptation" name="Send acception">
+      <bpmn:incoming>Flow_16hd1bd</bpmn:incoming>
+      <bpmn:outgoing>Flow_09z898p</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_16hd1bd" name="yes" sourceRef="Gateway_01ox9rs" targetRef="ActSendAcceptation">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=accepted</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="EndAccepted" name="accepted">
+      <bpmn:incoming>Flow_09z898p</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_09z898p" sourceRef="ActSendAcceptation" targetRef="EndAccepted" />
+    <bpmn:task id="ActSendRejection" name="Send rejection">
+      <bpmn:incoming>Flow_0wya675</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pxztl2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_0a4sjzy" name="Rejected" sourceRef="Gateway_01ox9rs" targetRef="CallApplicant" />
+    <bpmn:endEvent id="EndRejected" name="rejected">
+      <bpmn:incoming>Flow_1pxztl2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1pxztl2" sourceRef="ActSendRejection" targetRef="EndRejected" />
+    <bpmn:sequenceFlow id="Flow_0wya675" sourceRef="CallApplicant" targetRef="ActSendRejection" />
+    <bpmn:userTask id="CallApplicant" name="Call Applicant">
+      <bpmn:extensionElements />
+      <bpmn:incoming>Flow_0a4sjzy</bpmn:incoming>
+      <bpmn:outgoing>Flow_0wya675</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ScoreAcceptance">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartScoreApplication">
+        <dc:Bounds x="192" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="169" y="205" width="83" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1fm9qgv_di" bpmnElement="ActGetScore">
+        <dc:Bounds x="280" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_01ox9rs_di" bpmnElement="Gateway_01ox9rs" isMarkerVisible="true">
+        <dc:Bounds x="435" y="155" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="434" y="125" width="52" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1eppdvp_di" bpmnElement="ActSendAcceptation">
+        <dc:Bounds x="540" y="140" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1961r03_di" bpmnElement="EndAccepted">
+        <dc:Bounds x="702" y="162" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="699" y="205" width="45" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1lfkf11_di" bpmnElement="EndRejected">
+        <dc:Bounds x="872" y="272" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="870" y="315" width="40" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1dmaofg_di" bpmnElement="ActSendRejection">
+        <dc:Bounds x="710" y="250" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1kkk9hs_di" bpmnElement="CallApplicant">
+        <dc:Bounds x="530" y="250" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1wuzgpt_di" bpmnElement="Flow_1wuzgpt">
+        <di:waypoint x="228" y="180" />
+        <di:waypoint x="280" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gi4xk6_di" bpmnElement="Flow_0gi4xk6">
+        <di:waypoint x="380" y="180" />
+        <di:waypoint x="435" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_16hd1bd_di" bpmnElement="Flow_16hd1bd">
+        <di:waypoint x="485" y="180" />
+        <di:waypoint x="540" y="180" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="504" y="162" width="18" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_09z898p_di" bpmnElement="Flow_09z898p">
+        <di:waypoint x="640" y="180" />
+        <di:waypoint x="702" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0a4sjzy_di" bpmnElement="Flow_0a4sjzy">
+        <di:waypoint x="460" y="205" />
+        <di:waypoint x="460" y="290" />
+        <di:waypoint x="530" y="290" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="468" y="273" width="44" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pxztl2_di" bpmnElement="Flow_1pxztl2">
+        <di:waypoint x="810" y="290" />
+        <di:waypoint x="872" y="290" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wya675_di" bpmnElement="Flow_0wya675">
+        <di:waypoint x="630" y="290" />
+        <di:waypoint x="710" y="290" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

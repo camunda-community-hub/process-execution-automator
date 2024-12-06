@@ -203,6 +203,17 @@ public class RunResult {
         }
     }
 
+    /**
+     * Two execution on the exact same execution: we go for a merge plus one step more, we collect additionnal information, like processinstanceIdList
+     * @param result
+     */
+    public void mergeDuplicateExecution(RunResult result) {
+        merge(result);
+        listProcessInstancesId.addAll(result.listProcessInstancesId);
+        listDetailsSteps.addAll(result.listDetailsSteps);
+
+    }
+
     public void add(RunResult runResult) {
         // We keep track of the result in a list
         listRunResults.add(runResult);
@@ -230,6 +241,13 @@ public class RunResult {
         return listProcessInstancesId.isEmpty() ? null : listProcessInstancesId.get(0);
     }
 
+    public List<String> getListProcessInstancesId() {
+        return listProcessInstancesId;
+    }
+
+    public void addListProcessInstancesId(List<String> listProcessInstancesId) {
+        listProcessInstancesId.addAll(listProcessInstancesId);
+    }
     public List<String> getProcessInstanceId() {
         return this.listProcessInstancesId;
     }

@@ -128,7 +128,7 @@ public interface BpmnEngine {
      * @return list of taskId
      * @throws AutomatorException in case of error
      */
-    List<String> searchServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
+    List<String> activateServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
             throws AutomatorException;
 
     /**

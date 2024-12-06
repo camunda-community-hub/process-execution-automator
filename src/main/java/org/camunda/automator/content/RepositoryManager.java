@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -20,25 +17,35 @@ public class RepositoryManager {
     private Path repositoryPath;
 
     public void initializeRepository(String repositoryProposition) throws AutomatorException {
+        logger.info("RepositoryManager: initialisation proposition: {}", repositoryProposition);
+
+        repositoryPath = null;
         if (repositoryProposition != null && !repositoryProposition.isEmpty()) {
             Path path = Paths.get(repositoryProposition);
             if (Files.exists(path) && Files.isDirectory(path)) {
                 repositoryPath = path;
+                logger.info("RepositoryManager: PathFromConfiguration [{}]", repositoryPath.toAbsolutePath());
             }
-        } else {
+        }
+        if (repositoryPath == null) {
             // Not exist: create a subfolder
             Path tempDir = Paths.get(System.getProperty("java.io.tmpdir"));
+            logger.info("RepositoryManager/initialization: TemporaryFolder [{}]", tempDir.toAbsolutePath());
 
             // Create a new folder in the temporary directory
             try {
-                repositoryPath = Files.createDirectory(tempDir.resolve("repository"));
+                repositoryPath = tempDir.resolve("repository");
+                Files.createDirectory(repositoryPath);
+                logger.info("RepositoryManager/initialization: PathFromTemporaryFolder [{}]", repositoryPath.toAbsolutePath());
+            } catch (FileAlreadyExistsException e) {
+                logger.info("RepositoryManager/initialization: File already exists [{}]", repositoryPath.toAbsolutePath());
             } catch (Exception e) {
-                logger.error("Can't create folder [{}]", tempDir.toAbsolutePath() + "/repository");
+                logger.error("RepositoryManager/initialization: Can't create folder [{}]", repositoryPath.toAbsolutePath());
+                repositoryPath = null;
                 throw new AutomatorException("Can't create folder[" + tempDir.toAbsolutePath() + "/repository]");
             }
         }
-        logger.info("RepositoryManager: directory under [{}] ", repositoryPath.toAbsolutePath());
-
+        logger.info("RepositoryManager/initialization: Folder [{}]", repositoryPath.toAbsolutePath());
     }
 
     public Path addResource(Resource resource) throws IOException {

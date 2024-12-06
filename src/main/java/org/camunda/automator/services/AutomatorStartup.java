@@ -75,6 +75,61 @@ public class AutomatorStartup {
         }
     }
 
+    private List<Path> loadStartupScenario() {
+        List<Path> scenarioList = new ArrayList<>();
+        // File
+        if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
+            logger.info("AutomatorStartup/StartupScenario: no scenario [File] from {} given", configurationStartup.getScenarioFileAtStartupName());
+        } else {
+            logger.info("Detect {} scenario [File] from variable [{}] ScenarioPath[{}]",
+                    configurationStartup.getScenarioFileAtStartup().size(), configurationStartup.getScenarioFileAtStartupName(),
+                    configurationStartup.scenarioPath);
+
+            for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
+                logger.info("AutomatorStartup/StartupScenario: Register scenario [File] [{}]", scenarioFileName);
+
+                Path scenarioFile = Paths.get(configurationStartup.scenarioPath + "/" + scenarioFileName);
+                if (!Files.exists(scenarioFile)) {
+                    scenarioFile = Paths.get(scenarioFileName);
+                }
+                if (Files.exists(scenarioFile)) {
+                    try {
+                        contentManager.addFile(scenarioFile);
+                    } catch (IOException e) {
+                        logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath(), e.getMessage());
+                    }
+                } else {
+                    logger.error("AutomatorStartup/StartupScenario:: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
+                            scenarioFileName, scenarioFileName);
+                    continue;
+                }
+            }
+
+        }
+
+        // Resource
+        if (configurationStartup.getScenarioResourceAtStartup().isEmpty()) {
+            logger.info("No scenario [Resource] from variable {} given",
+                    configurationStartup.getScenarioResourceAtStartupName());
+        } else {
+            List<Resource> scenarioResource = configurationStartup.getScenarioResourceAtStartup().stream()
+                    .filter(t -> t != null)
+                    .collect(Collectors.toList());
+
+            logger.info("Detect {} scenario [Resource] from variable [{}]",
+                    scenarioResource.size(),
+                    configurationStartup.getScenarioResourceAtStartupName());
+            for (Resource resource : scenarioResource) {
+                try {
+                    scenarioList.add(contentManager.addResource(resource));
+                } catch (IOException e) {
+                    logger.error("Error loading resource [{}]", resource.getFilename());
+                }
+            }
+        }
+
+        return scenarioList;
+    }
 
     /**
      * AutomatorSetupRunnable - run in parallel
@@ -218,62 +273,6 @@ public class AutomatorStartup {
 
             }
         }
-    }
-
-    private List<Path> loadStartupScenario() {
-        List<Path> scenarioList = new ArrayList<>();
-        // File
-        if (configurationStartup.getScenarioFileAtStartup().isEmpty()) {
-            logger.info("AutomatorStartup/StartupScenario: no scenario [File] from {} given", configurationStartup.getScenarioFileAtStartupName());
-        } else {
-            logger.info("Detect {} scenario [File] from variable [{}] ScenarioPath[{}]",
-                    configurationStartup.getScenarioFileAtStartup().size(), configurationStartup.getScenarioFileAtStartupName(),
-                    configurationStartup.scenarioPath);
-
-            for (String scenarioFileName : configurationStartup.getScenarioFileAtStartup()) {
-                logger.info("AutomatorStartup/StartupScenario: Register scenario [File] [{}]", scenarioFileName);
-
-                Path scenarioFile = Paths.get(configurationStartup.scenarioPath + "/" + scenarioFileName);
-                if (!Files.exists(scenarioFile)) {
-                    scenarioFile = Paths.get(scenarioFileName);
-                }
-                if (Files.exists(scenarioFile)) {
-                    try {
-                        contentManager.addFile(scenarioFile);
-                    }catch (IOException e) {
-                        logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath().toString(), e.getMessage());
-                    }
-                } else {
-                    logger.error("AutomatorStartup/StartupScenario:: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
-                            scenarioFileName, scenarioFileName);
-                    continue;
-                }
-            }
-
-        }
-
-        // Resource
-        if (configurationStartup.getScenarioResourceAtStartup().isEmpty()) {
-            logger.info("No scenario [Resource] from variable {} given",
-                    configurationStartup.getScenarioResourceAtStartupName());
-        } else {
-            List<Resource> scenarioResource = configurationStartup.getScenarioResourceAtStartup().stream()
-                    .filter(t -> t != null)
-                    .collect(Collectors.toList());
-
-            logger.info("Detect {} scenario [Resource] from variable [{}]",
-                    scenarioResource.size(),
-                    configurationStartup.getScenarioResourceAtStartupName());
-            for (Resource resource : scenarioResource) {
-                try {
-                    scenarioList.add(contentManager.addResource(resource));
-                } catch (IOException e) {
-                    logger.error("Error loading resource [{}]", resource.getFilename());
-                }
-            }
-        }
-
-        return scenarioList;
     }
 
 }

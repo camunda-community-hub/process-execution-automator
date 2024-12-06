@@ -29,10 +29,11 @@ public class AutomatorRest {
     public static final String JSON_STATUS = "status";
     public static final String JSON_GENERAL_STATUS = "generalStatus";
     public static final String JSON_NAME = "name";
+    public static final String JSON_PROCESSINSTANCESID = "processInstancesId";
     public static final String JSON_DETAIL = "detail";
     public static final String JSON_MESSAGE = "message";
     public static final String JSON_INFO = "info";
-    private static final Logger logger = LoggerFactory.getLogger(ContentManager.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AutomatorRest.class.getName());
     private final ConfigurationStartup configurationStartup;
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
@@ -48,6 +49,7 @@ public class AutomatorRest {
 
     @PostMapping(value = "/api/unittest/run", produces = "application/json")
     public Map<String, Object> runUnitTest(@RequestParam(name = "name") String scenarioName, @RequestParam(name = "server", required = false) String serverName, @RequestParam(name = "wait", required = false) Boolean wait) {
+        logger.info("AutomatorRest: runUnitTest scenario[{}] Wait? {}", scenarioName, wait != null && wait);
 
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put("senarioName", scenarioName);
@@ -98,6 +100,7 @@ public class AutomatorRest {
      * Start a test
      */
     private void startTest(String scenarioName, String serverName, String unitTestId) {
+
         Map<String, Object> resultMap = new HashMap<>();
         cacheExecution.put(unitTestId, resultMap);
 
@@ -109,8 +112,7 @@ public class AutomatorRest {
         resultMap.put(JSON_SERVER_NAME, runParameters.getServerName());
         resultMap.put(JSON_SCENARIO_NAME, scenarioName);
 
-        logger.info(
-                "Unit Test parameters serverName[{}] ",
+        logger.info("AutomatorRest: Start Test scenario[{}] unitTestId[{}] serverName[{}] ", scenarioName, unitTestId,
                 runParameters.getServerName());
 
         // now proceed the scenario
@@ -120,7 +122,7 @@ public class AutomatorRest {
             try {
                 scenario = automatorAPI.loadFromFile(scenarioFile);
             } catch (Exception e) {
-                logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.toAbsolutePath().toString(),
+                logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.toAbsolutePath(),
                         e.getMessage());
             }
             if (scenario == null) {
@@ -171,6 +173,7 @@ public class AutomatorRest {
             }
             Map<String, Object> recordResult = new HashMap<>();
             listVerificationsJson.add(recordResult);
+            recordResult.put(JSON_PROCESSINSTANCESID, String.join(", ", runResultUnit.getListProcessInstancesId()));
             recordResult.put(JSON_NAME, runResultUnit.getScnExecution().getName());
             recordResult.put(JSON_STATUS, runResultUnit.isSuccess() ? StatusTest.SUCCESS : StatusTest.FAIL);
             recordResult.put(JSON_DETAIL, runResultUnit.getListVerifications().stream()

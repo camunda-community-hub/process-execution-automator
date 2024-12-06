@@ -29,11 +29,10 @@ Content-Type: application/json
 
 ### Upload file
 POST http://localhost:8381/api/content/add
-Content-Type: multipart/form-data
+Content-Type: multipart/form-data; boundary=boundary
 
 --boundary
-Content-Disposition: form-data; name="File"; filename="file1.txt"
-Content-Type: text/plain
+Content-Disposition: form-data; name="FileToUpload"; filename="ScoreAcceptanceScn.json"
 
 < ./resources/ScoreAcceptanceScn.json
 

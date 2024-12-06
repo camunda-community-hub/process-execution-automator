@@ -31,15 +31,16 @@ public class ContentRestController {
      **/
     @PostMapping(value = "/api/content/add", consumes = {
             MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)
-    public List<Map<String, Object>> upload(@RequestPart("File") List<MultipartFile> uploadedfiles) {
+    public List<Map<String, Object>> upload(@RequestPart("FileToUpload") List<MultipartFile> uploadedfiles) {
         List<Map<String, Object>> result = new ArrayList<>();
         for (MultipartFile file : uploadedfiles) {
             try {
                 Path fileSaved = contentManager.addFromMultipart(file, file.getOriginalFilename());
                 result.add(Map.of("filename", fileSaved.getFileName(), "status", "UPLOADED"));
+                logger.info("ControlRestController: uploaded file[{}] with success", file.getOriginalFilename());
             } catch (Exception e) {
+                logger.info("ControlRestController: Errir upload file [{}] : {}", file.getOriginalFilename(), e.getMessage());
                 result.add(Map.of("filename", file.getOriginalFilename(), "status", "ERROR", "error", e.getMessage()));
-
             }
         }
         return result;
@@ -48,11 +49,15 @@ public class ContentRestController {
 
     @GetMapping("/api/content/list")
     List<Map<String, Object>> getContentScenario() {
+        logger.debug("ControlRestController/getContentScenario: start");
         try {
-            return contentManager.getContentScenario().stream()
+            List<Map<String, Object>> listScenario = contentManager.getContentScenario().stream()
                     .map(Scenario::getDescription)
                     .toList();
+            logger.info("ControlRestController/getContentScenario: found {} scenario", listScenario.size());
+            return listScenario;
         } catch (Exception e) {
+            logger.info("ControlRestController/getContentScenario: Error during getContentScenario {} ", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error during Content : " + e.getMessage());
         }
     }

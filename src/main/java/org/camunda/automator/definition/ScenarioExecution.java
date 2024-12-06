@@ -120,6 +120,7 @@ public class ScenarioExecution {
         return this;
     }
 
+
     public int getNumberOfThreads() {
         return (numberOfThreads == null ? 1 : numberOfThreads <= 0 ? 1 : numberOfThreads);
     }

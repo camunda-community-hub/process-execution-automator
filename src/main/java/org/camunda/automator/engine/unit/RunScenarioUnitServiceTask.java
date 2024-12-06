@@ -56,7 +56,7 @@ public class RunScenarioUnitServiceTask {
                 do {
 
                     listActivities = runScenario.getBpmnEngine()
-                            .searchServiceTasks(result.getFirstProcessInstanceId(), step.getTaskId(), step.getTopic(), 1);
+                            .activateServiceTasks(result.getFirstProcessInstanceId(), step.getTaskId(), step.getTopic(), 1);
 
                     if (listActivities.isEmpty()) {
                         try {

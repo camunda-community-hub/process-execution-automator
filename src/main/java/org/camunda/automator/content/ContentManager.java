@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,10 +42,10 @@ public class ContentManager {
     }
 
 
-
     @PostConstruct
     public void init() {
         try {
+            logger.info("ContentManager: start initialization");
             repositoryManager.initializeRepository(repositoryPath);
             loadUploadPath();
             LoadContentResource();
@@ -70,7 +70,7 @@ public class ContentManager {
         List<Path> listContent = repositoryManager.getContentRepository();
         for (Path path : listContent) {
             // The content can have multiple files, not only scenario
-            if (! path.getFileName().toString().endsWith(".json"))
+            if (!path.getFileName().toString().endsWith(".json"))
                 continue;
             try {
                 Scenario scenario = Scenario.createFromFile(path);
@@ -81,7 +81,6 @@ public class ContentManager {
         }
         return listScenario;
     }
-
 
 
     public Path addFile(Path file) throws IOException {
@@ -124,7 +123,7 @@ public class ContentManager {
     private void loadUploadPath() {
         try {
             Path sourceDirectory = Paths.get(uploadPath);
-            logger.info("ContentManager/Upload: from [{}]", sourceDirectory);
+            logger.info("ContentManager/Upload: from [{}]", sourceDirectory.toAbsolutePath());
             int nbFilesCopied = 0;
             // Copy all files from source to target
             List<Path> listFiles = Files.walk(sourceDirectory)

@@ -63,8 +63,9 @@ public class RunScenarioUnit {
         try {
             for (Future<?> f : listFutures) {
                 Object scnRunResult = f.get();
-                resultExecution.merge((RunResult) scnRunResult);
-
+                if (scnRunResult instanceof RunResult runResultInstances) {
+                    resultExecution.mergeDuplicateExecution(runResultInstances);
+                }
             }
 
         } catch (Exception e) {

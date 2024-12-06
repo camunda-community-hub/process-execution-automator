@@ -69,6 +69,14 @@
           "variables": {
             "score": 67
           }
+        },
+        {
+          "type": "USERTASK",
+          "taskId": "CallApplicant",
+          "processId": "ScoreAcceptance",
+          "variables": {
+            "phoneNumber": "(+1) 542 778 2352"
+          }
         }
       ],
       "verifications": {

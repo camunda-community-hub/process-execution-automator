@@ -6,15 +6,11 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine.flow;
 
-import io.camunda.zeebe.client.api.command.CompleteJobCommandStep1;
-import io.camunda.zeebe.client.api.command.FinalCommandStep;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import io.camunda.zeebe.client.api.worker.JobClient;
 import io.camunda.zeebe.client.api.worker.JobHandler;
-import io.camunda.zeebe.spring.client.jobhandling.CommandWrapper;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.camunda8.BenchmarkCompleteJobExceptionHandlingStrategy;
-import org.camunda.automator.bpmnengine.camunda8.refactoring.RefactoredCommandWrapper;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenario;
@@ -36,11 +32,10 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     private static final TrackActiveWorker trackAsynchronousWorkers = new TrackActiveWorker();
     private final TaskScheduler scheduler;
     private final Semaphore semaphore;
+    private final BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy = null;
     Logger logger = LoggerFactory.getLogger(RunScenarioFlowServiceTask.class);
     private BpmnEngine.RegisteredTask registeredTask;
     private boolean stopping;
-
-    private final BenchmarkCompleteJobExceptionHandlingStrategy exceptionHandlingStrategy = null;
 
     public RunScenarioFlowServiceTask(TaskScheduler scheduler,
                                       ScenarioStep scenarioStep,
@@ -173,6 +168,15 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
             }
         }
 
+        /**
+         * This method execute the jib and wait for the result of the sending
+         *
+         * @param externalTask        external task (C7 engine)
+         * @param externalTaskService service (C7 engine)
+         * @param jobClient           jobClient (C8 engine)
+         * @param activatedJob        activated Job (C8 engine)
+         * @param waitTimeInMs        Wait time to simulate a worker
+         */
         private void manageWaitExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                          ExternalTaskService externalTaskService,
                                          JobClient jobClient,
@@ -200,11 +204,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
                 /* C8 */
                 if (jobClient != null) {
                     currentVariables = activatedJob.getVariablesAsMap();
-                    CompleteJobCommandStep1 completeCommand = jobClient.newCompleteCommand(activatedJob.getKey());
-                    CommandWrapper command = new RefactoredCommandWrapper((FinalCommandStep) completeCommand,
-                            activatedJob.getDeadline(), activatedJob.toString(), exceptionHandlingStrategy);
-
-                    command.executeAsync();
+                    jobClient.newCompleteCommand(activatedJob.getKey()).send().join();
                 }
 
                 flowServiceTask.runResult.registerAddStepExecution();
@@ -232,6 +232,16 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
 
         }
 
+        /**
+         * Run the server in a different thread, so the library does not wait for the answer. Simulate a Reactive Programming
+         * In the thread, the execution wait for the durationSleep, then it call the manageWaitExecution, with a delay of 0.
+         * Then, no thread is engaged during the waiting.
+         *
+         * @param externalTask        external task (C7 engine)
+         * @param externalTaskService service (C7 engine)
+         * @param jobClient           jobClient (C8 engine)
+         * @param activatedJob        activated Job (C8 engine)
+         */
         private void manageAsynchronousExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                                  ExternalTaskService externalTaskService,
                                                  JobClient jobClient,
@@ -248,6 +258,17 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
             }, Instant.now().plusMillis(durationSleep.toMillis()));
         }
 
+        /**
+         * Simulate a Asynchronous Token implementation.
+         * A token is get (number of token is limited in the step), and when it gets a token, manage the execution asynchronously.
+         * With that implementation, we ensure there are only <tokens> execution at a time, to control the access to an external service
+         * Because the getToken is in the method, the library waits if there are no more token, and don't acquire new job
+         *
+         * @param externalTask        external task (C7 engine)
+         * @param externalTaskService service (C7 engine)
+         * @param jobClient           jobClient (C8 engine)
+         * @param activatedJob        activated Job (C8 engine)
+         */
         private void manageAsynchronousLimitedExecution(org.camunda.bpm.client.task.ExternalTask externalTask,
                                                         ExternalTaskService externalTaskService,
                                                         JobClient jobClient,

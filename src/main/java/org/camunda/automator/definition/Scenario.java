@@ -199,11 +199,11 @@ public class Scenario {
 
 
     public Map<String, Object> getDescription() {
-        return Map.of("name", name==null?"":name,//
-                "server", serverName==null? "": serverName, //
-                "serverType", serverType==null?"": serverType, //
-                "processId", processId==null?"":processId, //
-                "typeScenario", typeScenario==null? "": typeScenario.toString());
+        return Map.of("name", name == null ? "" : name,//
+                "server", serverName == null ? "" : serverName, //
+                "serverType", serverType == null ? "" : serverType, //
+                "processId", processId == null ? "" : processId, //
+                "typeScenario", typeScenario == null ? "" : typeScenario.toString());
     }
 
     public enum TYPESCENARIO {FLOW, UNIT}
