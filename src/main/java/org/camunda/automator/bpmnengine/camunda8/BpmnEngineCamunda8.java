@@ -382,7 +382,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
      * @param filterTaskId      filter on the taskId
      * @param maxResult         maximum Result
      * @return list of Task
-     * @throws AutomatorException
+     * @throws AutomatorException in case of error
      */
     @Override
     public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String filterTaskId, int maxResult)

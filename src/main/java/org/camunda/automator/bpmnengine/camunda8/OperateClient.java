@@ -198,7 +198,7 @@ public class OperateClient {
      * @param filterTaskId      filter on the taskId
      * @param maxResult         maximum Result
      * @return list of Task
-     * @throws AutomatorException
+     * @throws AutomatorException in case of error
      */
     public List<BpmnEngine.TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String filterTaskId, int maxResult)
             throws AutomatorException {

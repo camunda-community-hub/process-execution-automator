@@ -34,6 +34,7 @@ public class AutomatorRest {
     public static final String JSON_MESSAGE = "message";
     public static final String JSON_INFO = "info";
     private static final Logger logger = LoggerFactory.getLogger(AutomatorRest.class.getName());
+    public static final String JSON_STATUS_V_NOTEXIST = "NOTEXIST";
     private final ConfigurationStartup configurationStartup;
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
@@ -76,7 +77,7 @@ public class AutomatorRest {
         if (resultTest != null) {
             return resultTest;
         } else {
-            return Map.of("status", "NOTEXIST");
+            return Map.of(AutomatorRest.JSON_STATUS, JSON_STATUS_V_NOTEXIST);
         }
     }
 
@@ -85,7 +86,7 @@ public class AutomatorRest {
         List<Map<String, Object>> listUnitTest = new ArrayList<>();
         for (Map.Entry entryTest : cacheExecution.entrySet()) {
             if (entryTest.getValue() instanceof Map<?, ?> resultMap) {
-                listUnitTest.add(Map.of("id", entryTest.getKey(),
+                listUnitTest.add(Map.of(AutomatorRest.JSON_ID, entryTest.getKey(),
                         JSON_SCENARIO_NAME, getSecureValue(resultMap.get(JSON_SCENARIO_NAME))));
             } else {
                 listUnitTest.add(Map.of(JSON_ID, entryTest.getKey(),
@@ -159,8 +160,8 @@ public class AutomatorRest {
     }
 
     /**
-     * @param runResult
-     * @return
+     * @param runResult result to transform in JSON
+     * @return result ready for a JSON format
      */
     private Map<String, Object> resultToJson(RunResult runResult) {
         Map<String, Object> resultMap = new HashMap<>();
@@ -198,9 +199,9 @@ public class AutomatorRest {
      * Connect to the BPM Engine
      *
      * @param scenario      scenario to use to connect
-     * @param runParameters
-     * @param result
-     * @return
+     * @param runParameters running parameters
+     * @param result result of the connection
+     * @return BPMN Engine
      */
     private BpmnEngine connectToEngine(Scenario scenario, RunParameters runParameters, Map<String, Object> result) {
         BpmnEngine bpmnEngine = null;

@@ -1,7 +1,6 @@
 package org.camunda.automator.definition;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -77,7 +76,7 @@ public class ScenarioExecution {
     }
 
     public List<ScenarioStep> getSteps() {
-        return steps == null ? Collections.emptyList() : steps;
+        return steps;
     }
 
     public ScenarioVerification getVerifications() {

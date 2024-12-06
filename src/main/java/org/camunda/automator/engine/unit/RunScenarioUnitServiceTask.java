@@ -62,6 +62,7 @@ public class RunScenarioUnitServiceTask {
                         try {
                             Thread.sleep(500);
                         } catch (InterruptedException e) {
+                            // nothing to do here
                         }
                     }
                 } while (listActivities.isEmpty() && System.currentTimeMillis() - beginTimeWait < waitingTimeInMs);

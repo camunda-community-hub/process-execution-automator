@@ -24,7 +24,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 public class AutomatorStartup {
@@ -101,7 +101,6 @@ public class AutomatorStartup {
                 } else {
                     logger.error("AutomatorStartup/StartupScenario:: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
                             scenarioFileName, scenarioFileName);
-                    continue;
                 }
             }
 
@@ -113,8 +112,8 @@ public class AutomatorStartup {
                     configurationStartup.getScenarioResourceAtStartupName());
         } else {
             List<Resource> scenarioResource = configurationStartup.getScenarioResourceAtStartup().stream()
-                    .filter(t -> t != null)
-                    .collect(Collectors.toList());
+                    .filter(Objects::nonNull)
+                    .toList();
 
             logger.info("Detect {} scenario [Resource] from variable [{}]",
                     scenarioResource.size(),
