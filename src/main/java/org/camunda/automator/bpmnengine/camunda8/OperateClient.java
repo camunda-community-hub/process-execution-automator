@@ -80,7 +80,7 @@ public class OperateClient {
 
 
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
+                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -125,7 +125,7 @@ public class OperateClient {
                     configuration = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper, HttpClients.createDefault());
                 }
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -145,7 +145,7 @@ public class OperateClient {
             analysis.append("successfully, ");
 
         } catch (Exception e) {
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }
@@ -228,12 +228,12 @@ public class OperateClient {
                     }).toList();
 
         } catch (OperateException e) {
-            logger.error("Can't search FlowNode: " + e.getMessage());
+            logger.error("Can't search FlowNode: {}", e.getMessage(),e);
             throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
         }
         // We must not be here
         catch (Exception e) {
-            logger.error("Can't search FlowNode EXCEPTION NOT EXPECTED: " + e.getMessage());
+            logger.error("Can't search FlowNode EXCEPTION NOT EXPECTED: {} ", e.getMessage(),e);
             throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
         }
     }
@@ -275,12 +275,12 @@ public class OperateClient {
             }
             return listProcessInstanceFind;
         } catch (OperateException e) {
-            logger.error("Can't search flowNodeByVariable: " + e.getMessage());
+            logger.error("Can't search flowNodeByVariable: {} ", e.getMessage(),e);
             throw new AutomatorException("Can't search flowNodeByVariable " + e.getMessage());
         }
         // We must not be here
         catch (Exception e) {
-            logger.error("Can't search flowNodeByVariable EXCEPTION NOT EXPECTED: " + e.getMessage());
+            logger.error("Can't search flowNodeByVariable EXCEPTION NOT EXPECTED: {} ",e.getMessage(),e);
             throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
         }
     }
@@ -305,12 +305,12 @@ public class OperateClient {
 
             return variables;
         } catch (OperateException e) {
-            logger.error("Can't getVariables: " + e.getMessage());
+            logger.error("Can't getVariables: {} ", e.getMessage(),e);
             throw new AutomatorException("Can't search variables task " + e.getMessage());
         }
         // We must not be here
         catch (Exception e) {
-            logger.error("Can't getVariables EXCEPTION NOT EXPECTED: " + e.getMessage());
+            logger.error("Can't getVariables EXCEPTION NOT EXPECTED: {} ", e.getMessage(),e);
             throw new AutomatorException("Can't getVariables: " + e.getMessage());
         }
     }

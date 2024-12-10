@@ -96,7 +96,7 @@ public class AutomatorStartup {
                     try {
                         contentManager.addFile(scenarioFile);
                     } catch (IOException e) {
-                        logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath(), e.getMessage());
+                        logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath(), e.getMessage(),e);
                     }
                 } else {
                     logger.error("AutomatorStartup/StartupScenario:: Can't find File [{}/{}] or [{}]", configurationStartup.scenarioPath,
@@ -122,7 +122,7 @@ public class AutomatorStartup {
                 try {
                     scenarioList.add(contentManager.addResource(resource));
                 } catch (IOException e) {
-                    logger.error("Error loading resource [{}]", resource.getFilename());
+                    logger.error("Error loading resource [{}] ; {}", resource.getFilename(),e.getMessage(),e);
                 }
             }
         }
@@ -182,7 +182,7 @@ public class AutomatorStartup {
                 String currentPath = new java.io.File(".").getCanonicalPath();
                 logger.info("Local Path[{}]", currentPath);
             } catch (Exception e) {
-                logger.error("Can't access Local Path : {} ", e.getMessage());
+                logger.error("Can't access Local Path : {} ", e.getMessage(),e);
             }
 
             runFixedWarmup();
@@ -197,7 +197,7 @@ public class AutomatorStartup {
                     scenario = automatorAPI.loadFromFile(scenarioPath);
                 } catch (Exception e) {
                     logger.error("Error during accessing InputStream from File [{}]: {}", scenarioPath.getFileName(),
-                            e.getMessage());
+                            e.getMessage(),e);
                 }
 
 

@@ -107,7 +107,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             engineApi.getProcessEngineNames();
             logger.info("Connection successfully to Camunda7 [{}] ", apiClient.getBasePath());
         } catch (ApiException e) {
-            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.toString());
+            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.getMessage(),e.getMessage(),e);
             throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e);
         }
     }

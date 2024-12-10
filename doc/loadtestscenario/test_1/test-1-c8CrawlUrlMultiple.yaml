@@ -34,7 +34,7 @@ spec:
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=1
                 -Dautomator.startup.scenarioResourceAtStartup=file:/C8CrawlUrlScn.json
-                -Dautomator.startup.policyExecution=WARMINGUP|CREATION
+                -Dautomator.startup.policyExecution=WARMINGUP|CREATION|OBJECTIVE
                 -Dautomator.startup.logLevel=DASHBOARD
           resources:
             limits:

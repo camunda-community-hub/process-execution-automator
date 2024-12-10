@@ -124,7 +124,7 @@ public class AutomatorRest {
                 scenario = automatorAPI.loadFromFile(scenarioFile);
             } catch (Exception e) {
                 logger.error("Error during accessing InputStream from File [{}]: {}", scenarioFile.toAbsolutePath(),
-                        e.getMessage());
+                        e.getMessage(),e);
             }
             if (scenario == null) {
                 resultMap.put(JSON_STATUS, "NOTEXIST");
@@ -154,7 +154,7 @@ public class AutomatorRest {
             resultMap.putAll(resultToJson(scenarioExecutionResult));
 
         } catch (Exception e) {
-            logger.error("During execute unit Test", e.getMessage());
+            logger.error("During execute unit Test : {}", e.getMessage(),e);
             resultMap.put("error", e.getMessage());
         }
     }

@@ -268,7 +268,7 @@ public class RunObjectives {
                 objectiveResult.analysis += "AverageReach[" + averageValue + "]";
             }
         } catch (Exception e) {
-            logger.error("Error during checkFlowRateObjective {}", e.getMessage());
+            logger.error("Error during checkFlowRateObjective {}", e.getMessage(),e);
             objectiveResult.success = false;
         }
         return objectiveResult;

@@ -6,13 +6,14 @@
   <groupId>org.camunda.community.automator</groupId>
   <artifactId>process-execution-automator</artifactId>
 
-  <version>1.8.0</version>
+Norm  <version>1.8.1</version>
   <!-- Change the banner.txt version -->
   <!-- 1.5 Change OperateClient / TaskList Library -->
   <!-- 1.6 Increase option multithreading-->
   <!-- 1.7 add logs -->
   <!-- 1.7.1 Add logs on authentication to describe it -->
-
+  <!-- 1.8.0 Unit Test / Rest API -->
+  <!-- 1.8.1 Add the reconnect mechanism on TaskList -->
   <properties>
     <java.version>17</java.version>
     <maven.compiler.target>${java.version}</maven.compiler.target>

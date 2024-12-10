@@ -24,6 +24,8 @@ public class TaskListClient {
     BpmnEngineCamunda8 engineCamunda8;
     private CamundaTaskListClient taskClient;
 
+    private long lastCallToTaskList;
+
     protected TaskListClient(BpmnEngineCamunda8 engineCamunda8) {
         this.engineCamunda8 = engineCamunda8;
     }
@@ -61,7 +63,7 @@ public class TaskListClient {
                 taskListBuilder.taskListUrl(taskListUrl)
                         .saaSAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret);
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
+                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -105,16 +107,27 @@ public class TaskListClient {
             taskClient = taskListBuilder.build();
 
             analysis.append("successfully, ");
+            lastCallToTaskList= System.currentTimeMillis();
 
         } catch (Exception e) {
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }
     }
 
+    /**
+     * There is a timeout on the taskList, so reconnection may be necessary
+     * @param analysis analyse the result
+     */
+    public void reconnect(StringBuilder analysis) throws AutomatorException {
+        connectTaskList(analysis);
+    }
+
+
     public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
             throws AutomatorException {
+        checkConnection();
         try {
             // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
             Long processInstanceIdLong = Long.valueOf(processInstanceId);
@@ -153,12 +166,13 @@ public class TaskListClient {
             return listTasksResult;
 
         } catch (TaskListException e) {
-            logger.error("TaskListClient: error during search task: {}", e.getMessage());
+            logger.error("TaskListClient: error during search task: processInstance[{}] : {} ", processInstanceId, e.getMessage(), e);
             throw new AutomatorException("Can't search users task " + e.getMessage());
         }
     }
 
     public List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException {
+        checkConnection();
         try {
             // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
 
@@ -181,22 +195,35 @@ public class TaskListClient {
             return listTasksResult;
 
         } catch (TaskListException e) {
-            logger.error("SearchUserTask: userId[{}] : {}", userTaskId, e.getMessage());
+            logger.error("SearchUserTask: userId[{}] : {}", userTaskId, e.getMessage(),e);
             throw new AutomatorException("Can't search users task " + e.getMessage());
         }
     }
 
     public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
             throws AutomatorException {
+        checkConnection();
         try {
             taskClient.claim(userTaskId, engineCamunda8.getServerDefinition().operateUserName);
             taskClient.completeTask(userTaskId, variables);
         } catch (TaskListException e) {
-            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage());
+            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage(),e);
             throw new AutomatorException("Can't execute task [" + userTaskId + "]");
         } catch (Exception e) {
-            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage());
+            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage(), e);
             throw new AutomatorException("Can't execute task [" + userTaskId + "]");
         }
+    }
+
+    /**
+     * There is a timeout with taskList.
+     * If the last call was more than 4 minutes, then reconnect
+     */
+
+    private void checkConnection() throws AutomatorException {
+        StringBuilder analysis = new StringBuilder();
+        if (lastCallToTaskList<System.currentTimeMillis()-4*60*1000)
+            reconnect(analysis);
+        lastCallToTaskList = System.currentTimeMillis();
     }
 }

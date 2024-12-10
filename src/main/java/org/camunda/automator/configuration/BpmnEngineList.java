@@ -97,7 +97,7 @@ public class BpmnEngineList {
                 logger.info(serverDetails);
             }
         } catch (Exception e) {
-            logger.error("Error during initialization : {}", e.getMessage());
+            logger.error("Error during initialization : {}", e.getMessage(),e);
         }
     }
 
@@ -432,7 +432,7 @@ public class BpmnEngineList {
             }
             return (String) recordData.get(name);
         } catch (Exception e) {
-            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage());
+            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(),e);
             return defaultValue;
         }
     }
@@ -456,7 +456,7 @@ public class BpmnEngineList {
                 return valueBoolean;
             return Boolean.valueOf(recordData.get(name).toString());
         } catch (Exception e) {
-            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage());
+            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(),e);
             return defaultValue;
         }
     }
@@ -472,7 +472,7 @@ public class BpmnEngineList {
             }
             return (Integer) recordData.get(name);
         } catch (Exception e) {
-            logger.error("Variable [{}] {} bad definition {}", name, contextLog, e.getMessage());
+            logger.error("Variable [{}] {} bad definition {}", name, contextLog, e.getMessage(),e);
             return defaultValue;
         }
     }
@@ -483,7 +483,7 @@ public class BpmnEngineList {
                 return defaultValue;
             return Integer.parseInt(value);
         } catch (Exception e) {
-            logger.error("Can't parse value [{}] at [{}] {}", value, label, contextLog);
+            logger.error("Can't parse value [{}] at [{}] {}", value, label, contextLog,e);
             return defaultValue;
         }
     }

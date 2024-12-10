@@ -82,7 +82,7 @@ public class AutomatorAPI {
             return null;
         } catch (AutomatorException e) {
             logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
-                    scenario.getServerName(), e.getMessage());
+                    scenario.getServerName(), e.getMessage(),e);
             throw e;
         }
 

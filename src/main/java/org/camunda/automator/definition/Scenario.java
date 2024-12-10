@@ -65,7 +65,7 @@ public class Scenario {
             scenario.afterUnSerialize();
             return scenario;
         } catch (Exception e) {
-            logger.error("Scenario: can't unparse Json content [{}]", jsonContent);
+            logger.error("Scenario: can't unparse Json content [{}] : {}", jsonContent,e.getMessage(),e);
             throw new AutomatorException("Scenario: can't unparse GSon file:" + e.getMessage());
         }
     }
@@ -107,7 +107,7 @@ public class Scenario {
             scnHead.initialize();
             return scnHead;
         } catch (IOException e) {
-            logger.error("CreateScenarioFromInputString: origin[{}] error {} : {} ", origin, e.getMessage(), e.toString());
+            logger.error("CreateScenarioFromInputString: origin[{}] error {} ", origin, e.getMessage(), e);
             throw new AutomatorException("Can't load content from [" + origin + "] " + e.getMessage());
         }
 
@@ -179,7 +179,7 @@ public class Scenario {
         try {
             return new File(scenarioFile);
         } catch (Exception e) {
-            logger.error("Can't access file [{}] ", scenarioFile);
+            logger.error("Can't access file [{}] : {} ", scenarioFile, e.getMessage(),e);
             return null;
         }
     }

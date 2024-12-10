@@ -72,7 +72,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
             return startEventRunnable == null ? 0 : startEventRunnable.getNumberOfRunningThreads();
         } catch (Exception e) {
             // do nothing
-            logger.error("During getCurrentNumberOfThreads : {}", e);
+            logger.error("During getCurrentNumberOfThreads : {}", e.getMessage(),e);
             return 0;
         }
     }

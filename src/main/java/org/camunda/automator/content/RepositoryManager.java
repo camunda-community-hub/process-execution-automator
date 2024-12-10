@@ -40,7 +40,7 @@ public class RepositoryManager {
             } catch (FileAlreadyExistsException e) {
                 logger.info("RepositoryManager/initialization: File already exists [{}]", repositoryPath.toAbsolutePath());
             } catch (Exception e) {
-                logger.error("RepositoryManager/initialization: Can't create folder [{}]", repositoryPath.toAbsolutePath());
+                logger.error("RepositoryManager/initialization: Can't create folder [{}] : {}", repositoryPath.toAbsolutePath(),e.getMessage(),e);
                 repositoryPath = null;
                 throw new AutomatorException("Can't create folder[" + tempDir.toAbsolutePath() + "/repository]");
             }
@@ -85,7 +85,7 @@ public class RepositoryManager {
             outputStream = null;
             return fileContent.toPath();
         } catch (Exception e) {
-            logger.error("RepositoryManager/addFromInputStream: Can't upload File [" + fileName + "] : " + e.getMessage());
+            logger.error("RepositoryManager/addFromInputStream: Can't upload File [{}] : {} ", fileName,e.getMessage(),e);
             throw e;
         } finally {
             if (outputStream != null)
@@ -120,7 +120,7 @@ public class RepositoryManager {
             return files.filter(Files::isRegularFile)  // You can filter by file type if needed
                     .toList();
         } catch (IOException e) {
-            logger.error("Error reading content [{}]", repositoryPath.toString());
+            logger.error("Error reading content [{}] : {}", repositoryPath.toString(),e.getMessage(),e);
             return Collections.emptyList();
         }
     }

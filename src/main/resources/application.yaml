@@ -54,14 +54,14 @@ automator:
 
   # other way to provide the list of server connection
   serversList:
-    - type: "camunda7"
-      name: "camunda7Emeraud"
+    - name: "camunda7Emeraud"
+      type: "camunda7"
       url: "http://localhost:8080/engine-rest"
       workerMaxJobsActive: 1
 
-    - type: "camunda8"
+    - name: "Camunda8Ruby"
+      type: "camunda8"
       description: "Simple authentication"
-      name: "Camunda8Ruby"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
       operateUserName: "demo"
@@ -74,9 +74,9 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
-    - type: "camunda8"
+    - name: "Camunda8Topaz"
+      type: "camunda8"
       description: "Kubernetes, Simple authentication"
-      name: "Camunda8Topaz"
       zeebeGatewayAddress: "camunda-zeebe-gateway:26500"
       zeebeRestAddress: "http://camunda-zeebe-gateway:9600"
       operateUserName: "demo"
@@ -89,8 +89,8 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
-    - type: "camunda8"
-      name: "Camunda8Lazuli"
+    - name: "Camunda8Lazuli"
+      type: "camunda8"
       description: "A Zeebe+Identity server"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
@@ -117,8 +117,8 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
-    - type: "camunda8"
-      name: "Camunda8ZeebeOnly"
+    - name: "Camunda8ZeebeOnly"
+      type: "camunda8"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebePlainText: true
@@ -127,8 +127,8 @@ automator:
       workerMaxJobsActive: -1
 
 
-    - type: "camunda8saas"
-      name: "Camunda8Grena"
+    - name: "Camunda8Grena"
+      type: "camunda8saas"
       workerExecutionThreads: 200
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1

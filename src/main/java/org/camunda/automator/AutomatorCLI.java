@@ -115,7 +115,7 @@ public class AutomatorCLI implements CommandLineRunner {
                 }
             });
         } catch (IOException e) {
-            logger.error("During detection scenario file: {}", e.getMessage());
+            logger.error("During detection scenario file: {}", e.getMessage(),e);
         }
         return listFiles;
     }
@@ -254,7 +254,7 @@ public class AutomatorCLI implements CommandLineRunner {
             logger.info("That's all folks! " + (System.currentTimeMillis() - beginTime) + " ms.");
 
         } catch (Exception e) {
-            logger.error("Error during execution " + e);
+            logger.error("Error during execution {} ", e.getMessage(),e);
         }
 
     }

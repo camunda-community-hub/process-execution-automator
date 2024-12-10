@@ -346,7 +346,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         try {
             zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).variables(variables).send().join();
         } catch (Exception e) {
-            logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage());
+            logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage(),e);
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
@@ -374,7 +374,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     .send()
                     .join();
         } catch (Exception e) {
-            logger.error("throwBpmnServiceTask: Can't execute service task[{}] WorkerId[{}] errorCode[{}] errorMessage[{}]: {}", serviceTaskId, workerId, errorCode, errorMessage, e.getMessage());
+            logger.error("throwBpmnServiceTask: Can't execute service task[{}] WorkerId[{}] errorCode[{}] errorMessage[{}]: {}", serviceTaskId, workerId, errorCode, errorMessage, e.getMessage(),e);
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
@@ -445,7 +445,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
             return String.valueOf(event.getKey());
         } catch (Exception e) {
-            logger.error("deployBpmn: Can't deploy File[{}] Policy[{}] : {}", processFile.getAbsolutePath(), policy, e.getMessage());
+            logger.error("deployBpmn: Can't deploy File[{}] Policy[{}] : {}", processFile.getAbsolutePath(), policy, e.getMessage(),e);
             throw new AutomatorException("Can't deploy " + e.getMessage());
         }
     }
@@ -575,7 +575,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
                 } catch (Exception e) {
                     zeebeClient = null;
-                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
                     throw new AutomatorException(
                             "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -594,7 +594,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     clientBuilder = clientBuilder.usePlaintext();
                 } catch (Exception e) {
                     zeebeClient = null;
-                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
                     throw new AutomatorException(
                             "badURL[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -641,7 +641,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
         } catch (Exception e) {
             zeebeClient = null;
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }

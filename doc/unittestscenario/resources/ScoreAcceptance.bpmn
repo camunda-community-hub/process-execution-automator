@@ -36,7 +36,9 @@
     <bpmn:sequenceFlow id="Flow_1pxztl2" sourceRef="ActSendRejection" targetRef="EndRejected" />
     <bpmn:sequenceFlow id="Flow_0wya675" sourceRef="CallApplicant" targetRef="ActSendRejection" />
     <bpmn:userTask id="CallApplicant" name="Call Applicant">
-      <bpmn:extensionElements />
+      <bpmn:extensionElements>
+        <zeebe:userTask />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0a4sjzy</bpmn:incoming>
       <bpmn:outgoing>Flow_0wya675</bpmn:outgoing>
     </bpmn:userTask>

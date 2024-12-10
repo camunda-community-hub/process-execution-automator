@@ -50,7 +50,7 @@ public class ContentManager {
             loadUploadPath();
             LoadContentResource();
         } catch (Exception e) {
-            logger.error("ContentManager: error during initialization {}", e.getMessage());
+            logger.error("ContentManager: error during initialization {}", e.getMessage(),e);
         }
     }
 
@@ -113,7 +113,7 @@ public class ContentManager {
             logger.info("ContentManager/LoadContentResource: Detect [Resource] name[{}]", scenarioResource.getFilename());
             Path scenario = repositoryManager.addResource(scenarioResource);
         } catch (IOException e) {
-            logger.error("ContentManager/LoadContentResource: Error occurred: {} ", e.getMessage());
+            logger.error("ContentManager/LoadContentResource: Error occurred: {} ", e.getMessage(),e);
         }
     }
 
@@ -135,13 +135,13 @@ public class ContentManager {
                     repositoryManager.addFile(sourcePath);
                     nbFilesCopied++;
                 } catch (IOException e) {
-                    logger.error("ContentManager/Upload: Error copying[{}] -> [{}] : {}", sourcePath, repositoryManager.getRepositoryPath(), e.getMessage());
+                    logger.error("ContentManager/Upload: Error copying[{}] -> [{}] : {}", sourcePath, repositoryManager.getRepositoryPath(), e.getMessage(),e);
                 }
             }
             logger.info("ContentManager/Upload: upload {} files", nbFilesCopied);
 
         } catch (IOException e) {
-            logger.error("ContentManager/Upload: Error occurred: {} ", e.getMessage());
+            logger.error("ContentManager/Upload: Error occurred: {} ", e.getMessage(),e);
         }
     }
 }
