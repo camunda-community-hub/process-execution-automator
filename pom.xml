@@ -6,7 +6,7 @@
   <groupId>org.camunda.community.automator</groupId>
   <artifactId>process-execution-automator</artifactId>
 
-  <version>1.7.1</version>
+  <version>1.8.0</version>
   <!-- Change the banner.txt version -->
   <!-- 1.5 Change OperateClient / TaskList Library -->
   <!-- 1.6 Increase option multithreading-->
@@ -18,8 +18,18 @@
     <maven.compiler.target>${java.version}</maven.compiler.target>
     <maven.compiler.source>${java.version}</maven.compiler.source>
 
-    <version.zeebe>8.5.7</version.zeebe>
+    <!-- 8.5 : OK
+    <version.spring-boot-starter-camunda>8.5.7</version.zeebe>
     <version.zeebe-client>8.5.5</version.zeebe-client>
+
+    8.5.11 : ?
+-->
+    <version.zeebe>8.5.7</version.zeebe>
+
+    <!-- 8.6.6 works -->
+    <version.zeebe-client>8.5.5</version.zeebe-client>
+
+
 
     <camunda7.version>7.19.0</camunda7.version>
 
@@ -54,23 +64,42 @@
 
   <dependencies>
 
-    <!-- Camunda operate client is included -->
-    <dependency>
-      <groupId>io.camunda.spring</groupId>
-      <artifactId>spring-boot-starter-camunda</artifactId>
-      <version>${version.zeebe}</version>
-    </dependency>
-
     <dependency>
       <groupId>io.camunda</groupId>
-      <artifactId>zeebe-client-java</artifactId>
-      <version>${version.zeebe-client}</version>
+      <artifactId>spring-boot-starter-camunda-sdk</artifactId>
+      <version>8.6.5</version>
     </dependency>
 
+    <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
+    <dependency>
+      <groupId>io.camunda.spring</groupId>
+      <artifactId>java-client-operate</artifactId>
+      <version>8.6.3</version>
+    </dependency>
+
+
+    <!-- 1.6.1, -->
+    <!-- 8.5.3.5 https://mvnrepository.com/artifact/io.camunda/camunda-tasklist-client-java
+    8.5.3.5 : Ok with spring-boot-starter-camunda
+     8.6.6 : incompatible types: io.camunda.common.auth.Authentication cannot be converted to io.camunda.tasklist.auth.Authentication
+     8.5.10 Bug fix on ZeebeUserTask (actually, no)
+      8.6.6 last version available-->
+    <dependency>
+      <groupId>io.camunda</groupId>
+      <artifactId>camunda-tasklist-client-java</artifactId>
+      <version>8.6.6</version>
+    </dependency>
+
+    <!-- Camunda 7 -->
     <dependency>
       <groupId>org.camunda.bpm</groupId>
       <artifactId>camunda-external-task-client</artifactId>
       <version>${camunda7.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.camunda.community</groupId>
+      <artifactId>camunda-engine-rest-client-openapi-java</artifactId>
+      <version>7.18.0</version>
     </dependency>
 
     <!-- Web -->
@@ -91,22 +120,12 @@
       <version>2.10.1</version>
     </dependency>
 
-
     <dependency>
-      <groupId>org.camunda.community</groupId>
-      <artifactId>camunda-engine-rest-client-openapi-java</artifactId>
-      <version>7.18.0</version>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
     </dependency>
 
 
-    <!-- 1.6.1, -->
-    <!-- 8.5.3.4 https://mvnrepository.com/artifact/io.camunda/camunda-tasklist-client-java  reference io.camunda
-    .tasklist.auth, not exist -->
-    <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>camunda-tasklist-client-java</artifactId>
-      <version>8.5.3.5</version>
-    </dependency>
 
 
 

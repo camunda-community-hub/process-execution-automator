@@ -16,23 +16,23 @@ import javax.annotation.PostConstruct;
 @ConfigurationProperties(prefix = "automator.scheduler")
 public class SchedulerExecution {
 
-  @Value("${automator.scheduler.scenario-path:''}")
-  public String scenarioPath;
+    @Value("${automator.scheduler.scenario-path:''}")
+    public String scenarioPath;
 
-  // https://www.baeldung.com/spring-boot-yaml-list
-  // @Value("${automator.scheduler.colors}")
-  @Autowired
-  BpmnEngineList bpmnEngineConfiguration;
-  Logger logger = LoggerFactory.getLogger(SchedulerExecution.class);
-  @Autowired
-  ServiceAccess serviceAccess;
+    // https://www.baeldung.com/spring-boot-yaml-list
+    // @Value("${automator.scheduler.colors}")
+    @Autowired
+    BpmnEngineList bpmnEngineConfiguration;
+    Logger logger = LoggerFactory.getLogger(SchedulerExecution.class);
+    @Autowired
+    ServiceAccess serviceAccess;
 
-  @PostConstruct
-  public void init() {
-    // We run the CLI, do nothing
-    if (AutomatorCLI.isRunningCLI)
-      return;
-    logger.info("SchedulerExecution soon");
-  }
+    @PostConstruct
+    public void init() {
+        // We run the CLI, do nothing
+        if (AutomatorCLI.isRunningCLI)
+            return;
+        logger.info("SchedulerExecution soon");
+    }
 
 }

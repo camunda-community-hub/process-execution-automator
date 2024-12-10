@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process-execution-automator
+  labels:
+    app: process-execution-automator
+spec:
+  selector:
+    matchLabels:
+      app: process-execution-automator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: process-execution-automator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: process-execution-automator
+          image: pycamunda/camunda-hub:process-execution-automator-1.8.7
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=http://camunda-tasklist:80
+                -Dautomator.servers.camunda8.workerExecutionThreads=2000
+                -Dautomator.startup.scenarioPath=/scenarii
+                -Dautomator.startup.contentAtStartup=file:/ScoreAcceptanceScn.json
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+          volumeMounts:
+            - name: scenarii
+              mountPath: ScoreAcceptanceScn.json
+              subPath: ScoreAcceptanceScn.json
+              readOnly: true
+      volumes:
+        - name: scenarii
+          configMap:
+            name: scoreacceptancescn
+
+# Upload your scenario in this config map
+# kubectl create configmap ScoreAcceptanceScn --from-file=ScoreAcceptanceScn.json   -n camunda
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: process-execution-automator
+spec:
+  selector:
+    app: process-execution-automator
+  ports:
+    - protocol: TCP
+      port: 8381
+      targetPort: 8381
+  type: ClusterIP

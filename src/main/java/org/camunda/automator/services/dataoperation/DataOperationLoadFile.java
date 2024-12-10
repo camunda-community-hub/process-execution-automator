@@ -12,42 +12,42 @@ import java.util.List;
 
 @Component
 public class DataOperationLoadFile extends DataOperation {
-  @Override
-  public boolean match(String value) {
-    return matchFunction(value, "loadfile");
-  }
-
-  @Override
-  public String getName() {
-    return "LoadFile";
-  }
-
-  @Override
-  public String getHelp() {
-    return "loadfile(<CompletePathToTheFile>)";
-  }
-
-  @Override
-  public Object execute(String value, RunScenario runScenario, int index) throws AutomatorException {
-    File fileLoad = loadFile(value, runScenario);
-
-    FileValue typedFileValue = Variables.fileValue(fileLoad.getName()).file(fileLoad)
-        // .mimeType("text/plain")
-        // .encoding("UTF-8")
-        .create();
-    return typedFileValue;
-
-  }
-
-  private File loadFile(String value, RunScenario runScenario) throws AutomatorException {
-    List<String> args = extractArgument(value, true);
-
-    if (args.size() != 1) {
-      throw new AutomatorException("Bad argument: loadfile(<fileName>)");
+    @Override
+    public boolean match(String value) {
+        return matchFunction(value, "loadfile");
     }
-    String formatArgs = args.get(0);
 
-    return ScenarioTool.loadFile(formatArgs, runScenario);
+    @Override
+    public String getName() {
+        return "LoadFile";
+    }
 
-  }
+    @Override
+    public String getHelp() {
+        return "loadfile(<CompletePathToTheFile>)";
+    }
+
+    @Override
+    public Object execute(String value, RunScenario runScenario, int index) throws AutomatorException {
+        File fileLoad = loadFile(value, runScenario);
+
+        FileValue typedFileValue = Variables.fileValue(fileLoad.getName()).file(fileLoad)
+                // .mimeType("text/plain")
+                // .encoding("UTF-8")
+                .create();
+        return typedFileValue;
+
+    }
+
+    private File loadFile(String value, RunScenario runScenario) throws AutomatorException {
+        List<String> args = extractArgument(value, true);
+
+        if (args.size() != 1) {
+            throw new AutomatorException("Bad argument: loadfile(<fileName>)");
+        }
+        String formatArgs = args.get(0);
+
+        return ScenarioTool.loadFile(formatArgs, runScenario);
+
+    }
 }
