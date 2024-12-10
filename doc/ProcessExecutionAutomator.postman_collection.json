@@ -1,0 +1,80 @@
+{
+	"info": {
+		"_postman_id": "185e726c-b343-45ed-98fc-6712e2053a45",
+		"name": "ProcessExecutionAutomator",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18174071"
+	},
+	"item": [
+		{
+			"name": "UnitTestRun Topaz",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "getContentList",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "UploadFile",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "FileToUpload",
+							"type": "file",
+							"src": "/C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources/ScoreAcceptanceScn.json"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:8381/api/content/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8381",
+					"path": [
+						"api",
+						"content",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UnitTestRun Ruby",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "List Test",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	]
+}
