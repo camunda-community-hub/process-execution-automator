@@ -270,13 +270,20 @@ the variable `loopcrawl` will be a list of 500 random string.
 
 **generateuniqueid(<Prefix>)**
 Generate a unique sequential number.
-The prefix is used to allo wmultiple counter
+The prefix is used to allow multiple counter
 Example:
 ````
 "tidblue": "generateuniqueid(blue)"
 "tidred": "generateuniqueid(red)"
 ````
 Variables `tidblue` and `tidred` got a unique id, each following a different counter.
+
+**now(LOCALDATETIME|DATE|ZONEDATETIME|LOCALDATE)**
+Generate a String object, containing the current date and time.
+
+
+**stringToDate(LOCALDATETIME|DATE|ZONEDATETIME|LOCALDATE, dateSt)**
+Transform a String to a Date (LocalDateTime, Date, ZoneDateTime or LocalDate)
 
 
 ## Verification

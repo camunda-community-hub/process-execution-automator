@@ -80,7 +80,7 @@ public class OperateClient {
 
 
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -125,7 +125,7 @@ public class OperateClient {
                     configuration = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper, HttpClients.createDefault());
                 }
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -145,7 +145,7 @@ public class OperateClient {
             analysis.append("successfully, ");
 
         } catch (Exception e) {
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }
@@ -220,8 +220,8 @@ public class OperateClient {
                         BpmnEngine.TaskDescription taskDescription = new BpmnEngine.TaskDescription();
                         taskDescription.taskId = t.getFlowNodeId();
                         taskDescription.processInstanceId = String.valueOf(t.getProcessInstanceKey());
-                        taskDescription.startDate = t.getStartDate().getDate();
-                        taskDescription.endDate = t.getEndDate().getDate();
+                        taskDescription.startDate = t.getStartDate()==null? null: t.getStartDate().getDate();
+                        taskDescription.endDate = t.getEndDate()==null? null : t.getEndDate().getDate();
                         taskDescription.type = getTaskType(t.getType()); // to implement
                         taskDescription.isCompleted = FlowNodeInstanceState.COMPLETED.equals(t.getState()); // to implement
                         return taskDescription;
@@ -337,7 +337,7 @@ public class OperateClient {
                 searchQuery.setSize(SEARCH_MAX_SIZE);
                 searchResult = operateClient.searchProcessInstanceResults(searchQuery);
 
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().getDate().after(startDate)).count();
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate()!=null && t.getStartDate().getDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
@@ -372,7 +372,7 @@ public class OperateClient {
                 SearchQuery searchQuery = queryBuilder.build();
                 searchQuery.setSize(SEARCH_MAX_SIZE);
                 searchResult = operateClient.searchProcessInstanceResults(searchQuery);
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate().getDate().after(startDate)).count();
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate() !=null && t.getStartDate().getDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;

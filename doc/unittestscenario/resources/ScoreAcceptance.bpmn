@@ -29,10 +29,6 @@
       <bpmn:incoming>Flow_09z898p</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_09z898p" sourceRef="ActSendAcceptation" targetRef="EndAccepted" />
-    <bpmn:task id="ActSendRejection" name="Send rejection">
-      <bpmn:incoming>Flow_0wya675</bpmn:incoming>
-      <bpmn:outgoing>Flow_1pxztl2</bpmn:outgoing>
-    </bpmn:task>
     <bpmn:sequenceFlow id="Flow_0a4sjzy" name="Rejected" sourceRef="Gateway_01ox9rs" targetRef="CallApplicant" />
     <bpmn:endEvent id="EndRejected" name="rejected">
       <bpmn:incoming>Flow_1pxztl2</bpmn:incoming>
@@ -44,6 +40,13 @@
       <bpmn:incoming>Flow_0a4sjzy</bpmn:incoming>
       <bpmn:outgoing>Flow_0wya675</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:serviceTask id="ActSendRejection" name="Send rejection">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="send-rejection" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0wya675</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pxztl2</bpmn:outgoing>
+    </bpmn:serviceTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ScoreAcceptance">
@@ -79,13 +82,12 @@
           <dc:Bounds x="870" y="315" width="40" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1dmaofg_di" bpmnElement="ActSendRejection">
-        <dc:Bounds x="710" y="250" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1kkk9hs_di" bpmnElement="CallApplicant">
         <dc:Bounds x="530" y="250" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0bhloo7_di" bpmnElement="ActSendRejection">
+        <dc:Bounds x="710" y="250" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_1wuzgpt_di" bpmnElement="Flow_1wuzgpt">
         <di:waypoint x="228" y="180" />

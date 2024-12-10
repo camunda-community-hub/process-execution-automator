@@ -77,12 +77,24 @@
           "variables": {
             "phoneNumber": "(+1) 542 778 2352"
           }
+        },
+        {
+          "type": "SERVICETASK",
+          "taskId": "ActSendRejection",
+          "topic": "send-rejection",
+          "waitingTime": "PT0S",
+          "modeExecution": "ASYNCHRONOUS",
+          "variablesOperation": {
+            "sendMessage": "now(LocalDateTime)"
+          }
         }
+
+
       ],
       "verifications": {
         "activities": [
           {
-            "type": "TASK",
+            "type": "SERVICETASK",
             "taskId": "ActSendRejection"
           },
           {

@@ -346,6 +346,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         try {
             zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).variables(variables).send().join();
         } catch (Exception e) {
+            logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage());
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
@@ -373,6 +374,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     .send()
                     .join();
         } catch (Exception e) {
+            logger.error("throwBpmnServiceTask: Can't execute service task[{}] WorkerId[{}] errorCode[{}] errorMessage[{}]: {}", serviceTaskId, workerId, errorCode, errorMessage, e.getMessage());
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
@@ -443,6 +445,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
             return String.valueOf(event.getKey());
         } catch (Exception e) {
+            logger.error("deployBpmn: Can't deploy File[{}] Policy[{}] : {}", processFile.getAbsolutePath(), policy, e.getMessage());
             throw new AutomatorException("Can't deploy " + e.getMessage());
         }
     }

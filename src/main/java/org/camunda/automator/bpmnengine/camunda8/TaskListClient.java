@@ -61,7 +61,7 @@ public class TaskListClient {
                 taskListBuilder.taskListUrl(taskListUrl)
                         .saaSAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret);
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -107,56 +107,10 @@ public class TaskListClient {
             analysis.append("successfully, ");
 
         } catch (Exception e) {
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage());
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }
-
-    /* 1.6.1
-    boolean isOk = true;
-    io.camunda.tasklist.auth.AuthInterface saTaskList;
-
-    // ---------------------------- Camunda Saas
-    if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(this.typeCamundaEngine)) {
-      try {
-        saTaskList = new io.camunda.tasklist.auth.SaasAuthentication(serverDefinition.zeebeSaasClientId,
-            serverDefinition.zeebeSaasClientSecret);
-      } catch (Exception e) {
-        logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
-        throw new AutomatorException(
-            "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
-                + e.getMessage());
-      }
-
-      //---------------------------- Camunda 8 Self Manage
-    } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(this.typeCamundaEngine)) {
-      saTaskList = new io.camunda.tasklist.auth.SimpleAuthentication(serverDefinition.operateUserName,
-          serverDefinition.operateUserPassword);
-    } else
-      throw new AutomatorException("Invalid configuration");
-
-    if (!isOk)
-      throw new AutomatorException("Invalid configuration " + analysis);
-
-    // ---------------- connection
-    try {
-      isOk = engineCamunda8.stillOk(serverDefinition.taskListUrl, "taskListUrl", analysis, false, isOk);
-      analysis.append("Tasklist ...");
-
-      taskClient = new CamundaTaskListClient.Builder().taskListUrl(serverDefinition.taskListUrl)
-          .authentication(saTaskList)
-          .build();
-      analysis.append("successfully, ");
-      //get tasks assigned to demo
-      logger.info("Zeebe: OK, Operate: OK, TaskList:OK " + analysis);
-
-    } catch (Exception e) {
-      logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e);
-      throw new AutomatorException(
-          "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
-    }
-    */
-
     }
 
     public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
@@ -199,7 +153,7 @@ public class TaskListClient {
             return listTasksResult;
 
         } catch (TaskListException e) {
-            logger.error("TaskListClient: error during search task [{}]", e.getMessage());
+            logger.error("TaskListClient: error during search task: {}", e.getMessage());
             throw new AutomatorException("Can't search users task " + e.getMessage());
         }
     }
@@ -227,6 +181,7 @@ public class TaskListClient {
             return listTasksResult;
 
         } catch (TaskListException e) {
+            logger.error("SearchUserTask: userId[{}] : {}", userTaskId, e.getMessage());
             throw new AutomatorException("Can't search users task " + e.getMessage());
         }
     }
@@ -237,8 +192,10 @@ public class TaskListClient {
             taskClient.claim(userTaskId, engineCamunda8.getServerDefinition().operateUserName);
             taskClient.completeTask(userTaskId, variables);
         } catch (TaskListException e) {
+            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage());
             throw new AutomatorException("Can't execute task [" + userTaskId + "]");
         } catch (Exception e) {
+            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage());
             throw new AutomatorException("Can't execute task [" + userTaskId + "]");
         }
     }

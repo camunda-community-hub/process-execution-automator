@@ -49,37 +49,35 @@ public class RepositoryManager {
     }
 
     public Path addResource(Resource resource) throws IOException {
+        if (resource==null)
+            return null;
         Path targetPath = repositoryPath.resolve(resource.getFilename());
         Files.copy(resource.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        logger.info("CopiedReource: [{}] tp [{}]", resource.getFilename(), targetPath);
+        logger.info("CopiedResource: [{}] to [{}]", resource.getFilename(), targetPath);
         return targetPath;
     }
 
     public Path addFile(Path sourcePath) throws IOException {
         Path sourceFileName = sourcePath.getFileName();
         // Get the directory from targetPath
-        Path targetDir = repositoryPath.getParent();
         // Combine the directory of targetPath with the filename of sourcePath
-        Path targetPath = targetDir.resolve(sourceFileName);
+        Path targetPath = repositoryPath.resolve(sourceFileName);
         Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        logger.info("CopiedFile: [{}] tp [{}]", sourcePath, targetPath);
+        logger.info("CopiedFile: [{}] to [{}]", sourcePath, targetPath);
         return targetPath;
     }
 
     public Path addFromInputStream(InputStream inputStream, String fileName) throws IOException {
         OutputStream outputStream = null;
-        File fileContent = null;
         try {
-            fileContent = new File(repositoryPath + File.separator + fileName);
+            File fileContent = new File(repositoryPath + File.separator + fileName);
             // Open an OutputStream to the temporary file
             outputStream = new FileOutputStream(fileContent);
             // Transfer data from InputStream to OutputStream
             byte[] buffer = new byte[1024 * 100]; // 100Ko
             int bytesRead;
-            int count = 0;
 
             while ((bytesRead = inputStream.read(buffer)) != -1) {
-                count += bytesRead;
                 outputStream.write(buffer, 0, bytesRead);
             }
             outputStream.flush();

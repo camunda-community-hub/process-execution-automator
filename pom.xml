@@ -64,28 +64,6 @@
 
   <dependencies>
 
-    <!-- Camunda operate client is included -->
-    <!--
-      8.5 : OK
-    <version.spring-boot-starter-camunda>8.5.7</version.zeebe>
-    <version.zeebe-client>8.5.5</version.zeebe-client>
-
-    8.5.11 : ?
-
-    <dependency>
-      <groupId>io.camunda.spring</groupId>
-      <artifactId>spring-boot-starter-camunda</artifactId>
-      <version>8.5.7</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>zeebe-client-java</artifactId>
-      <version>8.5.7</version>
-    </dependency>
--->
-
-
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>spring-boot-starter-camunda-sdk</artifactId>
@@ -96,7 +74,7 @@
     <dependency>
       <groupId>io.camunda.spring</groupId>
       <artifactId>java-client-operate</artifactId>
-      <version>8.6.2</version>
+      <version>8.6.3</version>
     </dependency>
 
 
@@ -106,7 +84,6 @@
      8.6.6 : incompatible types: io.camunda.common.auth.Authentication cannot be converted to io.camunda.tasklist.auth.Authentication
      8.5.10 Bug fix on ZeebeUserTask (actually, no)
       8.6.6 last version available-->
-
     <dependency>
       <groupId>io.camunda</groupId>
       <artifactId>camunda-tasklist-client-java</artifactId>

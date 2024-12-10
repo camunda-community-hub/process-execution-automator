@@ -147,7 +147,6 @@ public class RunResult {
     public void addError(ScenarioStep step, String explanation) {
         this.listErrors.add(new ErrorDescription(step, explanation));
         logger.error((step == null ? "" : step.getType().toString()) + " " + explanation);
-
     }
 
     public void addError(ScenarioStep step, AutomatorException e) {
@@ -205,7 +204,7 @@ public class RunResult {
 
     /**
      * Two execution on the exact same execution: we go for a merge plus one step more, we collect additionnal information, like processinstanceIdList
-     * @param result
+     * @param result the result to merge
      */
     public void mergeDuplicateExecution(RunResult result) {
         merge(result);
@@ -245,8 +244,8 @@ public class RunResult {
         return listProcessInstancesId;
     }
 
-    public void addListProcessInstancesId(List<String> listProcessInstancesId) {
-        listProcessInstancesId.addAll(listProcessInstancesId);
+    public void addListProcessInstancesId(List<String> listProcessInstancesIdParam) {
+        listProcessInstancesId.addAll(listProcessInstancesIdParam);
     }
     public List<String> getProcessInstanceId() {
         return this.listProcessInstancesId;
@@ -310,7 +309,7 @@ public class RunResult {
         synthesis.append(runScenario.getScenario().getProcessId());
         synthesis.append("): ");
 
-        StringBuilder append = synthesis.append(timeExecution);
+        synthesis.append(timeExecution);
         synthesis.append(" timeExecution(ms), ");
         RecordCreationPI recordCreationPI = recordCreationPIMap.get(runScenario.getScenario().getProcessId());
         synthesis.append(recordCreationPI == null ? 0 : recordCreationPI.nbCreated);
