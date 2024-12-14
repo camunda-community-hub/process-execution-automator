@@ -464,21 +464,15 @@ docker build -t pierre-yves-monnet/process-execution-automator:1.8.1 .
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.0 ghcr.io/camunda-community-hub/process-execution-automator:1.8.0
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.0
+docker tag pierre-yves-monnet/process-execution-automator:1.8.1 ghcr.io/camunda-community-hub/process-execution-automator:1.8.1
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.1
 ````
-
-
-Temporary:
-docker build -t pierre-yves-monnet/process-execution-automator:1.8.3 .
-docker tag pierre-yves-monnet/process-execution-automator:1.8.3 pycamunda/camunda-hub:process-execution-automator-1.8.3
-docker push pycamunda/camunda-hub:process-execution-automator-1.8.3
 
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/process-execution-automator:1.8.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
