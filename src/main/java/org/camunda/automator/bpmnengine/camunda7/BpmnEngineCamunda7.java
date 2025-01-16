@@ -258,7 +258,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             return null;
         }
         RegisteredTask registeredTask = new RegisteredTask();
-
         ExternalTaskClient client = ExternalTaskClient.create()
                 .baseUrl(serverUrl)
                 .workerId(workerId)
@@ -272,7 +271,8 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
                 .lockDuration(10000)
                 .handler((ExternalTaskHandler) jobHandler)
                 .open();
-        return registeredTask;
+
+    return registeredTask;
 
     }
 

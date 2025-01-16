@@ -1,10 +1,11 @@
 
 ![Compatible with: Camunda Platform 7](https://img.shields.io/badge/Compatible%20with-Camunda%20Platform%207-26d07c)
+
 ![Compatible with: Camunda Platform 8](https://img.shields.io/badge/Compatible%20with-Camunda%20Platform%208-0072Ce)
 [![](https://img.shields.io/badge/Lifecycle-Incubating-blue)](https://github.com/Camunda-Community-Hub/community/blob/main/extension-lifecycle.md#incubating-)
 
 
-# process-execution-automator
+# Process-execution-automator
 
 Create scenarios to automate any execution of processes. Objectives are
 * Unit test and regression: You need to verify that a process reacts the same if you create a process instance with the variable "amount=100", and that the process comes to the user task "review".
@@ -21,10 +22,11 @@ The Load Test section covers these goals.
 
 Process-Automator executes scenario. One scenario pilot a process.
 
-It is possible to execute multiple at the same time to handle a use case like
+It is possible to execute multiple scenario at the same time to handle a use case like
 "generate 100 process instances/minute on process Review, 5 process instances per second on process Expense."
 
 Automator does not start a Camunda Engine; it communicates with it. It can be a Camunda 7 server or a Camunda 8 server.
+![ProcessExecutionAutomatorMainOverview.png](doc/images/ProcessExecutionAutomatorMainOverview.png)
 
 The goal of the Automator is not to simulate the execution. It is to pilot an execution on a real
 system, and to verify that the process reacts as expected.
@@ -76,6 +78,10 @@ The unit scenario describes one process instance execution. Creation and user ta
 This functionality is used to run regression tests, coverage tests, or just advance process instances in the process
 for the development.
 
+The tool is started as a Pod in the cluster. Via a REST call, it's possible to pilot it (upload a scenario, start a scenario), or via a process.
+
+![C8CrawlUrl-unit-test.png](doc/scenarioreference/C8CrawlUrl-unit-test.png)
+
 Visit [Unit Scenario](doc/unittestscenario/README.md)
 
 ### Load test (flow-scenario)
@@ -85,6 +91,15 @@ The flow scenario has a duration and objective to verify.
 
 
 You can specify objectives: produce 1000 Process Instances, end 500 process instances, and produce 300 tasks in a user task.
+
+Same a s the unit test, it's possible to start one pod, and then start the scenario.
+
+![C8CrawlUrl.png](doc/scenarioreference/C8CrawlUrl.png)
+
+To Simulate a real situation, it's possible to start multiple pods, and specialize them to execute only one part of the scenario.
+For example, one pod will run the creation, some other run workers (one or multiple workers).
+
+![C8CrawlUrl-multiple-pods.png](doc/scenarioreference/C8CrawlUrl-multiple-pods.png)
 
 The method to conduct a [Load Test](doc/howRunLoadTest/README.md) is available here.
 
