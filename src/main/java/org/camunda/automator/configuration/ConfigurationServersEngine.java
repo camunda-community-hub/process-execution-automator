@@ -32,11 +32,11 @@ public class ConfigurationServersEngine {
 
     @Value("${automator.servers.camunda8.name:''}")
     public String zeebeName;
-    @Value("${automator.servers.camunda8.zeebeGatewayAddress:''}")
+    @Value("${automator.servers.camunda8.zeebeGatewayAddress:#{null}}")
     public String zeebeGatewayAddress;
-    @Value("${automator.servers.camunda8.zeebeGrpcAddress:''}")
+    @Value("${automator.servers.camunda8.zeebeGrpcAddress:#{null}}")
     public String zeebeGrpcAddress;
-    @Value("${automator.servers.camunda8.zeebeRestAddress:''}")
+    @Value("${automator.servers.camunda8.zeebeRestAddress:#{null}}")
     public String zeebeRestAddress;
     @Value("${automator.servers.camunda8.operateUrl:''}")
     public String zeebeOperateUrl;

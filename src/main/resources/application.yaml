@@ -63,6 +63,7 @@ automator:
       type: "camunda8"
       description: "Simple authentication"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcAddress: "http://127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
       operateUserName: "demo"
       operateUserPassword: "demo"
@@ -78,6 +79,7 @@ automator:
       type: "camunda8"
       description: "Kubernetes, Simple authentication"
       zeebeGatewayAddress: "camunda-zeebe-gateway:26500"
+      zeebeGrpcAddress: "http://camunda-zeebe-gateway:26500"
       zeebeRestAddress: "http://camunda-zeebe-gateway:9600"
       operateUserName: "demo"
       operateUserPassword: "demo"
@@ -93,6 +95,7 @@ automator:
       type: "camunda8"
       description: "A Zeebe+Identity server"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcAddress: "http://127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebeClientId: "zeebe"
       zeebeClientSecret: "LHwdAq56bZ"
@@ -120,6 +123,7 @@ automator:
     - name: "Camunda8ZeebeOnly"
       type: "camunda8"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcAddress: "http://127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebePlainText: true
       workerExecutionThreads: 200
@@ -159,6 +163,7 @@ automator:
     camunda8:
       name: "Camunda8Calcair"
       zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcAddress2: "http://127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"

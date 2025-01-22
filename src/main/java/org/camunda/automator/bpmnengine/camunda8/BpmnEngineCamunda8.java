@@ -585,10 +585,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     // connect to local deployment; assumes that authentication is disabled
                     clientBuilder = ZeebeClient.newClientBuilder()
                             .gatewayAddress(serverDefinition.zeebeGatewayAddress);
-                    if (serverDefinition.zeebeGrpcAddress != null) {
+                    if (serverDefinition.zeebeGrpcAddress != null && ! serverDefinition.zeebeGrpcAddress.trim().isEmpty())  {
                         clientBuilder = clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
                     }
-                    if (serverDefinition.zeebeRestAddress != null) {
+                    if (serverDefinition.zeebeRestAddress != null && ! serverDefinition.zeebeRestAddress.trim().isEmpty())  {
                         clientBuilder = clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
                     }
                     clientBuilder = clientBuilder.usePlaintext();
