@@ -76,7 +76,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     public void init() {
         apiClient = new ApiClient();
         apiClient.setBasePath(serverUrl);
-        if (!userName.trim().isEmpty()) {
+        if (userName!=null && !userName.trim().isEmpty()) {
             apiClient.setUsername(userName);
             apiClient.setPassword(password);
         } else {
@@ -536,7 +536,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         return workerMaxJobsActive;
     }
 
-    public void turnHighFlowMode(boolean hightFlowMode) {
+    public void turnHighFlowMode(boolean highFlowMode) {
     }
 
     private String getUniqWorkerId() {

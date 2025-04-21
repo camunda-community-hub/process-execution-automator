@@ -389,7 +389,7 @@ public class BpmnEngineList {
         if (hasValue(configurationServersEngine.zeebeSaasClusterId)) {
             BpmnServerDefinition camunda8 = new BpmnServerDefinition();
             camunda8.serverType = CamundaEngine.CAMUNDA_8_SAAS;
-            camunda8.name = configurationServersEngine.zeebeName;
+            camunda8.name = configurationServersEngine.zeebeSaasName;
             camunda8.zeebeSaasRegion = configurationServersEngine.zeebeSaasRegion;
             camunda8.zeebeSaasClusterId = configurationServersEngine.zeebeSaasClusterId;
             camunda8.zeebeClientId = configurationServersEngine.zeebeSaasClientId;
@@ -600,6 +600,29 @@ public class BpmnEngineList {
             if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
                 synthesis += " clientId[" + zeebeClientId + "] workerThread[" + workerExecutionThreads + "] MaxJobActive["
                         + workerMaxJobsActive + "]";
+            }
+            return synthesis;
+        }
+
+        public Map<String,Object> getMapSynthesis() {
+            Map<String,Object> synthesis = new HashMap<>();
+            synthesis.put("name",name);
+            synthesis.put("type",serverType.name());
+
+            if (serverType.equals(CamundaEngine.CAMUNDA_7)) {
+                synthesis.put("url",camunda7ServerUrl);
+                synthesis.put("userName",camunda7UserName );
+            }
+            if (serverType.equals(CamundaEngine.CAMUNDA_8)) {
+                synthesis.put("grpcAddress",zeebeGatewayAddress);
+                synthesis.put("RestAddress", zeebeRestAddress);
+                synthesis.put("workerThread",workerExecutionThreads);
+                synthesis.put("maxJobActive",workerMaxJobsActive );
+            }
+            if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
+                synthesis.put("clusterId", zeebeSaasClusterId);
+                synthesis.put("workerThread", workerExecutionThreads);
+                synthesis.put("maxJobActive",workerMaxJobsActive );
             }
             return synthesis;
         }

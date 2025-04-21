@@ -184,13 +184,13 @@ automator:
       operateUserPassword: "demo"
 
       region: "bru-2"
-      clusterId: "4b..e2"
-      clientId: "bs..6a"
-      secret: "-E..ZG"
+      clusterId: "45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
+      clientId: "MmM-SXhFH0vjYUil8y6uwHReObcIl7eX"
+      secret: "8u8ofInkS78lnGNrqvZEgUZ7dKFDfWxmTS-L~0_Pizy9dL7uZH5HHwQHfmXV54g4"
       oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
       audience: "zeebe.camunda.io"
-      operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
-      taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
+      operateUrl: "https://bru-2.operate.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
+      taskListUrl: "https://bru-2.tasklist.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
 
 
 

@@ -159,7 +159,7 @@ public class BpmnEngineDummy implements BpmnEngine {
         return 0;
     }
 
-    public void turnHighFlowMode(boolean hightFlowMode) {
+    public void turnHighFlowMode(boolean highFlowMode) {
     }
 
 }

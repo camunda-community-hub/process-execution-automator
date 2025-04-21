@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: camunda-8-processautomator-service
+  name: pea
   labels:
-    app: camunda-8-processautomator-service
+    app: pea
 spec:
   selector:
     matchLabels:
-      app: camunda-8-processautomator-service
-  replicas: 462
+      app: pea
+  replicas: 1
   template:
     metadata:
       labels:
-        app: camunda-8-processautomator-service
+        app: pea
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8088"
         prometheus.io/path: "/actuator/prometheus"
     spec:
       containers:
-        - name: camunda-8-processautomator-service
+        - name: pea
           image: ghcr.io/camunda-community-hub/process-execution-automator:latest
           imagePullPolicy: Always
           env:
@@ -32,10 +32,6 @@ spec:
                 -Dautomator.servers.camunda8.taskListUrl=
                 -Dautomator.servers.camunda8.workerExecutionThreads=2000
                 -Dautomator.startup.scenarioPath=/scenarii
-                -Dautomator.startup.scenarioAtStartup=file:/MyScenario.json
-                -Dautomator.startup.waitWarmup=PT10S
-                -Dautomator.startup.policyExecution=SERVICETASK
-                 -Dautomator.startup.topic=takedown-create
                 -Dautomator.startup.logLevel=MAIN
           resources:
             limits:
@@ -56,3 +52,16 @@ spec:
 
 # Upload your scenario in this config map
 # kubectl create configmap scenarii --from-file=$(root)/MyScenario.json   -n $(namespace)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pea-service
+spec:
+  selector:
+    app: pea
+  ports:
+    - protocol: TCP
+      port: 8381
+      targetPort: 8381
+  type: ClusterIP

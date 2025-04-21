@@ -7,6 +7,7 @@
 
 # Process-execution-automator
 
+# Objectives
 Create scenarios to automate any execution of processes. Objectives are
 * Unit test and regression: You need to verify that a process reacts the same if you create a process instance with the variable "amount=100", and that the process comes to the user task "review".
 * Unit performance test: The process calls a service task "getCreditScore," and you want to verify this execution stays under 200 ms
@@ -20,20 +21,28 @@ The Unit Test section covers these goals.
 
 The Load Test section covers these goals.
 
-Process-Automator executes scenario. One scenario pilot a process.
+# Principle
+
+Process-execution-automator is a software starting on the same cluster. It connects to the Camunda engine, and send command.
+![img.png](doc/Architecture.png)
+
+Process-execution-automator executes scenario. One scenario pilot a process.
+
 
 It is possible to execute multiple scenario at the same time to handle a use case like
 "generate 100 process instances/minute on process Review, 5 process instances per second on process Expense."
 
 Automator does not start a Camunda Engine; it communicates with it. It can be a Camunda 7 server or a Camunda 8 server.
+
 ![ProcessExecutionAutomatorMainOverview.png](doc/images/ProcessExecutionAutomatorMainOverview.png)
 
-The goal of the Automator is not to simulate the execution. It is to pilot an execution on a real
-system, and to verify that the process reacts as expected.
+The goal of the Automator is **not to simulate the execution**. It is to **pilot an execution on a real server**, and to verify 
+that the process reacts as expected.
+
 
 ## Execute a process
 
-From a scenario, the Process-Automator calls the Camunda Engine server (C7 or C8) and executes the different
+From a scenario, the process-execution-automator calls the Camunda Engine server (C7 or C8) and executes the different
 steps in the scenario. Let's take an example with this scenario:
 
 ````
@@ -41,30 +50,30 @@ Create a new process instance with the variable "subscriptionLevel: "GOLD", "cus
 ````
 
 The Camunda Engine (C7 or C8) creates and processes the process. The Camunda Engine executes the `GetContext` operation, and, according to the information, the process instance moves to the task `Review Level 1`.
-In the scenario, Process-Automator waits for this user task. It will execute it and set `ReviewLevel2Needed.`
-to True. The Camunda Engine moves the process instance to `Review Level 2`. In the scenario, Process-Automator waits for this user task. It will execute it. The Camunda engine continues the execution. It
+In the scenario, process-execution-automator waits for this user task. It will execute it and set `ReviewLevel2Needed.`
+to True. The Camunda Engine moves the process instance to `Review Level 2`. In the scenario, process-execution-automator waits for this user task. It will execute it. The Camunda engine continues the execution. It
 executes `Register Application`, waits for the message, executes `Notify Applicant`, and completes the process instance.
 
 Another scenario can execute only `Review Level 1` or no review.
 
-What Process-Automator do:
+What process-execution-automator do:
 
 * It creates a process instance with some specific value
 * It executes user tasks with some specific value
 * It can throw a BPMN Message
 * Simulate execute service task in Flow Scenario
 
-Process-Automator do not
+process-execution-automator do not
 
 * Execute service task in unit-scenario
-* It is not expected to catch a BPMN Message in the flow:  Process-Automator piloted a real system.
+* It is not expected to catch a BPMN Message in the flow:  process-execution-automator piloted a real system.
 
 ## Requirement
 
-Process-Automator needs to connect to a running platform, Camunda 7 or Camunda 8. Automator is not a process
+process-execution-automator needs to connect to a running platform, Camunda 7 or Camunda 8. Automator is not a process
 simulator. The running platform will execute all service tasks.
 
-A scenario can be executed on a Camunda 7 or a Camunda 8 server. Process-Automator provides:
+A scenario can be executed on a Camunda 7 or a Camunda 8 server. process-execution-automator provides:
 
 * a server running under Springboot
 * a docker image
@@ -92,7 +101,7 @@ The flow scenario has a duration and objective to verify.
 
 You can specify objectives: produce 1000 Process Instances, end 500 process instances, and produce 300 tasks in a user task.
 
-Same a s the unit test, it's possible to start one pod, and then start the scenario.
+Same as the unit test, it's possible to start one pod, and then start the scenario.
 
 ![C8CrawlUrl.png](doc/scenarioreference/C8CrawlUrl.png)
 
@@ -119,7 +128,7 @@ A scenario define
   * How many process instance must be created
   * How many service task has to be executed
   * Time to execute a section in the process
-* a warm up section
+* a warm-up section
 
 Due to the “backoff strategy”, workers need to be wake up
 
@@ -137,23 +146,34 @@ For unit testing, the execution is different. The pod is started, but don't star
 This section references all the information to build a scenario.
 Visit [Scenario reference](doc/scenarioreference/README.md)
 
+# Connection
+
+## Simple usage
+
+To start a server on a Camunda 8 cluster, just do
+
+```shell
+kubectl create -f k8s/process-execution-automator
+```
+A pod is started, and a service `pea-service` is available, under theport number `8381`
+
 
 ## Connection to a server
 
-Process-Automator does not contain any Camunda server. It connects to an existing Camunda Engine. Two
+process-execution-automator does not contain any Camunda server. It connects to an existing Camunda Engine. Two
 communication interfaces exist, one for Camunda 7 and one for Camunda 8. A scenario can then pilot a
 Camunda 7 or a Camunda 8 server.
 
 The scenario does not contain any server information.
 
-Process-Automator references a list of servers in the configuration in multiple ways:
+process-execution-automator references a list of servers in the configuration in multiple ways:
 * serverConnection : String, containing a list of connections separated by ;
 * serverList: List of records.
 * camunda7 : information to connect a Camunda 7 server
 * camunda8 : information to connect a Camunda 8 server
 * camunda8Saas: information to connect a Camunda 8 Saas server
 
-So, you can choose the best way to overide the information to connect to your own server.
+So, you can choose the best way to override the information to connect to your own server.
 
 At the execution, two parameters are mandatory:
 * the scenario to run
@@ -461,6 +481,8 @@ automator.servers:
 
 # Build
 
+(Do not forget to update banner.txt with the current version number)
+
 Rebuilt the image via
 ````
 mvn clean install
@@ -472,22 +494,22 @@ The docker image is build using the Dockerfile present on the root level.
 
 Push the image to 
 ````
-docker build -t pierre-yves-monnet/process-execution-automator:1.8.1 .
+docker build -t pierre-yves-monnet/process-execution-automator:1.8.2 .
 ````
 
 
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.1 ghcr.io/camunda-community-hub/process-execution-automator:1.8.1
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.1
+docker tag pierre-yves-monnet/process-execution-automator:1.8.2 ghcr.io/camunda-community-hub/process-execution-automator:1.8.2
+docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.2
 ````
 
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.1 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/process-execution-automator:1.8.2 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 

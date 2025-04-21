@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pea
+  labels:
+    app: pea
+spec:
+  selector:
+    matchLabels:
+      app: pea
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: pea
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8088"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+        - name: pea
+          image: ghcr.io/camunda-community-hub/process-execution-automator:latest
+          imagePullPolicy: Always
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: >-
+                -Dautomator.servers.camunda8.zeebeGatewayAddress=http://camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.operateUserName=demo
+                -Dautomator.servers.camunda8.operateUserPassword=demo
+                -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
+                -Dautomator.servers.camunda8.taskListUrl=
+                -Dautomator.servers.camunda8.workerExecutionThreads=100
+                -Dautomator.startup.logLevel=MAIN
+          resources:
+            limits:
+              cpu: "1"
+              memory: 2Gi
+            requests:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pea-service
+spec:
+  selector:
+    app: pea
+  ports:
+    - protocol: TCP
+      port: 8381
+      targetPort: 8381
+  type: ClusterIP
+

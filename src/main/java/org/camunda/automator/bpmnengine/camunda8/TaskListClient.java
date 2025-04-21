@@ -54,8 +54,6 @@ public class TaskListClient {
             try {
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasRegion, "zeebeSaasRegion", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasClusterId, "zeebeSaasClusterId", analysis, true, true, isOk);
-                isOk = engineCamunda8.stillOk(serverDefinition.taskListClientId, "taskListClientId", analysis, true, true, isOk);
-                isOk = engineCamunda8.stillOk(serverDefinition.taskListClientSecret, "taskListClientSecret", analysis, true, false, isOk);
 
                 String taskListUrl = "https://" + serverDefinition.zeebeSaasRegion + ".tasklist.camunda.io/"
                         + serverDefinition.zeebeSaasClusterId;

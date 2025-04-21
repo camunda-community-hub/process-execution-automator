@@ -41,7 +41,7 @@ public interface BpmnEngine {
     /*  Manage process instance                                             */
     /*                                                                      */
     /* ******************************************************************** */
-    void turnHighFlowMode(boolean hightFlowMode);
+    void turnHighFlowMode(boolean highFlowMode);
 
     /**
      * @param processId      Process ID (BPMN ID : ExpenseNode)

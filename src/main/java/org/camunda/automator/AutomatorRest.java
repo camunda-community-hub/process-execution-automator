@@ -5,6 +5,8 @@ import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
+import org.camunda.automator.definition.ScenarioStep;
+import org.camunda.automator.definition.ScenarioVerificationBasic;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
@@ -20,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 public class AutomatorRest {
@@ -31,6 +34,7 @@ public class AutomatorRest {
     public static final String JSON_NAME = "name";
     public static final String JSON_PROCESSINSTANCESID = "processInstancesId";
     public static final String JSON_DETAIL = "detail";
+    public static final String JSON_ERRORS = "errors";
     public static final String JSON_MESSAGE = "message";
     public static final String JSON_INFO = "info";
     private static final Logger logger = LoggerFactory.getLogger(AutomatorRest.class.getName());
@@ -38,14 +42,16 @@ public class AutomatorRest {
     private final ConfigurationStartup configurationStartup;
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
-    BpmnEngineList engineConfiguration;
+    BpmnEngineList bpmnEngineList;
     HashMap<String, Map<String, Object>> cacheExecution = new HashMap<>();
 
-    public AutomatorRest(ConfigurationStartup configurationStartup, ContentManager contentManager, AutomatorAPI automatorAPI, BpmnEngineList engineConfiguration) {
+
+    public AutomatorRest(ConfigurationStartup configurationStartup, ContentManager contentManager,
+                         AutomatorAPI automatorAPI, BpmnEngineList bpmnEngineList) {
         this.configurationStartup = configurationStartup;
         this.contentManager = contentManager;
         this.automatorAPI = automatorAPI;
-        this.engineConfiguration = engineConfiguration;
+        this.bpmnEngineList = bpmnEngineList;
     }
 
     @PostMapping(value = "/api/unittest/run", produces = "application/json")
@@ -81,7 +87,8 @@ public class AutomatorRest {
         }
     }
 
-    @GetMapping(value = "/api/unittest/list", produces = "application/json")
+
+        @GetMapping(value = "/api/unittest/list", produces = "application/json")
     public List<Map<String, Object>> getListUnitTest() {
         List<Map<String, Object>> listUnitTest = new ArrayList<>();
         for (Map.Entry entryTest : cacheExecution.entrySet()) {
@@ -96,7 +103,28 @@ public class AutomatorRest {
         return listUnitTest;
     }
 
+    @GetMapping(value = "/api/servers/list", produces = "application/json")
+    public List<Map<String, Object>> getListServer() {
+        return bpmnEngineList.getListServers().stream().map(
+                BpmnEngineList.BpmnServerDefinition::getMapSynthesis).toList();
+    }
+    @GetMapping(value = "/api/servers/connection", produces = "application/json")
+    public List<Map<String, Object>> getListServerWithConnection() {
+        return bpmnEngineList.getListServers().stream().map(
+                t->{
+                    Map<String,Object> result = t.getMapSynthesis();
 
+                    try{
+                        BpmnEngine bpmnEngine = automatorAPI.getBpmnEngine(t, true);
+                        bpmnEngine.connection();
+                        result.put("connection", "OK");
+                    } catch (AutomatorException e) {
+                    result.put("connection", "FAILED");
+                    result.put("message", e.getMessage());
+                    }
+                    return result;
+                }).toList();
+    }
     /**
      * Start a test
      */
@@ -184,7 +212,16 @@ public class AutomatorRest {
                                 JSON_INFO, getSecureValue(t.verification.getSynthesis()));
                     })//
                     .toList());
+            recordResult.put(JSON_ERRORS, runResultUnit.getListErrors().stream()
+                    .map(t -> { //
+                        return Map.of(JSON_ID, t.step.getId(), //
+                                JSON_MESSAGE, t.explanation //
+                                );
+                    })//
+                    .toList());
         }
+
+
         resultMap.put("tests", listVerificationsJson);
         return resultMap;
     }
@@ -215,7 +252,7 @@ public class AutomatorRest {
             try {
                 if (scenario.getServerName() != null && !scenario.getServerName().isEmpty()) {
                     message += "ScenarioServerName[" + scenario.getServerName() + "];";
-                    bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, engineConfiguration);
+                    bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, bpmnEngineList);
                 } else {
                     if (runParameters.getServerName() == null) {
                         result = completeMessage(result, StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");
@@ -224,7 +261,7 @@ public class AutomatorRest {
 
 
                     message += "ConfigurationServerName[" + runParameters.getServerName() + "];";
-                    BpmnEngineList.BpmnServerDefinition serverDefinition = engineConfiguration.getByServerName(
+                    BpmnEngineList.BpmnServerDefinition serverDefinition = bpmnEngineList.getByServerName(
                             runParameters.getServerName());
                     if (serverDefinition == null) {
                         result = completeMessage(result, StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");

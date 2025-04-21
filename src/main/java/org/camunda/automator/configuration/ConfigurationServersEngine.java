@@ -57,6 +57,8 @@ public class ConfigurationServersEngine {
     @Value("${automator.servers.camunda8.workerMaxJobsActive:''}")
     public String zeebeWorkerMaxJobsActive;
 
+    @Value("${automator.servers.camunda8Saas.name:''}")
+    public String zeebeSaasName;
     @Value("${automator.servers.camunda8Saas.region:''}")
     public String zeebeSaasRegion;
     @Value("${automator.servers.camunda8Saas.clusterId:''}")
