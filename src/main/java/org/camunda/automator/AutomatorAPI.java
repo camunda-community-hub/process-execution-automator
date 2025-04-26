@@ -13,7 +13,7 @@ import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
-import org.camunda.automator.engine.RunScenario;
+import org.camunda.automator.engine.RunScenarioService;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +29,8 @@ public class AutomatorAPI {
 
     @Autowired
     ServiceAccess serviceAccess;
+    @Autowired
+    private RunScenarioService runScenarioService;
 
     /**
      * Create an empty scenario.
@@ -82,7 +84,7 @@ public class AutomatorAPI {
             return null;
         } catch (AutomatorException e) {
             logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
-                    scenario.getServerName(), e.getMessage(),e);
+                    scenario.getServerName(), e.getMessage(), e);
             throw e;
         }
 
@@ -96,20 +98,7 @@ public class AutomatorAPI {
      * @param scenario      the scenario to execute
      */
     public RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-        RunScenario runScenario = null;
-
-        try {
-            runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-        } catch (Exception e) {
-            RunResult result = new RunResult(runScenario);
-            result.addError(null, "Initialization error");
-            return result;
-        }
-
-        RunResult runResult = new RunResult(runScenario);
-        runResult.merge(runScenario.runScenario());
-
-        return runResult;
+        return runScenarioService.executeScenario(bpmnEngine, runParameters, scenario, false);
     }
 
 
@@ -135,19 +124,6 @@ public class AutomatorAPI {
      * @return the result object
      */
     public RunResult deployProcess(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-        RunScenario runScenario = null;
-        try {
-            long begin = System.currentTimeMillis();
-            runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-            RunResult runResult = new RunResult(runScenario);
-            runResult.merge(runScenario.runDeployment());
-            runResult.addTimeExecution(System.currentTimeMillis() - begin);
-            return runResult;
-        } catch (Exception e) {
-            RunResult result = new RunResult(runScenario);
-            result.addError(null, "Process deployment error error " + e.getMessage());
-            return result;
-        }
-
+        return runScenarioService.executeDeployment(bpmnEngine, runParameters, scenario);
     }
 }

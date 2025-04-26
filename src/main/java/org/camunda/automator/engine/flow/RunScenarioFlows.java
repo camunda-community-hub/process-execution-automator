@@ -92,7 +92,7 @@ public class RunScenarioFlows {
                     } else {
                         RunScenarioFlowStartEvent runStartEvent = new RunScenarioFlowStartEvent(
                                 serviceAccess.getTaskScheduler(scenarioStep.getProcessId()), scenarioStep, runScenario,
-                                new RunResult(runScenario));
+                                new RunResult(runScenario, null));
                         runStartEvent.execute();
                         listFlows.add(runStartEvent);
                     }
@@ -114,7 +114,7 @@ public class RunScenarioFlows {
                         if (runServiceTaskOp.isEmpty()) {
 
                             RunScenarioFlowServiceTask runServiceTask = new RunScenarioFlowServiceTask(
-                                    serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario));
+                                    serviceAccess.getTaskScheduler("serviceTask"), scenarioStep, runScenario, new RunResult(runScenario, null));
 
                             runServiceTask.execute();
                             listFlows.add(runServiceTask);
@@ -135,7 +135,7 @@ public class RunScenarioFlows {
                         if (runUserTaskOpt.isEmpty()) {
 
                             RunScenarioFlowUserTask runUserTask = new RunScenarioFlowUserTask(
-                                    serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0, runScenario, new RunResult(runScenario));
+                                    serviceAccess.getTaskScheduler("userTask"), scenarioStep, 0, runScenario, new RunResult(runScenario, null));
 
                             runUserTask.execute();
                             listFlows.add(runUserTask);

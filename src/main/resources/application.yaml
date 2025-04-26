@@ -61,7 +61,7 @@ automator:
 
     - name: "Camunda8Ruby"
       type: "camunda8"
-      description: "Simple authentication"
+      description: "Simple authentication, localhost"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeGrpcAddress: "http://127.0.0.1:26500"
       zeebeRestAddress: "http://localhost:9600"
@@ -75,6 +75,7 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
+    # when the server is deployed on the same Kubernetes as Zeebe, with not identity
     - name: "Camunda8Topaz"
       type: "camunda8"
       description: "Kubernetes, Simple authentication"
@@ -91,6 +92,7 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
+    # LocalHost + Identity
     - name: "Camunda8Lazuli"
       type: "camunda8"
       description: "A Zeebe+Identity server"
@@ -196,6 +198,7 @@ automator:
 
 
 
+app.version:  ${project.version}
 
 server.port: 8381
 scheduler.poolSize: 10

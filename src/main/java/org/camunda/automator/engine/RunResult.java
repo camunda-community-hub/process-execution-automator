@@ -48,16 +48,18 @@ public class RunResult {
     private long timeExecution;
     private Date startDate;
     private Date endDate;
+    private String executionId;
 
-    public RunResult(RunScenario runScenario) {
+    public RunResult(RunScenario runScenario, String executionId) {
         this.runScenario = runScenario;
         this.scnExecution = null;
+        this.executionId = executionId;
     }
 
-    public RunResult(RunScenario runScenario, ScenarioExecution scnExecution) {
+    public RunResult(RunScenario runScenario, ScenarioExecution scnExecution, String executionId) {
         this.runScenario = runScenario;
         this.scnExecution = scnExecution;
-
+        this.executionId = executionId;
     }
 
     public Date getStartDate() {
@@ -76,7 +78,13 @@ public class RunResult {
         this.endDate = date;
     }
 
+    public boolean isFinished() {
+        return endDate != null;
+    }
 
+    public String getExecutionId() {
+        return executionId;
+    }
     /* ******************************************************************** */
     /*                                                                      */
     /*  method used during the execution to collect information             */
@@ -178,13 +186,14 @@ public class RunResult {
     /**
      * Merge the result in this result
      *
-     * @param result the result object
+     * The merge does not merge the executionId. The current one is the main one
+     * @param runResult the result object
      */
-    public void merge(RunResult result) {
-        addTimeExecution(result.getTimeExecution());
-        listErrors.addAll(result.listErrors);
-        listVerifications.addAll(result.listVerifications);
-        for (Map.Entry<String, RecordCreationPI> entry : result.recordCreationPIMap.entrySet()) {
+    public void merge(RunResult runResult) {
+        addTimeExecution(runResult.getTimeExecution());
+        listErrors.addAll(runResult.listErrors);
+        listVerifications.addAll(runResult.listVerifications);
+        for (Map.Entry<String, RecordCreationPI> entry : runResult.recordCreationPIMap.entrySet()) {
             RecordCreationPI currentReference = recordCreationPIMap.getOrDefault(entry.getKey(),
                     new RecordCreationPI(entry.getKey()));
             currentReference.nbFailed += entry.getValue().nbFailed;
@@ -192,18 +201,23 @@ public class RunResult {
 
             recordCreationPIMap.put(entry.getKey(), currentReference);
         }
-        numberOfSteps += result.numberOfSteps;
-        numberOfErrorSteps += result.numberOfErrorSteps;
-        listRunResults.addAll(result.listRunResults);
+        numberOfSteps += runResult.numberOfSteps;
+        numberOfErrorSteps += runResult.numberOfErrorSteps;
+        listRunResults.addAll(runResult.listRunResults);
         // we collect the list only if the level is low
         if (runScenario.getRunParameters() != null && runScenario.getRunParameters().showLevelInfo()) {
-            listDetailsSteps.addAll(result.listDetailsSteps);
-            listProcessInstancesId.addAll(result.listProcessInstancesId);
+            listDetailsSteps.addAll(runResult.listDetailsSteps);
+            listProcessInstancesId.addAll(runResult.listProcessInstancesId);
         }
+        if (startDate==null)
+            startDate=runResult.getStartDate();
+        if (endDate==null)
+            endDate=runResult.getEndDate();
     }
 
     /**
      * Two execution on the exact same execution: we go for a merge plus one step more, we collect additionnal information, like processinstanceIdList
+     *
      * @param result the result to merge
      */
     public void mergeDuplicateExecution(RunResult result) {
@@ -247,6 +261,7 @@ public class RunResult {
     public void addListProcessInstancesId(List<String> listProcessInstancesIdParam) {
         listProcessInstancesId.addAll(listProcessInstancesIdParam);
     }
+
     public List<String> getProcessInstanceId() {
         return this.listProcessInstancesId;
     }

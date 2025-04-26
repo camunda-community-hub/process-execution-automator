@@ -153,7 +153,7 @@ Visit [Scenario reference](doc/scenarioreference/README.md)
 To start a server on a Camunda 8 cluster, just do
 
 ```shell
-kubectl create -f k8s/process-execution-automator
+kubectl create -f k8s/pea.yaml
 ```
 A pod is started, and a service `pea-service` is available, under theport number `8381`
 

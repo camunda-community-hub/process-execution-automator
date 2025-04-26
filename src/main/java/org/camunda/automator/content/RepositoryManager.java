@@ -97,12 +97,16 @@ public class RepositoryManager {
         }
     }
 
+    public void deleteFile(String fileName) throws IOException {
+        File fileContent = new File(repositoryPath + File.separator + fileName);
+        fileContent.delete();
+    }
     public Path getRepositoryPath() {
         return repositoryPath;
     }
 
-    public Path getFromName(String scenarioName) {
-        Path scenarioPath = Paths.get(repositoryPath + File.separator + scenarioName + ".json");
+    public Path getFromFile(String fileName) {
+        Path scenarioPath = Paths.get(repositoryPath + File.separator + fileName );
         if (Files.exists(scenarioPath)) {
             return scenarioPath;
         }
@@ -128,5 +132,14 @@ public class RepositoryManager {
     public File prepareFileToUpload(String fileName) {
         Path scenarioPath = Paths.get(repositoryPath + File.separator + fileName);
         return scenarioPath.toFile();
+    }
+
+    public void clearAll() throws IOException {
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(repositoryPath, "*.json")) {
+            for (Path entry : stream) {
+                Files.deleteIfExists(entry);
+                System.out.println("Deleted: " + entry);
+            }
+        }
     }
 }

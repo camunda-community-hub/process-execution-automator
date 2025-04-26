@@ -43,7 +43,7 @@ public class RunScenarioUnit {
      * @return the execution
      */
     public RunResult runExecution() {
-        RunResult resultExecution = new RunResult(runScenario, scnExecution);
+        RunResult resultExecution = new RunResult(runScenario, scnExecution, null);
 
         if (runScenario.getRunParameters().showLevelMonitoring()) {
             logger.info("ScnRunExecution.{} Start Execution [{}]", agentName, scnExecution.getName());
@@ -112,7 +112,7 @@ public class RunScenarioUnit {
          * @throws Exception in case of error
          */
         public Object call() throws Exception {
-            scnRunResult = new RunResult(scnRunExecution.runScenario);
+            scnRunResult = new RunResult(scnRunExecution.runScenario, null);
             if (runParameters.isExecution())
                 runExecution();
 

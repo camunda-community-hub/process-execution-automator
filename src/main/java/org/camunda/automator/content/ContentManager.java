@@ -37,9 +37,7 @@ public class ContentManager {
     @Value("${automator.content.scenario:}")
     private Resource scenarioResource;
 
-    public Path getFromName(String scenarioName) {
-        return repositoryManager.getFromName(scenarioName);
-    }
+
 
 
     @PostConstruct
@@ -60,7 +58,9 @@ public class ContentManager {
     /*  Repository management                                               */
     /*                                                                      */
     /* ******************************************************************** */
-
+    public Path getFromFileName(String fileName) {
+        return repositoryManager.getFromFile(fileName);
+    }
     public List<Path> getContent() {
         return repositoryManager.getContentRepository();
     }
@@ -82,6 +82,19 @@ public class ContentManager {
         return listScenario;
     }
 
+    public List<Path> getContentFiles() {
+        return repositoryManager.getContentRepository();
+    }
+    public void clearAll() throws IOException {
+        repositoryManager.clearAll();
+    }
+
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Add scenario                                                        */
+    /*                                                                      */
+    /* ******************************************************************** */
 
     public Path addFile(Path file) throws IOException {
         return repositoryManager.addFile(file);
@@ -91,10 +104,18 @@ public class ContentManager {
         return repositoryManager.addResource(resource);
     }
 
-    public Path addFromMultipart(MultipartFile file, String fileName) throws IOException {
+    public Path addFromMultipart(MultipartFile file, String fileName) throws Exception {
         // save the file on a temporary disk
-        return repositoryManager.addFromInputStream(file.getInputStream(), fileName);
+        Path path= repositoryManager.addFromInputStream(file.getInputStream(), fileName);
+        try{
+            Scenario scenario = Scenario.createFromFile(path);
+        } catch(Exception e) {
+            repositoryManager.deleteFile(fileName);
+            throw e;
+        }
+        return path;
     }
+
     /* ******************************************************************** */
     /*                                                                      */
     /*  Load management                                                     */
@@ -144,4 +165,5 @@ public class ContentManager {
             logger.error("ContentManager/Upload: Error occurred: {} ", e.getMessage(),e);
         }
     }
+
 }

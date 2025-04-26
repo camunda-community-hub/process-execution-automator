@@ -1,318 +1,331 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.camunda.community.automator</groupId>
-  <artifactId>process-execution-automator</artifactId>
+    <groupId>org.camunda.community.automator</groupId>
+    <artifactId>process-execution-automator</artifactId>
 
-  <version>1.9.0</version>
-  <!-- Change the banner.txt version -->
-  <!-- 1.5 Change OperateClient / TaskList Library -->
-  <!-- 1.6 Increase option multithreading-->
-  <!-- 1.7 add logs -->
-  <!-- 1.7.1 Add logs on authentication to describe it -->
-  <!-- 1.8.0 Unit Test / Rest API -->
-  <!-- 1.8.1 Add the reconnect mechanism on TaskList -->
-  <!-- 1.8.2 Improve parametrisation of connection -->
-  <!-- 1.9.0 Add RestAPI /api/servers/list and /api/servers/connection + debug SaaS -->
-  <properties>
-    <java.version>17</java.version>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <version>2.0.2</version>
+    <!-- Change the banner.txt version -->
+    <!-- 1.5 Change OperateClient / TaskList Library -->
+    <!-- 1.6 Increase option multithreading-->
+    <!-- 1.7 add logs -->
+    <!-- 1.7.1 Add logs on authentication to describe it -->
+    <!-- 1.8.0 Unit Test / Rest API -->
+    <!-- 1.8.1 Add the reconnect mechanism on TaskList -->
+    <!-- 1.8.2 Improve parametrisation of connection -->
+    <!-- 1.9.0 Add RestAPI /api/servers/list and /api/servers/connection + debug SaaS -->
+    <!-- 2.0.0 UI, Ready to integrate in a CD/CI for unit test -->
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
 
-    <!-- 8.5 : OK
-    <version.spring-boot-starter-camunda>8.5.7</version.zeebe>
-    <version.zeebe-client>8.5.5</version.zeebe-client>
+        <!-- 8.5 : OK
+        <version.spring-boot-starter-camunda>8.5.7</version.zeebe>
+        <version.zeebe-client>8.5.5</version.zeebe-client>
 
-    8.5.11 : ?
--->
-    <version.zeebe>8.5.7</version.zeebe>
+        8.5.11 : ?
+    -->
+        <version.zeebe>8.5.7</version.zeebe>
 
-    <!-- 8.6.6 works -->
-    <version.zeebe-client>8.5.5</version.zeebe-client>
-
-
-
-    <camunda7.version>7.19.0</camunda7.version>
-
-    <junit.jupiter.version>5.9.1</junit.jupiter.version>
-    <opensagres.version>2.0.3</opensagres.version>
-    <spring.boot.version>3.1.4</spring.boot.version>
-  </properties>
+        <!-- 8.6.6 works -->
+        <version.zeebe-client>8.5.5</version.zeebe-client>
 
 
-  <!-- Push the library to Maven -->
-  <!-- Visit https://github.com/camunda-community-hub/community-action-maven-release -->
-  <parent>
-    <groupId>org.camunda.community</groupId>
-    <artifactId>community-hub-release-parent</artifactId>
-    <version>1.4.2</version>
-  </parent>
+        <camunda7.version>7.19.0</camunda7.version>
+
+        <junit.jupiter.version>5.9.1</junit.jupiter.version>
+        <opensagres.version>2.0.3</opensagres.version>
+        <spring.boot.version>3.1.4</spring.boot.version>
+        <project.version>${project.version}</project.version>
+
+    </properties>
 
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <!-- Import dependency management from Spring Boot -->
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-dependencies</artifactId>
-        <version>${spring.boot.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+    <!-- Push the library to Maven -->
+    <!-- Visit https://github.com/camunda-community-hub/community-action-maven-release -->
+    <parent>
+        <groupId>org.camunda.community</groupId>
+        <artifactId>community-hub-release-parent</artifactId>
+        <version>1.4.2</version>
+    </parent>
 
 
-  <dependencies>
-
-    <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>spring-boot-starter-camunda-sdk</artifactId>
-      <version>8.6.5</version>
-    </dependency>
-
-    <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
-    <dependency>
-      <groupId>io.camunda.spring</groupId>
-      <artifactId>java-client-operate</artifactId>
-      <version>8.6.3</version>
-    </dependency>
-
-
-    <!-- 1.6.1, -->
-    <!-- 8.5.3.5 https://mvnrepository.com/artifact/io.camunda/camunda-tasklist-client-java
-    8.5.3.5 : Ok with spring-boot-starter-camunda
-     8.6.6 : incompatible types: io.camunda.common.auth.Authentication cannot be converted to io.camunda.tasklist.auth.Authentication
-     8.5.10 Bug fix on ZeebeUserTask (actually, no)
-      8.6.6 last version available-->
-    <dependency>
-      <groupId>io.camunda</groupId>
-      <artifactId>camunda-tasklist-client-java</artifactId>
-      <version>8.6.6</version>
-    </dependency>
-
-    <!-- Camunda 7 -->
-    <dependency>
-      <groupId>org.camunda.bpm</groupId>
-      <artifactId>camunda-external-task-client</artifactId>
-      <version>${camunda7.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.camunda.community</groupId>
-      <artifactId>camunda-engine-rest-client-openapi-java</artifactId>
-      <version>7.18.0</version>
-    </dependency>
-
-    <!-- Web -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <version>${spring.boot.version}</version>
-    </dependency>
-    <!-- Process the configuration file -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.10.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.httpcomponents.client5</groupId>
-      <artifactId>httpclient5</artifactId>
-    </dependency>
-
-
-
-
-
-
-    <!-- C7 external task client -->
-    <dependency>
-      <groupId>javax.xml.bind</groupId>
-      <artifactId>jaxb-api</artifactId>
-      <version>2.3.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.glassfish.jaxb</groupId>
-      <artifactId>jaxb-runtime</artifactId>
-      <version>2.3.1</version>
-    </dependency>
-
-    <!-- tests -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <!-- connect the React application in the Springboot application -->
-      <plugin>
-        <groupId>com.github.eirslett</groupId>
-        <artifactId>frontend-maven-plugin</artifactId>
-        <version>1.12.1</version>
-        <configuration>
-          <workingDirectory>${project.basedir}/src/main/frontend</workingDirectory>
-          <installDirectory>${project.basedir}/target</installDirectory>
-        </configuration>
-        <executions>
-          <execution>
-            <id>install node and npm</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>install-node-and-npm</goal>
-            </goals>
-            <configuration>
-              <nodeVersion>v18.5.0</nodeVersion>
-              <npmVersion>8.12.1</npmVersion>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm install</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>install</arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>npm run build</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>npm</goal>
-            </goals>
-            <configuration>
-              <arguments>run build</arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-resources</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${basedir}/target/classes/static/</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${basedir}/src/main/frontend/build/</directory>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.22.2</version>
+    <dependencyManagement>
         <dependencies>
-          <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-surefire-provider</artifactId>
-            <version>1.3.2</version>
-          </dependency>
+            <dependency>
+                <!-- Import dependency management from Spring Boot -->
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
         </dependencies>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-          <source>17</source>
-          <target>17</target>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-
-      <!-- allow mvn spring-boot:run -->
-      <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <!-- <version>3.0.6</version> -->
-        <configuration>
-          <mainClass>org.camunda.automator.AutomatorApplication</mainClass>
-          <classifier>exec</classifier>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>repackage</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+    </dependencyManagement>
 
 
-    </plugins>
+    <dependencies>
+
+        <dependency>
+            <groupId>io.camunda</groupId>
+            <artifactId>spring-boot-starter-camunda-sdk</artifactId>
+            <version>8.6.5</version>
+        </dependency>
+
+        <!-- https://github.com/camunda-community-hub/camunda-operate-client-java -->
+        <dependency>
+            <groupId>io.camunda.spring</groupId>
+            <artifactId>java-client-operate</artifactId>
+            <version>8.6.3</version>
+        </dependency>
 
 
-  </build>
+        <!-- 1.6.1, -->
+        <!-- 8.5.3.5 https://mvnrepository.com/artifact/io.camunda/camunda-tasklist-client-java
+        8.5.3.5 : Ok with spring-boot-starter-camunda
+         8.6.6 : incompatible types: io.camunda.common.auth.Authentication cannot be converted to io.camunda.tasklist.auth.Authentication
+         8.5.10 Bug fix on ZeebeUserTask (actually, no)
+          8.6.6 last version available-->
+        <dependency>
+            <groupId>io.camunda</groupId>
+            <artifactId>camunda-tasklist-client-java</artifactId>
+            <version>8.6.6</version>
+        </dependency>
+
+        <!-- Camunda 7 -->
+        <dependency>
+            <groupId>org.camunda.bpm</groupId>
+            <artifactId>camunda-external-task-client</artifactId>
+            <version>${camunda7.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.camunda.community</groupId>
+            <artifactId>camunda-engine-rest-client-openapi-java</artifactId>
+            <version>7.18.0</version>
+        </dependency>
+
+        <!-- Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.version}</version>
+        </dependency>
+        <!-- Process the configuration file -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
 
 
-  <repositories>
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>connectors</id>
-      <name>Connectors Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/connectors/</url>
-    </repository>
+        <!-- C7 external task client -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
 
-    <repository>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <id>connectors-snapshots</id>
-      <name>Connectors Snapshot Repository</name>
-      <url>https://artifacts.camunda.com/artifactory/connectors-snapshots/</url>
-    </repository>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.1</version>
+        </dependency>
 
-    <repository>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>camunda-community</id>
-      <name>Camunda Community</name>
-      <url>https://artifacts.camunda.com/artifactory/camunda-bpm-community-extensions/</url>
-    </repository>
-  </repositories>
+        <!-- tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>banner.txt</include>
+                    <include>application.yaml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- connect the React application in the Springboot application -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.12.1</version>
+                <configuration>
+                    <workingDirectory>${project.basedir}/src/main/frontend</workingDirectory>
+                    <installDirectory>${project.basedir}/target</installDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>install node and npm</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                        <configuration>
+                            <nodeVersion>v18.5.0</nodeVersion>
+                            <npmVersion>8.12.1</npmVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run build</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/classes/static/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/frontend/build/</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>1.3.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <!-- allow mvn spring-boot:run -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <!-- <version>3.0.6</version> -->
+                <configuration>
+                    <mainClass>org.camunda.automator.AutomatorApplication</mainClass>
+                    <classifier>exec</classifier>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+        </plugins>
+
+
+    </build>
+
+
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>connectors</id>
+            <name>Connectors Repository</name>
+            <url>https://artifacts.camunda.com/artifactory/connectors/</url>
+        </repository>
+
+        <repository>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>connectors-snapshots</id>
+            <name>Connectors Snapshot Repository</name>
+            <url>https://artifacts.camunda.com/artifactory/connectors-snapshots/</url>
+        </repository>
+
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>camunda-community</id>
+            <name>Camunda Community</name>
+            <url>https://artifacts.camunda.com/artifactory/camunda-bpm-community-extensions/</url>
+        </repository>
+    </repositories>
 </project>

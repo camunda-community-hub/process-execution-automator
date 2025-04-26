@@ -58,8 +58,8 @@ public class RunScenario {
      *
      * @return tue result object
      */
-    public RunResult runScenario() {
-        RunResult result = new RunResult(this);
+    public RunResult executeTheScenario(String executionId) {
+        RunResult result = new RunResult(this,executionId);
 
         // control
         if (scenario.typeScenario == null) {
@@ -92,11 +92,11 @@ public class RunScenario {
 
         logger.info("RunScenario: ------ Deployment ({})", runParameters.isDeploymentProcess());
         if (runParameters.isDeploymentProcess())
-            result.merge(runDeployment());
+            result.merge(executeDeployment(executionId));
         logger.info("RunScenario: ------ End deployment ");
 
         // verification is inside execution
-        result.merge(runExecutions());
+        result.merge(runExecutions(executionId));
         return result;
     }
 
@@ -105,8 +105,8 @@ public class RunScenario {
      *
      * @return result of deployment
      */
-    public RunResult runDeployment() {
-        RunResult result = new RunResult(this);
+    protected RunResult executeDeployment(String executionId) {
+        RunResult result = new RunResult(this,executionId);
 
         // first, do we have to deploy something?
         if (scenario.getDeployments() != null) {
@@ -145,9 +145,9 @@ public class RunScenario {
      *
      * @return the execution
      */
-    public RunResult runExecutions() {
-        RunResult result = new RunResult(this);
-        result.setStartDate(new Date());
+    public RunResult runExecutions(String executionId) {
+        RunResult runResult = new RunResult(this, executionId);
+        runResult.setStartDate(new Date());
 
         // the scenario can be an Execution or a Flow
         if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
@@ -172,25 +172,27 @@ public class RunScenario {
                 for (Future<?> f : listFutures) {
                     Object scnRunResult = f.get();
                     // We want to keep separate all results, in case of a Unit Test
-                    result.add((RunResult) scnRunResult);
+                    runResult.add((RunResult) scnRunResult);
                 }
 
             } catch (ExecutionException ee) {
-                result.addError(null, "Error during executing in parallel " + ee.getMessage());
+                runResult.addError(null, "Error during executing in parallel " + ee.getMessage());
 
             } catch (Exception e) {
-                result.addError(null, "Error during executing in parallel " + e.getMessage());
+                runResult.addError(null, "Error during executing in parallel " + e.getMessage());
             }
             logger.info("RunScenario: ------ End execution");
+            runResult.setEndDate(new Date());
+
         }
         if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.FLOW)) {
             logger.info("RunScenario: ------ execution FLOW scenario [{}]", scenario.getName());
             RunScenarioFlows scenarioFlows = new RunScenarioFlows(serviceAccess, this);
-            scenarioFlows.execute(result);
+            scenarioFlows.execute(runResult);
             logger.info("RunScenario: ------ End execution");
         }
 
-        return result;
+        return runResult;
     }
 
     /**
@@ -199,8 +201,8 @@ public class RunScenario {
      * @param scnExecution execution to check
      * @return result of execution
      */
-    public RunResult runVerifications(ScenarioExecution scnExecution) {
-        RunResult result = new RunResult(this);
+    public RunResult runVerifications(ScenarioExecution scnExecution, String executionId) {
+        RunResult result = new RunResult(this, executionId);
 
         RunScenarioVerification verifications = new RunScenarioVerification(scnExecution);
         result.merge(verifications.runVerifications(this, result.getFirstProcessInstanceId()));

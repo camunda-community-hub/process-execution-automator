@@ -22,7 +22,7 @@ public class RunScenarioVerification {
     }
 
     public RunResult runVerifications(RunScenario runScenario, String processInstanceId) {
-        RunResult runResult = new RunResult(runScenario);
+        RunResult runResult = new RunResult(runScenario, null);
 
         // we get a processInstanceId now
         ScenarioVerification verifications = scnExecution.getVerifications();
@@ -66,7 +66,7 @@ public class RunScenarioVerification {
                 message.append("] type[");
                 message.append(verificationActivity.getType());
                 listTaskDescriptions = listTaskDescriptions.stream()
-                        .filter(t -> (verificationActivity.getType().toString().equalsIgnoreCase(t.type.toString()))) //
+                        .filter(t -> (checkTypeTask(verificationActivity.getType(), t.type))) //
                         .toList();
             }
 
@@ -100,6 +100,23 @@ public class RunScenarioVerification {
             result.addVerification(verificationActivity, false, "Error " + e.getMessage());
         }
 
+    }
+
+    private boolean checkTypeTask(ScenarioStep.Step verificationType, ScenarioStep.Step taskType) {
+        // No verification asked: open bar
+        if (verificationType == null)
+            return true;
+        if (taskType == null)
+            return false;
+        if (verificationType.equals(taskType))
+            return true;
+        // if the verification is just TASK, this open a lot of option (all are considered as task)
+        if (verificationType.equals(ScenarioStep.Step.TASK)
+                && (taskType.equals(ScenarioStep.Step.SERVICETASK)
+                || taskType.equals(ScenarioStep.Step.USERTASK)
+                || taskType.equals(ScenarioStep.Step.SCRIPTTASK)))
+        return true;
+        return false;
     }
 
     private void checkVariable(RunScenario runScenario,

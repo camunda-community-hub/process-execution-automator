@@ -99,14 +99,14 @@ public class RunScenarioWarmingUp {
                 case SERVICETASK -> {
                     logger.info("WarmingUp: Start Service Task topic[{}]", scenarioStep.getTopic());
                     RunScenarioFlowServiceTask task = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"),
-                            scenarioStep, runScenario, new RunResult(runScenario));
+                            scenarioStep, runScenario, new RunResult(runScenario, null));
                     task.execute();
                     listWarmingUpServiceTask.add(task);
                 }
                 case USERTASK -> {
                     logger.info("WarmingUp: Start User Task taskId[{}]", scenarioStep.getTaskId());
                     RunScenarioFlowUserTask userTask = new RunScenarioFlowUserTask(serviceAccess.getTaskScheduler("userTask"),
-                            scenarioStep, 0, runScenario, new RunResult(runScenario));
+                            scenarioStep, 0, runScenario, new RunResult(runScenario, null));
                     userTask.execute();
                     listWarmingUpUserTask.add(userTask);
                 }

@@ -39,7 +39,7 @@ instances every 20 seconds. Or 100 process instances every second.
 It is possible to create process instances with different values: for example, 5 process instances
 every 10 seconds with amount=100, and 6 process instances every 12 seconds with amount=150.
 
-The application uses the Spring Boot Scheduler function. So, at the frequency, it starts to create
+The application uses the Spring Boot Scenario function. So, at the frequency, it starts to create
 process instances. If it doesn't finish the number of process instances at the end of the frequency,
 it will not start a new thread; it will spend time creating the requester number. But then, waiting
 to create the next batch is not delayed.

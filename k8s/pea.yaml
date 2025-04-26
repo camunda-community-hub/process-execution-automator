@@ -30,7 +30,7 @@ spec:
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
                 -Dautomator.servers.camunda8.taskListUrl=
-                -Dautomator.servers.camunda8.workerExecutionThreads=100
+                -Dautomator.servers.camunda8.workerExecutionThreads=2000
                 -Dautomator.startup.logLevel=MAIN
           resources:
             limits:
