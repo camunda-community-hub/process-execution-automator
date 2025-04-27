@@ -8,6 +8,8 @@ package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,8 +17,10 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * the Scenario Head group a scenario definition
@@ -198,12 +202,23 @@ public class Scenario {
     }
 
 
-    public Map<String, Object> getDescription() {
-        return Map.of("name", name == null ? "" : name,//
+    /**
+     * Return JSON information for the scenario
+     * @param details
+     * @return
+     */
+    public Map<String, Object> getJson( boolean details ) {
+        HashMap jsonMap = new HashMap();
+        jsonMap.putAll( Map.of("name", name == null ? "" : name,//
                 "server", serverName == null ? "" : serverName, //
                 "serverType", serverType == null ? "" : serverType, //
                 "processId", processId == null ? "" : processId, //
-                "typeScenario", typeScenario == null ? "" : typeScenario.toString());
+                "typeScenario", typeScenario == null ? "" : typeScenario.toString()));
+        if (!details)
+            return jsonMap;
+
+        jsonMap.put("executions", getExecutions().stream().map(ScenarioExecution::getJson).toList());
+        return jsonMap;
     }
 
     public enum TYPESCENARIO {FLOW, UNIT}

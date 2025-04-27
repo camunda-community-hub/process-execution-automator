@@ -9,7 +9,7 @@
 import React from 'react';
 
 import {Button, InlineNotification, Tag} from "carbon-components-react";
-import {ChevronDown, ChevronRight} from '@carbon/icons-react';
+import {ChevronDown, ChevronRight, IbmKnowledgeCatalogStandard, DataCheck, Timer } from '@carbon/icons-react';
 
 
 import {Card} from 'react-bootstrap';
@@ -28,8 +28,6 @@ class TestResult extends React.Component {
             display: {
                 loading: true
             },
-
-
         };
         this.schedule = this.schedule.bind(this);
         this.setDisplayProperty = this.setDisplayProperty.bind(this);
@@ -83,7 +81,6 @@ class TestResult extends React.Component {
                                         <th>Scenario Name</th>
                                         <th>ID</th>
                                         <th>Status</th>
-                                        <th>Result</th>
                                         <th>Start</th>
                                         <th>End</th>
                                     </tr>
@@ -91,39 +88,101 @@ class TestResult extends React.Component {
                                     <tbody>
                                     {this.state.testresults ? this.state.testresults.map((item, _index) =>
                                         <React.Fragment key={_index}>
-                                        <tr>
-                                            <td>{item.scenarioName}</td>
-                                            <td>{item.id}</td>
-                                            <td>{item.status}</td>
-                                            <td>
-                                                {item.result === "INPROGRESS" &&
-                                                    <div>
-                                                        <Tag type="blue">In progress</Tag><br/>
-                                                    </div>
-                                                }
-                                                {item.result === "FAILED" &&
-                                                    <div>
-                                                        <Tag type="red">Failed</Tag><br/>
+                                            <tr>
+                                                <td>{item.scenarioName}</td>
+                                                <td>{item.id}</td>
+                                                <td>
+                                                    {item.status === "INPROGRESS" &&
+                                                        <Tag type="blue">In progress</Tag>
+                                                    }
 
-                                                    </div>
-                                                }
-                                                {item.result === "SUCCESS" &&
-                                                    <Tag type="green">Success</Tag>}
+                                                    {item.result === "FAIL" &&
+                                                            <Tag type="red">Fail</Tag>
+                                                    }
+                                                    {item.result === "SUCCESS" &&
+                                                        <Tag type="green">Success</Tag>
+                                                    }
 
-                                                <button onClick={() => this.toggleDetail(item.id)}>
-                                                    {this.state.openIds.has(item.id) ? <ChevronDown/> : <ChevronRight/>}
-                                                </button>
-                                            </td>
-                                            <td>
-                                                {this.dateDisplay(item.startDate)}
-                                            </td>
-                                            <td>
-                                                {this.dateDisplay(item.endDate)}
-                                            </td>
-                                        </tr>
-                                            {this.state.openIds.has(item.id) && ( <tr>
-                                                <td></td>
-                                            </tr>)}
+                                                    <button disabled={item.status === "INPROGRESS"}
+                                                        onClick={() => this.toggleDetail(item.id)}>
+                                                        {this.state.openIds.has(item.id) ? <ChevronDown/> :
+                                                            <ChevronRight/>}
+                                                    </button>
+                                                </td>
+                                                <td>
+                                                    {this.dateDisplay(item.startDate)}
+                                                </td>
+                                                <td>
+                                                    {this.dateDisplay(item.endDate)}
+                                                </td>
+                                            </tr>
+                                            {this.state.openIds.has(item.id) &&
+                                                (Array.isArray(item.tests) ? item.tests : []).map((test, idx) => (
+                                                    <tr key={idx}>
+                                                        <td colSpan="5">
+                                                            <table style={{width: '100%'}}>
+                                                                <tr>
+                                                                    <td>
+                                                                        <h5>Test: {test.name}</h5>
+                                                                    </td>
+                                                                    <td>
+                                                                        {test.description}
+                                                                    </td>
+                                                                    <td>
+                                                                        ProcessInstance: {test.processInstancesId}
+                                                                    </td>
+                                                                    <td style={{textAlign: 'right'}}>
+                                                                        {test.result === "SUCCESS" &&
+                                                                            <Tag type="green">Success</Tag>
+                                                                        }
+                                                                        {test.result === "FAIL" &&
+                                                                            <Tag type="red">Fail</Tag>
+                                                                        }
+                                                                    </td>
+                                                                </tr>
+
+                                                            </table>
+
+
+                                                            <table border="1" width="100%">
+                                                                <thead>
+                                                                <tr>
+                                                                    <th></th>
+                                                                    <th>Info</th>
+                                                                    <th>Message</th>
+                                                                    <th>Result</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                {(Array.isArray(test.detail) ? test.detail : []).map((d, i) => (
+                                                                    <tr key={i}>
+                                                                        <td style={{paddingRight: "20px"}}>
+                                                                            {d.typeVerification === "GOBYTASK" &&
+                                                                                <IbmKnowledgeCatalogStandard /> }
+                                                                            {d.typeVerification === "VARIABLE" &&
+                                                                                <DataCheck />
+                                                                            }
+                                                                            {d.typeVerification === "PERFORMANCE" &&
+                                                                                <Timer />
+                                                                            }
+                                                                        </td>
+                                                                        <td>{d.info}</td>
+                                                                        <td>{d.message}</td>
+                                                                        <td>
+                                                                            {d.result === "SUCCESS" &&
+                                                                                <Tag type="green">Success</Tag>
+                                                                            }
+                                                                            {d.result === "FAIL" &&
+                                                                                <Tag type="red">Fail</Tag>
+                                                                            }
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                ))}
                                         </React.Fragment>
                                     ) : <div/>}
 
@@ -200,6 +259,9 @@ class TestResult extends React.Component {
 
 
     dateDisplay = (isoDate) => {
+        debugger;
+        if (isoDate===null || isoDate==="")
+            return "";
         return new Date(isoDate).toLocaleString(); // local timezone
     };
 }

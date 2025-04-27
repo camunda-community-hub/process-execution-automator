@@ -6,16 +6,40 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine;
 
+import org.camunda.automator.api.ServerController;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.definition.ScenarioVerificationBasic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class RunResult {
+
+    public static final String JSON_RESULT = "result";
+    public static final String JSON_SCENARIO_NAME = "scenarioName";
+    public static final String JSON_SERVER_NAME = "serverName";
+    public static final String JSON_DESCRIPTION= "description";
+    public static final String JSON_ID = "id";
+    public static final String JSON_STATUS = "status";
+    public static final String JSON_GENERAL_STATUS = "generalStatus";
+    public static final String JSON_NAME = "name";
+    public static final String JSON_PROCESSINSTANCESID = "processInstancesId";
+    public static final String JSON_DETAIL = "detail";
+    public static final String JSON_ERRORS = "errors";
+    public static final String JSON_MESSAGE = "message";
+    public static final String JSON_INFO = "info";
+    public static final String JSON_STATUS_V_NOTEXIST = "NOTEXIST";
+    public static final String JSON_STATUS_V_NOBPMNSERVER = "NOBPMNSERVER";
+    public static final String JSON_STATUS_V_EXECUTED = "EXECUTED";
+    public static final String JSON_STATUS_V_INPROGRESS = "INPROGRESS";
+    public static final String JSON_START_DATE = "startDate";
+    public static final String JSON_END_DATE = "endDate";
+    public static final String JSON_TYPEVERIFICATION ="typeVerification";
+
     /**
      * Scenario attached to this execution
      */
@@ -348,7 +372,7 @@ public class RunResult {
         }
         StringBuilder verificationMessage = new StringBuilder();
         verificationMessage.append(listVerifications.stream().map(t -> {
-            return t.verification.getSynthesis() + "? " + (t.isSuccess ? "OK" : "FAIL") + " " + t.message + "\n";
+            return t.verification.getSynthesis() + "? " + (t.isSuccess ? "SUCCESS" : "FAIL") + " " + t.message + "\n";
         }).collect(Collectors.joining(",")));
         if (fullDetail) {
             synthesis.append(verificationMessage);
@@ -363,6 +387,71 @@ public class RunResult {
         return synthesis.toString();
 
     }
+
+
+    /**
+     * @return result ready for a JSON format
+     */
+    public Map<String, Object> getJson( boolean shortDescription) {
+        Map<String, Object> resultMap = new HashMap<>();
+
+        if (! isFinished())
+            resultMap.put(JSON_RESULT,"");
+        else
+            resultMap.put(JSON_RESULT, isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
+
+        resultMap.put(JSON_ID, getExecutionId());
+        resultMap.put(JSON_SCENARIO_NAME, getRunScenario().getScenario().getName());
+        resultMap.put(JSON_STATUS, isFinished() ? JSON_STATUS_V_EXECUTED : JSON_STATUS_V_INPROGRESS);
+        resultMap.put(JSON_START_DATE, getStartDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getStartDate().toInstant()) : "");
+        resultMap.put(JSON_END_DATE, getEndDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getEndDate().toInstant()) : "");
+
+        if (shortDescription)
+            return resultMap;
+
+        List<Map<String, Object>> listVerificationsJson = new ArrayList<>();
+        for (RunResult runResultUnit : getListRunResults()) {
+            if (runResultUnit.getScnExecution() == null) {
+                continue;
+            }
+            Map<String, Object> recordResult = new HashMap<>();
+            listVerificationsJson.add(recordResult);
+            recordResult.put(JSON_PROCESSINSTANCESID, String.join(", ", runResultUnit.getListProcessInstancesId()));
+            recordResult.put(JSON_NAME, runResultUnit.getScnExecution().getName());
+            recordResult.put(JSON_DESCRIPTION, runResultUnit.getScnExecution().getDescription());
+
+            recordResult.put(JSON_RESULT, runResultUnit.isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
+            recordResult.put(JSON_DETAIL, runResultUnit.getListVerifications().stream()
+                    .map(t -> { //
+                        return Map.of(JSON_RESULT, t.isSuccess ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString(), //
+                                JSON_MESSAGE, getSecureValue(t.message),
+                                JSON_TYPEVERIFICATION, t.verification.getTypeVerification(),
+                                JSON_INFO, getSecureValue(t.verification.getSynthesis()));
+                    })//
+                    .toList());
+            recordResult.put(JSON_ERRORS, runResultUnit.getListErrors().stream()
+                    .map(t -> { //
+                        return Map.of(JSON_ID, t.step.getId(), //
+                                JSON_MESSAGE, t.explanation //
+                        );
+                    })//
+                    .toList());
+        }
+
+
+        resultMap.put("tests", listVerificationsJson);
+        return resultMap;
+    }
+    /**
+     * Return "" if info is null: in a Map.of(), a null pointer return an exception
+     *
+     * @param info value to return
+     * @return info or ""
+     */
+    private Object getSecureValue(Object info) {
+        return info == null ? "" : info;
+    }
+
 
     public static class StepExecution {
         public final List<ErrorDescription> listErrors = new ArrayList<>();
@@ -427,4 +516,6 @@ public class RunResult {
         public boolean isSuccess;
         public String message;
     }
+
+
 }

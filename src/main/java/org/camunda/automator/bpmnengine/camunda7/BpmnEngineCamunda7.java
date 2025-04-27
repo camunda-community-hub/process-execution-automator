@@ -582,7 +582,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
         @Override
         public void onFailure(ApiException e, int i, Map map) {
-            this.status = STATUS.FAILURE;
+            this.status = STATUS.FAIL;
             this.e = e;
         }
 
@@ -601,6 +601,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
         }
 
-        public enum STATUS {WAIT, FAILURE, SUCCESS}
+        public enum STATUS {WAIT, FAIL, SUCCESS}
     }
 }

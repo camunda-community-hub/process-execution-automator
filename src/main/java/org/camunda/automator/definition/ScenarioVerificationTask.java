@@ -42,7 +42,9 @@ public class ScenarioVerificationTask implements ScenarioVerificationBasic {
     public String getSynthesis() {
         return "ActivityCheck [" + taskId + "] state[" + (state == null ? "" : state.toString()) + "]";
     }
-
+    public String getTypeVerification() {
+        return "GOBYTASK";
+    }
     public enum StepState {COMPLETED, ACTIVE}
 
 }

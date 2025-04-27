@@ -12,8 +12,19 @@ public class ScenarioVerificationVariable implements ScenarioVerificationBasic {
         this.value = value;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
     public String getSynthesis() {
         return "VariableCheck [" + name + "]=[" + value + "]";
     }
 
+    public String getTypeVerification() {
+        return "VARIABLE";
+    }
 }

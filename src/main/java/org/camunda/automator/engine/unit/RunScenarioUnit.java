@@ -125,10 +125,11 @@ public class RunScenarioUnit {
                     try {
                         logger.info("Wait 10 s to let Operate collect data");
                         Thread.sleep(10 * 1000);
+
                     } catch (Exception e) {
                         // nothing to do
                     }
-                    runVerifications();
+                     runVerifications();
                 } else {
                     // use the search criteria
                     if (scnExecution.getVerifications().getSearchProcessInstanceByVariable().isEmpty()) {

@@ -49,12 +49,12 @@ public class ContentRestController {
 
 
     @GetMapping("/api/content/list")
-    List<Map<String, Object>> getContentScenario() {
+    List<Map<String, Object>> getContentScenario(@RequestParam(name = "details", required = false) Boolean details) {
         logger.debug("ControlRestController/getContentScenario: start");
         try {
             List<Scenario> listScenario = contentManager.getContentScenario();
             List<Map<String, Object>> listScenarioMap = listScenario.stream()
-                    .map(Scenario::getDescription)
+                    .map(t->t.getJson(details==null? false : details))
                     .toList();
             logger.info("ControlRestController/getContentScenario: found {} scenario : {]",
                     listScenario.size(),

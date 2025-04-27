@@ -1,7 +1,9 @@
 package org.camunda.automator.definition;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A scenario execution pilot one execution of a scenarioHead
@@ -17,12 +19,16 @@ public class ScenarioExecution {
      */
     private String name;
     /**
+     * Name of this execution
+     */
+    private String description;
+    /**
      * Number of process instance to create
      */
     private Integer numberProcessInstances;
 
     /**
-     * Number of thread in parallel to execute all process instances. Default is 1
+     * Number of threads in parallel to execute all process instances. Default is 1
      */
     private Integer numberOfThreads;
     private Policy policy;
@@ -32,7 +38,7 @@ public class ScenarioExecution {
     private Boolean execution;
 
     /**
-     * Note: when the object is un-serialized from JSON, scnHead is null
+     * Note: when the object is unserialized from JSON, scnHead is null
      *
      * @param scenario root information
      */
@@ -53,9 +59,9 @@ public class ScenarioExecution {
     /* ******************************************************************** */
 
     /**
-     * After UnSerialize, all link to parent are not restored
+     * After UnSerialize, all links to parent are not restored
      *
-     * @param scnHead head of scenario
+     * @param scnHead head of the scenario
      */
     public void afterUnSerialize(Scenario scnHead) {
         this.scnHead = scnHead;
@@ -114,6 +120,14 @@ public class ScenarioExecution {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public ScenarioExecution setName(String name) {
         this.name = name;
         return this;
@@ -141,4 +155,62 @@ public class ScenarioExecution {
      * default is STOPATFIRSTERROR
      */
     public enum Policy {STOPATFIRSTERROR, CONTINUE}
+
+    public Map<String, Object> getJson() {
+
+        HashMap jsonMap = new HashMap();
+        jsonMap.put("name", name);
+        jsonMap.put("policy", policy.toString());
+        jsonMap.put("description", description);
+        jsonMap.put("numberProcessInstances", numberProcessInstances);
+        jsonMap.put("numberOfThreads", numberOfThreads);
+
+        jsonMap.put("steps", steps.stream().map(
+                t -> {
+                    return Map.of("type", getSecureValue(t.getType()),
+                            "processId", getSecureValue(t.getProcessId()),
+                            "taskId", getSecureValue(t.getTaskId()),
+                            "topic", getSecureValue(t.getTopic()),
+                            "numberOfExecutions", t.getNumberOfExecutions(),
+                            "nbThreads", t.getNbThreads(),
+                            "synthesis", t.getSynthesis());
+                }
+        ).toList());
+
+        Map<String, Object> verificationMap = new HashMap();
+        jsonMap.put("verifications", verificationMap);
+        verificationMap.put("activities",
+                verifications.getActivities().stream().map(
+                        t -> {
+                            return Map.of("type", getSecureValue(t.getType()),
+                                    "taskId", getSecureValue(t.getTaskId()),
+                                    "synthesis", t.getSynthesis());
+                        }
+                ).toList());
+        verificationMap.put("variables",
+                verifications.getVariables().stream().map(
+                        t -> {
+                            return Map.of("name", getSecureValue(t.getName()),
+                                    "value", getSecureValue(t.getValue()),
+                                    "synthesis", t.getSynthesis());
+                        }
+                ).toList());
+        verificationMap.put("performances",
+                verifications.getPerformances().stream().map(
+                        t -> {
+                            return Map.of("description", getSecureValue(t.getDescription()),
+                                    "fromFlowNode", getSecureValue(t.getFromFlowNode()),
+                                    "fromMarker", getSecureValue(t.getFromMarker()),
+                                    "toFlowNode", getSecureValue(t.getToFlowNode()),
+                                    "toMarker", getSecureValue(t.getToMarker()),
+                                    "durationMs", getSecureValue(t.getDurationInMs()),
+                                    "synthesis", t.getSynthesis()
+                            );
+                        }
+                ).toList());
+        return jsonMap;
+    }
+    private Object getSecureValue(Object info) {
+        return info == null ? "" : info;
+    }
 }

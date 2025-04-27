@@ -34,10 +34,12 @@ public class UnitTestController {
     public static final String JSON_STATUS = "status";
     public static final String JSON_RESULT = "result";
     public static final String JSON_NAME = "name";
+    public static final String JSON_DESCRIPTION= "description";
     public static final String JSON_PROCESSINSTANCESID = "processInstancesId";
     public static final String JSON_DETAIL = "detail";
     public static final String JSON_ERRORS = "errors";
     public static final String JSON_MESSAGE = "message";
+    public static final String JSON_TYPEVERIFICATION ="typeVerification";
     public static final String JSON_INFO = "info";
     private static final Logger logger = LoggerFactory.getLogger(UnitTestController.class.getName());
     public static final String JSON_STATUS_V_NOTEXIST = "NOTEXIST";
@@ -114,7 +116,7 @@ public class UnitTestController {
     public Map<String, Object> getUnitTest(@RequestParam(name = "id") String executionId) {
         RunResult runResult = runScenarioService.getByExecutionId(executionId);
         if (runResult != null) {
-            return resultToJson(runResult, false);
+            return runResult.getJson(false);
         } else {
             return Map.of(ServerController.JSON_STATUS, JSON_STATUS_V_NOTEXIST);
         }
@@ -122,10 +124,10 @@ public class UnitTestController {
 
 
     @GetMapping(value = "/api/unittest/list", produces = "application/json")
-    public List<Map<String, Object>> getListUnitTest(@RequestParam(name = "detail", required = false) Boolean detail) {
+    public List<Map<String, Object>> getListUnitTest(@RequestParam(name = "details", required = false) Boolean details) {
         List<Map<String, Object>> listUnitTest = new ArrayList<>();
         for (RunResult runResult : runScenarioService.getRunResult()) {
-            listUnitTest.add(resultToJson(runResult, detail == null || Boolean.FALSE.equals(detail))
+            listUnitTest.add(runResult.getJson( details == null || Boolean.FALSE.equals(details))
             );
         }
         return listUnitTest;
@@ -171,116 +173,15 @@ public class UnitTestController {
 
         logger.info("ServerController: end scenario [{}] in {} ms", scenario.getName(),
                 runResult.getTimeExecution());
-        resultMap.putAll(resultToJson(runResult, false));
+        resultMap.putAll(runResult.getJson(false));
 
         return resultMap;
     }
 
 
-    /**
-     * @param runResult result to transform in JSON
-     * @return result ready for a JSON format
-     */
-    private Map<String, Object> resultToJson(RunResult runResult, boolean shortDescription) {
-        Map<String, Object> resultMap = new HashMap<>();
-
-        resultMap.put(JSON_RESULT, runResult.isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
-
-        resultMap.put(JSON_ID, runResult.getExecutionId());
-        resultMap.put(JSON_SCENARIO_NAME, runResult.getRunScenario().getScenario().getName());
-        resultMap.put(JSON_STATUS, runResult.isFinished() ? JSON_STATUS_V_EXECUTED : JSON_STATUS_V_INPROGRESS);
-        resultMap.put(JSON_START_DATE, runResult.getStartDate() != null ? DateTimeFormatter.ISO_INSTANT.format(runResult.getStartDate().toInstant()) : "");
-        resultMap.put(JSON_END_DATE, runResult.getEndDate() != null ? DateTimeFormatter.ISO_INSTANT.format(runResult.getEndDate().toInstant()) : "");
-
-        if (shortDescription)
-            return resultMap;
-
-        List<Map<String, Object>> listVerificationsJson = new ArrayList<>();
-        for (RunResult runResultUnit : runResult.getListRunResults()) {
-            if (runResultUnit.getScnExecution() == null) {
-                continue;
-            }
-            Map<String, Object> recordResult = new HashMap<>();
-            listVerificationsJson.add(recordResult);
-            recordResult.put(JSON_PROCESSINSTANCESID, String.join(", ", runResultUnit.getListProcessInstancesId()));
-            recordResult.put(JSON_NAME, runResultUnit.getScnExecution().getName());
-            recordResult.put(JSON_RESULT, runResultUnit.isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
-            recordResult.put(JSON_DETAIL, runResultUnit.getListVerifications().stream()
-                    .map(t -> { //
-                        return Map.of(JSON_RESULT, t.isSuccess ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString(), //
-                                JSON_MESSAGE, getSecureValue(t.message), //
-                                JSON_INFO, getSecureValue(t.verification.getSynthesis()));
-                    })//
-                    .toList());
-            recordResult.put(JSON_ERRORS, runResultUnit.getListErrors().stream()
-                    .map(t -> { //
-                        return Map.of(JSON_ID, t.step.getId(), //
-                                JSON_MESSAGE, t.explanation //
-                        );
-                    })//
-                    .toList());
-        }
 
 
-        resultMap.put("tests", listVerificationsJson);
-        return resultMap;
-    }
 
-    /**
-     * Return "" if info is null: in a Map.of(), a null pointer return an exception
-     *
-     * @param info value to return
-     * @return info or ""
-     */
-    private Object getSecureValue(Object info) {
-        return info == null ? "" : info;
-    }
 
-    /*
-    public ResponseEntity<Map<String, Object>> runAllUnitTestOld
-            (@RequestParam(name = "server", required = false) String serverName,
-             @RequestParam(name = "wait", required = false) Boolean wait,
-             @RequestParam(name = "failonerror", required = false) Boolean failOnError) {
-        Map<String, Object> resultMap = new HashMap<>();
-        List<Map<String, Object>> resultScenario = new ArrayList<>();
-        resultMap.put("scenario", resultScenario);
-        String baseUnitTestId = String.valueOf(System.currentTimeMillis());
-
-        List<Path> listScenario = contentManager.getContentFiles();
-        logger.info("UnitTestController: runAllUnitTest Wait? {} scenario :{}",
-                wait != null && wait,
-                listScenario.size());
-        boolean allScenarioAreOk = true;
-        for (Path fileScenario : listScenario) {
-            Map<String, Object> resultOneScenario = new HashMap<>();
-
-            String unitTestId = baseUnitTestId + "." + fileScenario.getFileName();
-            resultOneScenario.put("id", executionId);
-
-            if (Boolean.TRUE.equals(wait)) {
-                startTest(fileScenario.getFileName().toString(), serverName, executionId);
-
-                resultOneScenario = cacheExecution.get(unitTestId);
-                resultScenario.add(resultOneScenario);
-                String status = (String) resultOneScenario.get(JSON_GENERAL_STATUS);
-                if (!ServerController.StatusTest.SUCCESS.toString().equals(status)) {
-                    allScenarioAreOk = false;
-                }
-
-            } else {
-                resultScenario.add(resultOneScenario);
-
-                Thread thread = new Thread(() -> startTest(fileScenario.getFileName().toString(), serverName, unitTestId));
-                thread.start();
-            }
-        }
-
-        if (!allScenarioAreOk && Boolean.TRUE.equals(failOnError)) {
-            return new ResponseEntity<>(resultMap, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-        return new ResponseEntity<>(resultMap, HttpStatus.OK);
-    }
-
-     */
 
 }

@@ -42,7 +42,7 @@ class PeaApp extends React.Component {
           <Container>
             <Nav className="mr-auto">
               <Navbar.Brand href="#home">
-                <img src="/img/pea.jpeg" width="28" height="28" alt="Pea"/>
+                <img src="/img/pea.png" width="28" height="28" alt="Pea"/>
                 Process Execution Automator
               </Navbar.Brand>
 

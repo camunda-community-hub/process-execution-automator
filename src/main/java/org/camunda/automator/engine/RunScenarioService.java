@@ -32,14 +32,15 @@ public class RunScenarioService {
 
         if (asynchronous) {
             // Create now he executionId
+            RunScenario runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
+            runResult = new RunResult(runScenario,executionId );
+            runResult.setStartDate(new Date());
             cacheRunScenario.put(executionId, runResult);
 
             // so the tread use the executionId to fulfill the result
             Thread thread = new Thread(() -> executeScenarioInternal(bpmnEngine, runParameters, scenario, executionId));
             thread.start();
             // Create an arbiratry runResult here. What is important is to return the executionId
-            RunScenario runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-            runResult = new RunResult(runScenario,executionId );
         } else {
             runResult = executeScenarioInternal(bpmnEngine, runParameters, scenario, executionId);
         }
@@ -73,6 +74,7 @@ public class RunScenarioService {
 
         // Now run the scenario
         RunResult runResult = new RunResult(runScenario, executionId);
+        runResult.setStartDate(new Date());
         cacheRunScenario.put(executionId, runResult);
 
         runResult.merge( runScenario.executeTheScenario(executionId));

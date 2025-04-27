@@ -266,6 +266,24 @@ public class ScenarioStep {
         };
     }
 
+    public String getSynthesis() {
+        return
+                switch (getType()) {
+                    case SERVICETASK ->
+                            "Service task JobType[" + getTopic() + "] ModeExecution[" + getModeExecution().toString() + "]";
+                    case USERTASK -> "User Task";
+                    case STARTEVENT -> "Start Event processId[" + getProcessId() + "] Id[" + getTaskId() + "]";
+                    case ENDEVENT -> "End Event id [" + getTaskId() + "]";
+                    case SCRIPTTASK -> "Script Task JobType[" + getTopic() + "]";
+                    case TASK -> "Task";
+                    case MESSAGE -> "Message";
+                    case PARALLELGATEWAY -> "ParallelGateway";
+                    case EXCLUSIVEGATEWAY -> "ExclusiveGateway";
+                    default -> "";
+                };
+
+    }
+
     /**
      * MODE EXECUTION
      * CLASSICAL, WAIT: the worker wait the waitingTime time
