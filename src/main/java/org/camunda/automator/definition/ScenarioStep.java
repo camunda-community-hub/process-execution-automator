@@ -12,6 +12,7 @@ import org.camunda.automator.engine.AutomatorException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ScenarioStep {
 
@@ -267,12 +268,22 @@ public class ScenarioStep {
     }
 
     public String getSynthesis() {
+        String traceVariables = "";
+        if (getVariables() != null)
+            traceVariables += "Variables:" + getVariables().entrySet().stream()
+                    .map(entry -> entry.getKey() + ":" + entry.getValue())
+                    .collect(Collectors.joining(";"));
+        if (getVariablesOperations() != null)
+            traceVariables += "VariablesOperation:" + getVariablesOperations().entrySet().stream()
+                    .map(entry -> entry.getKey() + ":" + entry.getValue())
+                    .collect(Collectors.joining(";"));
         return
                 switch (getType()) {
                     case SERVICETASK ->
                             "Service task JobType[" + getTopic() + "] ModeExecution[" + getModeExecution().toString() + "]";
                     case USERTASK -> "User Task";
-                    case STARTEVENT -> "Start Event processId[" + getProcessId() + "] Id[" + getTaskId() + "]";
+                    case STARTEVENT ->
+                            "Start Event processId[" + getProcessId() + "] Id[" + getTaskId() + "]" + traceVariables;
                     case ENDEVENT -> "End Event id [" + getTaskId() + "]";
                     case SCRIPTTASK -> "Script Task JobType[" + getTopic() + "]";
                     case TASK -> "Task";

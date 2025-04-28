@@ -29,6 +29,9 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     public static final String THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME = "ThisIsACompleteImpossibleVariableName";
     public static final String SAAS_AUTHENTICATE_URL = "https://login.cloud.camunda.io/oauth/token";
     private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
+    private final BpmnEngineList.BpmnServerDefinition serverDefinition;
+    private final TaskListClient taskListClient;
+    private final OperateClient operateClient;
     boolean hightFlowMode = false;
     /**
      * It is not possible to search user task for a specific processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -36,10 +39,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
      */
     Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
     Random random = new Random(System.currentTimeMillis());
-    private final BpmnEngineList.BpmnServerDefinition serverDefinition;
     private ZeebeClient zeebeClient;
-    private final TaskListClient taskListClient;
-    private final OperateClient operateClient;
 
 
     private BpmnEngineCamunda8(BpmnEngineList.BpmnServerDefinition serverDefinition, BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy) {
@@ -346,7 +346,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         try {
             zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).variables(variables).send().join();
         } catch (Exception e) {
-            logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage(),e);
+            logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage(), e);
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
@@ -374,12 +374,15 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     .send()
                     .join();
         } catch (Exception e) {
-            logger.error("throwBpmnServiceTask: Can't execute service task[{}] WorkerId[{}] errorCode[{}] errorMessage[{}]: {}", serviceTaskId, workerId, errorCode, errorMessage, e.getMessage(),e);
+            logger.error("throwBpmnServiceTask: Can't execute service task[{}] WorkerId[{}] errorCode[{}] errorMessage[{}]: {}", serviceTaskId, workerId, errorCode, errorMessage, e.getMessage(), e);
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }
 
     /**
+     * searchTaskByProcessInstanceId
+     * OperateClient does not support very well the multithreading, so let's synchronized the call
+     *
      * @param processInstanceId filter on the processInstanceId. may be null
      * @param filterTaskId      filter on the taskId
      * @param maxResult         maximum Result
@@ -445,7 +448,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
             return String.valueOf(event.getKey());
         } catch (Exception e) {
-            logger.error("deployBpmn: Can't deploy File[{}] Policy[{}] : {}", processFile.getAbsolutePath(), policy, e.getMessage(),e);
+            logger.error("deployBpmn: Can't deploy File[{}] Policy[{}] : {}", processFile.getAbsolutePath(), policy, e.getMessage(), e);
             throw new AutomatorException("Can't deploy " + e.getMessage());
         }
     }
@@ -575,7 +578,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
                 } catch (Exception e) {
                     zeebeClient = null;
-                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                     throw new AutomatorException(
                             "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -585,16 +588,16 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     // connect to local deployment; assumes that authentication is disabled
                     clientBuilder = ZeebeClient.newClientBuilder()
                             .gatewayAddress(serverDefinition.zeebeGatewayAddress);
-                    if (serverDefinition.zeebeGrpcAddress != null && ! serverDefinition.zeebeGrpcAddress.trim().isEmpty())  {
+                    if (serverDefinition.zeebeGrpcAddress != null && !serverDefinition.zeebeGrpcAddress.trim().isEmpty()) {
                         clientBuilder = clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
                     }
-                    if (serverDefinition.zeebeRestAddress != null && ! serverDefinition.zeebeRestAddress.trim().isEmpty())  {
+                    if (serverDefinition.zeebeRestAddress != null && !serverDefinition.zeebeRestAddress.trim().isEmpty()) {
                         clientBuilder = clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
                     }
                     clientBuilder = clientBuilder.usePlaintext();
                 } catch (Exception e) {
                     zeebeClient = null;
-                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                     throw new AutomatorException(
                             "badURL[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -641,7 +644,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
         } catch (Exception e) {
             zeebeClient = null;
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }

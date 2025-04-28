@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,22 +33,20 @@ public class UnitTestController {
     public static final String JSON_STATUS = "status";
     public static final String JSON_RESULT = "result";
     public static final String JSON_NAME = "name";
-    public static final String JSON_DESCRIPTION= "description";
+    public static final String JSON_DESCRIPTION = "description";
     public static final String JSON_PROCESSINSTANCESID = "processInstancesId";
     public static final String JSON_DETAIL = "detail";
     public static final String JSON_ERRORS = "errors";
     public static final String JSON_MESSAGE = "message";
-    public static final String JSON_TYPEVERIFICATION ="typeVerification";
+    public static final String JSON_TYPEVERIFICATION = "typeVerification";
     public static final String JSON_INFO = "info";
-    private static final Logger logger = LoggerFactory.getLogger(UnitTestController.class.getName());
     public static final String JSON_STATUS_V_NOTEXIST = "NOTEXIST";
     public static final String JSON_STATUS_V_NOBPMNSERVER = "NOBPMNSERVER";
     public static final String JSON_STATUS_V_EXECUTED = "EXECUTED";
     public static final String JSON_STATUS_V_INPROGRESS = "INPROGRESS";
     public static final String JSON_START_DATE = "startDate";
     public static final String JSON_END_DATE = "endDate";
-
-
+    private static final Logger logger = LoggerFactory.getLogger(UnitTestController.class.getName());
     private final ConfigurationStartup configurationStartup;
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
@@ -125,12 +122,19 @@ public class UnitTestController {
 
     @GetMapping(value = "/api/unittest/list", produces = "application/json")
     public List<Map<String, Object>> getListUnitTest(@RequestParam(name = "details", required = false) Boolean details) {
+        logger.info("UnitTestController.GetListUnitTest details:[{}]", details);
         List<Map<String, Object>> listUnitTest = new ArrayList<>();
         for (RunResult runResult : runScenarioService.getRunResult()) {
-            listUnitTest.add(runResult.getJson( details == null || Boolean.FALSE.equals(details))
+            listUnitTest.add(runResult.getJson(details == null || Boolean.FALSE.equals(details))
             );
         }
         return listUnitTest;
+    }
+
+    @PutMapping("/api/unittest/clearall")
+    public void clearAllTests() {
+        logger.info("UnitTestController.clearAllTests");
+        runScenarioService.clearAll();
     }
 
     private Map<String, Object> startTest(String scenarioName, String serverName,
@@ -177,11 +181,6 @@ public class UnitTestController {
 
         return resultMap;
     }
-
-
-
-
-
 
 
 }

@@ -97,7 +97,7 @@ public class BpmnEngineList {
                 logger.info(serverDetails);
             }
         } catch (Exception e) {
-            logger.error("Error during initialization : {}", e.getMessage(),e);
+            logger.error("Error during initialization : {}", e.getMessage(), e);
         }
     }
 
@@ -432,7 +432,7 @@ public class BpmnEngineList {
             }
             return (String) recordData.get(name);
         } catch (Exception e) {
-            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(),e);
+            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(), e);
             return defaultValue;
         }
     }
@@ -456,7 +456,7 @@ public class BpmnEngineList {
                 return valueBoolean;
             return Boolean.valueOf(recordData.get(name).toString());
         } catch (Exception e) {
-            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(),e);
+            logger.error("{} Variable [{}] {} bad definition {}", contextLog, name, contextLog, e.getMessage(), e);
             return defaultValue;
         }
     }
@@ -472,7 +472,7 @@ public class BpmnEngineList {
             }
             return (Integer) recordData.get(name);
         } catch (Exception e) {
-            logger.error("Variable [{}] {} bad definition {}", name, contextLog, e.getMessage(),e);
+            logger.error("Variable [{}] {} bad definition {}", name, contextLog, e.getMessage(), e);
             return defaultValue;
         }
     }
@@ -483,7 +483,7 @@ public class BpmnEngineList {
                 return defaultValue;
             return Integer.parseInt(value);
         } catch (Exception e) {
-            logger.error("Can't parse value [{}] at [{}] {}", value, label, contextLog,e);
+            logger.error("Can't parse value [{}] at [{}] {}", value, label, contextLog, e);
             return defaultValue;
         }
     }
@@ -604,25 +604,25 @@ public class BpmnEngineList {
             return synthesis;
         }
 
-        public Map<String,Object> getMapSynthesis() {
-            Map<String,Object> synthesis = new HashMap<>();
-            synthesis.put("name",name);
-            synthesis.put("type",serverType.name());
+        public Map<String, Object> getMapSynthesis() {
+            Map<String, Object> synthesis = new HashMap<>();
+            synthesis.put("name", name);
+            synthesis.put("type", serverType.name());
 
             if (serverType.equals(CamundaEngine.CAMUNDA_7)) {
-                synthesis.put("url",camunda7ServerUrl);
-                synthesis.put("userName",camunda7UserName );
+                synthesis.put("url", camunda7ServerUrl);
+                synthesis.put("userName", camunda7UserName);
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8)) {
-                synthesis.put("grpcAddress",zeebeGatewayAddress);
+                synthesis.put("grpcAddress", zeebeGatewayAddress);
                 synthesis.put("RestAddress", zeebeRestAddress);
-                synthesis.put("workerThread",workerExecutionThreads);
-                synthesis.put("maxJobActive",workerMaxJobsActive );
+                synthesis.put("workerThread", workerExecutionThreads);
+                synthesis.put("maxJobActive", workerMaxJobsActive);
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
                 synthesis.put("clusterId", zeebeSaasClusterId);
                 synthesis.put("workerThread", workerExecutionThreads);
-                synthesis.put("maxJobActive",workerMaxJobsActive );
+                synthesis.put("maxJobActive", workerMaxJobsActive);
             }
             return synthesis;
         }

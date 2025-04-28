@@ -10,32 +10,32 @@ public class ScenarioVerificationPerformance implements ScenarioVerificationBasi
     public String duration;
     public String description;
 
-    public void setFromFlowNode(String fromFlowNode) {
-        this.fromFlowNode = fromFlowNode;
-    }
-
-    public void setToFlowNode(String toFlowNode) {
-        this.toFlowNode = toFlowNode;
-    }
-
     public String getFromFlowNode() {
         return fromFlowNode;
+    }
+
+    public void setFromFlowNode(String fromFlowNode) {
+        this.fromFlowNode = fromFlowNode;
     }
 
     public String getToFlowNode() {
         return toFlowNode;
     }
 
+    public void setToFlowNode(String toFlowNode) {
+        this.toFlowNode = toFlowNode;
+    }
+
     public void setDuration(String duration) {
         this.duration = duration;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getDescription() {
         return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Marker getMarker(String marker) {
@@ -69,12 +69,13 @@ public class ScenarioVerificationPerformance implements ScenarioVerificationBasi
     }
 
     public String getSynthesis() {
-        return "PerformanceCheck [" + fromFlowNode + "("+fromMarker+")] => [" + toFlowNode + "("+toMarker+")] in [" + getDurationInMs() + " ms]";
+        return "PerformanceCheck [" + fromFlowNode + "(" + fromMarker + ")] => [" + toFlowNode + "(" + toMarker + ")] in [" + getDurationInMs() + " ms]";
     }
 
     public String getTypeVerification() {
         return "PERFORMANCE";
     }
+
     public enum Marker {BEGIN, END}
 
 }

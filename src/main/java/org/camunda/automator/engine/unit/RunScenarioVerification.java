@@ -111,12 +111,10 @@ public class RunScenarioVerification {
         if (verificationType.equals(taskType))
             return true;
         // if the verification is just TASK, this open a lot of option (all are considered as task)
-        if (verificationType.equals(ScenarioStep.Step.TASK)
+        return verificationType.equals(ScenarioStep.Step.TASK)
                 && (taskType.equals(ScenarioStep.Step.SERVICETASK)
                 || taskType.equals(ScenarioStep.Step.USERTASK)
-                || taskType.equals(ScenarioStep.Step.SCRIPTTASK)))
-        return true;
-        return false;
+                || taskType.equals(ScenarioStep.Step.SCRIPTTASK));
     }
 
     private void checkVariable(RunScenario runScenario,

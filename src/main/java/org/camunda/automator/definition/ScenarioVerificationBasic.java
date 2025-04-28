@@ -6,6 +6,7 @@ public interface ScenarioVerificationBasic {
 
     /**
      * Return the type of verification
+     *
      * @return
      */
     String getTypeVerification();

@@ -60,7 +60,7 @@ public class ConfigurationStartup {
         try {
             return RunParameters.LOGLEVEL.valueOf(logLevel);
         } catch (Exception e) {
-            logger.error("Unknow LogLevel (automator.startup.loglevel) : [{}} ", logLevel,e);
+            logger.error("Unknow LogLevel (automator.startup.loglevel) : [{}} ", logLevel, e);
             return RunParameters.LOGLEVEL.MONITORING;
         }
     }
@@ -137,7 +137,7 @@ public class ConfigurationStartup {
         try {
             return Duration.parse(waitWarmupServer);
         } catch (Exception e) {
-            logger.error("Can't parse warmup [{}]", waitWarmupServer,e);
+            logger.error("Can't parse warmup [{}]", waitWarmupServer, e);
             return Duration.ZERO;
         }
     }

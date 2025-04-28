@@ -129,7 +129,7 @@ public class RunScenarioUnit {
                     } catch (Exception e) {
                         // nothing to do
                     }
-                     runVerifications();
+                    runVerifications();
                 } else {
                     // use the search criteria
                     if (scnExecution.getVerifications().getSearchProcessInstanceByVariable().isEmpty()) {

@@ -19,7 +19,7 @@ public class ToolboxRest {
     private static final Logger logger = LoggerFactory.getLogger(ToolboxRest.class.getName());
 
     BpmnEngineList bpmnEngineList;
-    private  AutomatorAPI automatorAPI;
+    private final AutomatorAPI automatorAPI;
 
     public ToolboxRest(ConfigurationStartup configurationStartup, ContentManager contentManager,
                        AutomatorAPI automatorAPI, BpmnEngineList bpmnEngineList) {
@@ -27,12 +27,13 @@ public class ToolboxRest {
         this.automatorAPI = automatorAPI;
 
     }
+
     /**
      * Connect to the BPM Engine
      *
      * @param scenario      scenario to use to connect
      * @param runParameters running parameters
-     * @param result result of the connection
+     * @param result        result of the connection
      * @return BPMN Engine
      */
     protected BpmnEngine connectToEngine(Scenario scenario, RunParameters runParameters, Map<String, Object> result) {

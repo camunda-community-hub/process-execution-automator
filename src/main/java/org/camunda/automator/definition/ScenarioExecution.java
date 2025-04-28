@@ -120,6 +120,11 @@ public class ScenarioExecution {
         return name;
     }
 
+    public ScenarioExecution setName(String name) {
+        this.name = name;
+        return this;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -127,12 +132,6 @@ public class ScenarioExecution {
     public void setDescription(String description) {
         this.description = description;
     }
-
-    public ScenarioExecution setName(String name) {
-        this.name = name;
-        return this;
-    }
-
 
     public int getNumberOfThreads() {
         return (numberOfThreads == null ? 1 : numberOfThreads <= 0 ? 1 : numberOfThreads);
@@ -149,12 +148,6 @@ public class ScenarioExecution {
     public boolean isExecution() {
         return execution == null || Boolean.TRUE.equals(execution);
     }
-
-    /**
-     * Decide what to do when an error is find: stop or continue?
-     * default is STOPATFIRSTERROR
-     */
-    public enum Policy {STOPATFIRSTERROR, CONTINUE}
 
     public Map<String, Object> getJson() {
 
@@ -210,7 +203,14 @@ public class ScenarioExecution {
                 ).toList());
         return jsonMap;
     }
+
     private Object getSecureValue(Object info) {
         return info == null ? "" : info;
     }
+
+    /**
+     * Decide what to do when an error is find: stop or continue?
+     * default is STOPATFIRSTERROR
+     */
+    public enum Policy {STOPATFIRSTERROR, CONTINUE}
 }

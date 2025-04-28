@@ -76,7 +76,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     public void init() {
         apiClient = new ApiClient();
         apiClient.setBasePath(serverUrl);
-        if (userName!=null && !userName.trim().isEmpty()) {
+        if (userName != null && !userName.trim().isEmpty()) {
             apiClient.setUsername(userName);
             apiClient.setPassword(password);
         } else {
@@ -107,7 +107,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             engineApi.getProcessEngineNames();
             logger.info("Connection successfully to Camunda7 [{}] ", apiClient.getBasePath());
         } catch (ApiException e) {
-            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.getMessage(),e.getMessage(),e);
+            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.getMessage(), e.getMessage(), e);
             throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e);
         }
     }
@@ -272,7 +272,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
                 .handler((ExternalTaskHandler) jobHandler)
                 .open();
 
-    return registeredTask;
+        return registeredTask;
 
     }
 

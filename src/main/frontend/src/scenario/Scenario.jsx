@@ -12,7 +12,7 @@ import {Button, Card} from "react-bootstrap";
 import RestCallService from "../services/RestCallService";
 import {InlineNotification} from "carbon-components-react";
 import {ArrowRepeat} from "react-bootstrap-icons";
-import {ChevronDown, ChevronRight, DataCheck, IbmKnowledgeCatalogStandard, Timer} from '@carbon/icons-react';
+import {ChevronDown, ChevronRight, DataCheck, IbmKnowledgeCatalogStandard, Timer, TrashCan} from '@carbon/icons-react';
 
 
 class Scenario extends React.Component {
@@ -206,15 +206,24 @@ class Scenario extends React.Component {
                     </div>
                 </div>
 
-                <div className="row" style={{width: "100%"}}>
-                    <div className="col-md-2">
-                        <Button className="btn btn-warning btn-sm"
+                <div className="row" style={{width: "100%", marginTop: "10px"}}>
+                    <div className="col-md-10">
+                        <Button className="btn btn-info btn-sm"
                                 disabled
                                 onClick={() => {
                                     this.startAll()
                                 }}
                                 disabled={true}>
                             Start All tests
+                        </Button>
+                    </div>
+                    <div className="col-md-2">
+                        <Button className="btn btn-danger btn-sm"
+                                onClick={() => {
+                                    this.clearAll()
+                                }}
+                                >
+                            <TrashCan /> Clear all scenario
                         </Button>
                     </div>
                 </div>
@@ -246,6 +255,28 @@ class Scenario extends React.Component {
         restCallService.getJson('/pea/api/unittest/runall?wait=false&server=Camunda8Ruby', this, this.refreshListCallback);
     }
 
+    clearAll () {
+        let uri = 'pea/api/content/clearall?';
+        console.log("TestResult.clearAll http[" + uri + "]");
+
+        this.setDisplayProperty("loading", true);
+        this.setState({status: ""});
+        var restCallService = RestCallService.getInstance();
+        restCallService.putJson(uri, {}, this, this.clearAllCallback);
+    }
+
+    clearAllCallback (httpPayload) {
+        console.log("DashBoard.refreshTestResultCallback");
+
+        this.setDisplayProperty("loading", false);
+        if (httpPayload.isError()) {
+            console.log("TestResult.clearAllCallback: error " + httpPayload.getError());
+            this.setState({status: "Error"});
+        } else {
+            this.setState({scenario: []});
+
+        }
+    }
     toggleDetail(id) {
         const openIds = new Set(this.state.openIds);
 
@@ -256,6 +287,18 @@ class Scenario extends React.Component {
         }
         this.setState({openIds: openIds});
     };
+
+    /**
+     * Set the display property
+     * @param propertyName name of the property
+     * @param propertyValue the value
+     */
+    setDisplayProperty = (propertyName, propertyValue) => {
+        let displayObject = this.state.display;
+        displayObject[propertyName] = propertyValue;
+        this.setState({display: displayObject});
+    }
+
 }
 
 export default Scenario;

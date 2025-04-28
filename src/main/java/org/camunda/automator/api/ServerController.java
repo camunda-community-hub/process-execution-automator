@@ -31,17 +31,14 @@ public class ServerController {
     public static final String JSON_ERRORS = "errors";
     public static final String JSON_MESSAGE = "message";
     public static final String JSON_INFO = "info";
-
-    private static final Logger logger = LoggerFactory.getLogger(ServerController.class.getName());
-
     public static final String JSON_STATUS_V_NOTEXIST = "NOTEXIST";
-    private ConfigurationStartup configurationStartup;
-    private ContentManager contentManager;
-    private AutomatorAPI automatorAPI;
+    private static final Logger logger = LoggerFactory.getLogger(ServerController.class.getName());
     BpmnEngineList bpmnEngineList;
     ToolboxRest toolboxRest;
-
     HashMap<String, Map<String, Object>> cacheExecution = new HashMap<>();
+    private final ConfigurationStartup configurationStartup;
+    private final ContentManager contentManager;
+    private final AutomatorAPI automatorAPI;
 
 
     public ServerController(ConfigurationStartup configurationStartup, ContentManager contentManager,

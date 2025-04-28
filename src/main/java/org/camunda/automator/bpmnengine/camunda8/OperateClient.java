@@ -80,7 +80,7 @@ public class OperateClient {
 
 
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -125,7 +125,7 @@ public class OperateClient {
                     configuration = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper, HttpClients.createDefault());
                 }
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -145,7 +145,7 @@ public class OperateClient {
             analysis.append("successfully, ");
 
         } catch (Exception e) {
-            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(),e);
+            logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
             throw new AutomatorException(
                     "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " Fail : " + e.getMessage());
         }
@@ -202,40 +202,62 @@ public class OperateClient {
      */
     public List<BpmnEngine.TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String filterTaskId, int maxResult)
             throws AutomatorException {
-        try {
-            if (operateClient == null) {
-                throw new AutomatorException("No Operate connection was provided");
+        AutomatorException automatorException = null;
+
+        if (operateClient == null) {
+            throw new AutomatorException("No Operate connection was provided");
+        }
+
+        int retry = 0;
+        while (retry < 3) {
+            retry++;
+            if (retry > 1)
+                logger.info("searchTasksByProcessInstanceId : retry[{}] processInstanceId[{}] taskId[{}]", retry, processInstanceId, filterTaskId);
+            try {
+                // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
+                FlowNodeInstanceFilter flownodeFilter = FlowNodeInstanceFilter.builder()
+                        .processInstanceKey(Long.valueOf(processInstanceId))
+                        .build();
+
+                SearchQuery flowNodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(maxResult).build();
+                // Operate client does not support the multithreading very well (execption in jackson library)
+                List<FlowNodeInstance> flowNodes;
+                synchronized (this) {
+                    flowNodes = operateClient.searchFlowNodeInstances(flowNodeQuery);
+                }
+                return flowNodes.stream()
+                        .filter(t -> filterTaskId == null || filterTaskId.equals(t.getFlowNodeId())) // Filter by name
+                        .map(t -> {
+                            BpmnEngine.TaskDescription taskDescription = new BpmnEngine.TaskDescription();
+                            taskDescription.taskId = t.getFlowNodeId();
+                            taskDescription.processInstanceId = String.valueOf(t.getProcessInstanceKey());
+                            taskDescription.startDate = t.getStartDate() == null ? null : t.getStartDate().getDate();
+                            taskDescription.endDate = t.getEndDate() == null ? null : t.getEndDate().getDate();
+                            taskDescription.type = getTaskType(t.getType()); // to implement
+                            taskDescription.isCompleted = FlowNodeInstanceState.COMPLETED.equals(t.getState()); // to implement
+                            return taskDescription;
+                        }).toList();
+
+            } catch (OperateException e) {
+                logger.error("Can't search TasksByProcessInstanceId: {} retry[{}]", e.getMessage(), retry, e);
+                automatorException = new AutomatorException("Can't search TasksByProcessInstanceId: " + e.getMessage());
+
+            } catch (Exception e) {
+                logger.error("Can't search TasksByProcessInstanceId EXCEPTION NOT EXPECTED: {} retry[{}] ", e.getMessage(), retry, e);
+                automatorException = new AutomatorException("Can't search TasksByProcessInstanceId: " + e.getMessage());
             }
 
-            // impossible to filter by the task name/ task tyoe, so be ready to get a lot of flowNode and search the correct onee
-            FlowNodeInstanceFilter flownodeFilter = FlowNodeInstanceFilter.builder()
-                    .processInstanceKey(Long.valueOf(processInstanceId))
-                    .build();
+            // Give some time to Operate
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
 
-            SearchQuery flowNodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(maxResult).build();
-            List<FlowNodeInstance> flowNodes = operateClient.searchFlowNodeInstances(flowNodeQuery);
-            return flowNodes.stream()
-                    .filter(t -> filterTaskId == null || filterTaskId.equals(t.getFlowNodeId())) // Filter by name
-                    .map(t -> {
-                        BpmnEngine.TaskDescription taskDescription = new BpmnEngine.TaskDescription();
-                        taskDescription.taskId = t.getFlowNodeId();
-                        taskDescription.processInstanceId = String.valueOf(t.getProcessInstanceKey());
-                        taskDescription.startDate = t.getStartDate()==null? null: t.getStartDate().getDate();
-                        taskDescription.endDate = t.getEndDate()==null? null : t.getEndDate().getDate();
-                        taskDescription.type = getTaskType(t.getType()); // to implement
-                        taskDescription.isCompleted = FlowNodeInstanceState.COMPLETED.equals(t.getState()); // to implement
-                        return taskDescription;
-                    }).toList();
-
-        } catch (OperateException e) {
-            logger.error("Can't search FlowNode: {}", e.getMessage(),e);
-            throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
-        }
+        } // end while
         // We must not be here
-        catch (Exception e) {
-            logger.error("Can't search FlowNode EXCEPTION NOT EXPECTED: {} ", e.getMessage(),e);
-            throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
-        }
+        throw automatorException;
+
     }
 
     public List<BpmnEngine.ProcessDescription> searchProcessInstanceByVariable(String processId,
@@ -252,8 +274,11 @@ public class OperateClient {
             SearchQuery processInstanceQuery = new SearchQuery.Builder().filter(processInstanceFilter)
                     .size(maxResult)
                     .build();
-            List<ProcessInstance> listProcessInstances = operateClient.searchProcessInstances(processInstanceQuery);
-
+            // Operate client does not support the multithreading very well (execption in jackson library)
+            List<ProcessInstance> listProcessInstances;
+            synchronized (this) {
+                listProcessInstances = operateClient.searchProcessInstances(processInstanceQuery);
+            }
             List<BpmnEngine.ProcessDescription> listProcessInstanceFind = new ArrayList<>();
             // now, we have to filter based on variableName/value
 
@@ -275,12 +300,12 @@ public class OperateClient {
             }
             return listProcessInstanceFind;
         } catch (OperateException e) {
-            logger.error("Can't search flowNodeByVariable: {} ", e.getMessage(),e);
-            throw new AutomatorException("Can't search flowNodeByVariable " + e.getMessage());
+            logger.error("Can't search searchProcessInstanceByVariable: {} ", e.getMessage(), e);
+            throw new AutomatorException("Can't search searchProcessInstanceByVariable " + e.getMessage());
         }
         // We must not be here
         catch (Exception e) {
-            logger.error("Can't search flowNodeByVariable EXCEPTION NOT EXPECTED: {} ",e.getMessage(),e);
+            logger.error("Can't search flowNodeByVariable EXCEPTION NOT EXPECTED: {} ", e.getMessage(), e);
             throw new AutomatorException("Can't search FlowNode: " + e.getMessage());
         }
     }
@@ -298,19 +323,23 @@ public class OperateClient {
                     .build();
 
             SearchQuery variableQuery = new SearchQuery.Builder().filter(variableFilter).build();
-            List<io.camunda.operate.model.Variable> listVariables = operateClient.searchVariables(variableQuery);
 
+            // Operate client does not support the multithreading very well (execption in jackson library)
+            List<io.camunda.operate.model.Variable> listVariables;
+            synchronized (this) {
+                listVariables = operateClient.searchVariables(variableQuery);
+            }
             Map<String, Object> variables = new HashMap<>();
             listVariables.forEach(t -> variables.put(t.getName(), t.getValue()));
 
             return variables;
         } catch (OperateException e) {
-            logger.error("Can't getVariables: {} ", e.getMessage(),e);
+            logger.error("Can't getVariables: {} ", e.getMessage(), e);
             throw new AutomatorException("Can't search variables task " + e.getMessage());
         }
         // We must not be here
         catch (Exception e) {
-            logger.error("Can't getVariables EXCEPTION NOT EXPECTED: {} ", e.getMessage(),e);
+            logger.error("Can't getVariables EXCEPTION NOT EXPECTED: {} ", e.getMessage(), e);
             throw new AutomatorException("Can't getVariables: " + e.getMessage());
         }
     }
@@ -335,9 +364,11 @@ public class OperateClient {
                 }
                 SearchQuery searchQuery = queryBuilder.build();
                 searchQuery.setSize(SEARCH_MAX_SIZE);
-                searchResult = operateClient.searchProcessInstanceResults(searchQuery);
-
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate()!=null && t.getStartDate().getDate().after(startDate)).count();
+                // Operate client does not support the multithreading very well (execption in jackson library)
+                synchronized (this) {
+                    searchResult = operateClient.searchProcessInstanceResults(searchQuery);
+                }
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate() != null && t.getStartDate().getDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
@@ -371,8 +402,11 @@ public class OperateClient {
                 }
                 SearchQuery searchQuery = queryBuilder.build();
                 searchQuery.setSize(SEARCH_MAX_SIZE);
-                searchResult = operateClient.searchProcessInstanceResults(searchQuery);
-                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate() !=null && t.getStartDate().getDate().after(startDate)).count();
+                // Operate client does not support the multithreading very well (execption in jackson library)
+                synchronized (this) {
+                    searchResult = operateClient.searchProcessInstanceResults(searchQuery);
+                }
+                cumul += searchResult.getItems().stream().filter(t -> t.getStartDate() != null && t.getStartDate().getDate().after(startDate)).count();
 
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
@@ -402,7 +436,10 @@ public class OperateClient {
                 }
                 SearchQuery searchQuery = queryBuilder.build();
                 searchQuery.setSize(SEARCH_MAX_SIZE);
-                searchResult = operateClient.searchFlowNodeInstanceResults(searchQuery);
+                // Operate client does not support the multithreading very well (exception in jackson library)
+                synchronized (this) {
+                    searchResult = operateClient.searchFlowNodeInstanceResults(searchQuery);
+                }
                 cumul += (long) searchResult.getItems().size();
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;

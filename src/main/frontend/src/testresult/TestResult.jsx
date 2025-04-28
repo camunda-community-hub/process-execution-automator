@@ -9,7 +9,7 @@
 import React from 'react';
 
 import {Button, InlineNotification, Tag} from "carbon-components-react";
-import {ChevronDown, ChevronRight, IbmKnowledgeCatalogStandard, DataCheck, Timer } from '@carbon/icons-react';
+import {ChevronDown, ChevronRight, IbmKnowledgeCatalogStandard, DataCheck, Timer, TrashCan } from '@carbon/icons-react';
 
 
 import {Card} from 'react-bootstrap';
@@ -26,7 +26,7 @@ class TestResult extends React.Component {
             testresults: [],
             openIds: new Set(),
             display: {
-                loading: true
+                loading: false
             },
         };
         this.schedule = this.schedule.bind(this);
@@ -194,6 +194,29 @@ class TestResult extends React.Component {
                         </Card>
                     </div>
                 </div>
+
+                <div className="row" style={{width: "100%", marginTop: "10px"}}>
+                    <div className="col-md-10">
+                        <Button className="btn btn-info btn-sm"
+                                disabled
+                                onClick={() => {
+                                    this.startAll()
+                                }}
+                                disabled={true}>
+                            Start All tests
+                        </Button>
+                    </div>
+                    <div className="col-md-2">
+                        <Button className="btn btn-danger btn-sm"
+                                onClick={() => {
+                                    this.clearAll()
+                                }}
+                                disabled={this.state.display.loading}>
+                            <TrashCan /> Clear All test
+                        </Button>
+                    </div>
+
+                </div>
             </div>
         )
 
@@ -219,6 +242,35 @@ class TestResult extends React.Component {
             this.setState({status: "Error"});
         } else {
             this.setState({testresults: httpPayload.getData()});
+
+        }
+    }
+    startAll() {
+        console.log("Definition.refreshList http[/pea/api/unittest/runall]");
+        this.setState({runners: [], status: ""});
+        var restCallService = RestCallService.getInstance();
+        restCallService.getJson('/pea/api/unittest/runall?wait=false&server=Camunda8Ruby', this, this.refreshListCallback);
+    }
+
+    clearAll ()  {
+        let uri = '/pea/api/unittest/clearall?';
+        console.log("TestResult.clearAll http[" + uri + "]");
+
+        this.setDisplayProperty("loading", true);
+        this.setState({status: ""});
+        var restCallService = RestCallService.getInstance();
+        restCallService.putJson(uri, {}, this, this.clearAllCallback);
+    }
+
+    clearAllCallback  (httpPayload) {
+        console.log("DashBoard.refreshTestResultCallback");
+
+        this.setDisplayProperty("loading", false);
+        if (httpPayload.isError()) {
+            console.log("TestResult.clearAllCallback: error " + httpPayload.getError());
+            this.setState({status: "Error"});
+        } else {
+            this.setState({testresults: []});
 
         }
     }
@@ -259,7 +311,6 @@ class TestResult extends React.Component {
 
 
     dateDisplay = (isoDate) => {
-        debugger;
         if (isoDate===null || isoDate==="")
             return "";
         return new Date(isoDate).toLocaleString(); // local timezone

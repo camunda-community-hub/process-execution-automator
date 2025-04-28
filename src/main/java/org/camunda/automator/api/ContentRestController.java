@@ -54,14 +54,14 @@ public class ContentRestController {
         try {
             List<Scenario> listScenario = contentManager.getContentScenario();
             List<Map<String, Object>> listScenarioMap = listScenario.stream()
-                    .map(t->t.getJson(details==null? false : details))
+                    .map(t -> t.getJson(details != null && details))
                     .toList();
             logger.info("ControlRestController/getContentScenario: found {} scenario : {]",
                     listScenario.size(),
                     listScenario.stream()
                             .map(Scenario::getName)
                             .collect(Collectors.joining(", "))
-                    );
+            );
             return listScenarioMap;
         } catch (Exception e) {
             logger.info("ControlRestController/getContentScenario: Error during getContentScenario {} ", e.getMessage());
@@ -73,8 +73,7 @@ public class ContentRestController {
     public void clearAllScenarii() {
         logger.debug("ControlRestController/clearAllScenarii: start");
         try {
-             contentManager.clearAll();
-            ;
+            contentManager.clearAll();
         } catch (Exception e) {
             logger.info("ControlRestController/clearAllScenarii: Error during clear {} ", e.getMessage());
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error during Content : " + e.getMessage());

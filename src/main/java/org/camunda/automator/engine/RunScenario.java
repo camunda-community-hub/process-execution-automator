@@ -59,7 +59,7 @@ public class RunScenario {
      * @return tue result object
      */
     public RunResult executeTheScenario(String executionId) {
-        RunResult result = new RunResult(this,executionId);
+        RunResult result = new RunResult(this, executionId);
 
         // control
         if (scenario.typeScenario == null) {
@@ -106,7 +106,7 @@ public class RunScenario {
      * @return result of deployment
      */
     protected RunResult executeDeployment(String executionId) {
-        RunResult result = new RunResult(this,executionId);
+        RunResult result = new RunResult(this, executionId);
 
         // first, do we have to deploy something?
         if (scenario.getDeployments() != null) {

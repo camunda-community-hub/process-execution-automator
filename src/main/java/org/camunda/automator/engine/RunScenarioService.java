@@ -11,7 +11,10 @@ import org.camunda.automator.services.ServiceAccess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class RunScenarioService {
@@ -21,7 +24,7 @@ public class RunScenarioService {
 
 
     public String createExecutionId(Scenario scenario) {
-        return System.currentTimeMillis() + "."+scenario.getName();
+        return System.currentTimeMillis() + "." + scenario.getName();
     }
 
 
@@ -33,7 +36,7 @@ public class RunScenarioService {
         if (asynchronous) {
             // Create now he executionId
             RunScenario runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-            runResult = new RunResult(runScenario,executionId );
+            runResult = new RunResult(runScenario, executionId);
             runResult.setStartDate(new Date());
             cacheRunScenario.put(executionId, runResult);
 
@@ -47,13 +50,14 @@ public class RunScenarioService {
         return runResult;
     }
 
-        /**
-         * Execute a test
-         * @param bpmnEngine
-         * @param runParameters
-         * @param scenario
-         * @return
-         */
+    /**
+     * Execute a test
+     *
+     * @param bpmnEngine
+     * @param runParameters
+     * @param scenario
+     * @return
+     */
     private RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
         String executionId = createExecutionId(scenario);
 
@@ -65,7 +69,7 @@ public class RunScenarioService {
         try {
             runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
         } catch (Exception e) {
-            RunResult runResult = new RunResult(runScenario,executionId);
+            RunResult runResult = new RunResult(runScenario, executionId);
             runResult.addError(null, "Initialization error");
             cacheRunScenario.put(executionId, runResult);
 
@@ -77,7 +81,7 @@ public class RunScenarioService {
         runResult.setStartDate(new Date());
         cacheRunScenario.put(executionId, runResult);
 
-        runResult.merge( runScenario.executeTheScenario(executionId));
+        runResult.merge(runScenario.executeTheScenario(executionId));
         return runResult;
     }
 
@@ -96,7 +100,7 @@ public class RunScenarioService {
     }
 
 
-        public RunResult getFromExecutionId(String executionId) {
+    public RunResult getFromExecutionId(String executionId) {
         return cacheRunScenario.get(executionId);
     }
 
@@ -106,5 +110,9 @@ public class RunScenarioService {
 
     public RunResult getByExecutionId(String executionId) {
         return cacheRunScenario.get(executionId);
+    }
+
+    public void clearAll() {
+        cacheRunScenario.clear();
     }
 }

@@ -22,7 +22,7 @@ public class RunResult {
     public static final String JSON_RESULT = "result";
     public static final String JSON_SCENARIO_NAME = "scenarioName";
     public static final String JSON_SERVER_NAME = "serverName";
-    public static final String JSON_DESCRIPTION= "description";
+    public static final String JSON_DESCRIPTION = "description";
     public static final String JSON_ID = "id";
     public static final String JSON_STATUS = "status";
     public static final String JSON_GENERAL_STATUS = "generalStatus";
@@ -38,7 +38,7 @@ public class RunResult {
     public static final String JSON_STATUS_V_INPROGRESS = "INPROGRESS";
     public static final String JSON_START_DATE = "startDate";
     public static final String JSON_END_DATE = "endDate";
-    public static final String JSON_TYPEVERIFICATION ="typeVerification";
+    public static final String JSON_TYPEVERIFICATION = "typeVerification";
 
     /**
      * Scenario attached to this execution
@@ -72,7 +72,7 @@ public class RunResult {
     private long timeExecution;
     private Date startDate;
     private Date endDate;
-    private String executionId;
+    private final String executionId;
 
     public RunResult(RunScenario runScenario, String executionId) {
         this.runScenario = runScenario;
@@ -209,8 +209,9 @@ public class RunResult {
 
     /**
      * Merge the result in this result
-     *
+     * <p>
      * The merge does not merge the executionId. The current one is the main one
+     *
      * @param runResult the result object
      */
     public void merge(RunResult runResult) {
@@ -233,10 +234,10 @@ public class RunResult {
             listDetailsSteps.addAll(runResult.listDetailsSteps);
             listProcessInstancesId.addAll(runResult.listProcessInstancesId);
         }
-        if (startDate==null)
-            startDate=runResult.getStartDate();
-        if (endDate==null)
-            endDate=runResult.getEndDate();
+        if (startDate == null)
+            startDate = runResult.getStartDate();
+        if (endDate == null)
+            endDate = runResult.getEndDate();
     }
 
     /**
@@ -392,11 +393,11 @@ public class RunResult {
     /**
      * @return result ready for a JSON format
      */
-    public Map<String, Object> getJson( boolean shortDescription) {
+    public Map<String, Object> getJson(boolean shortDescription) {
         Map<String, Object> resultMap = new HashMap<>();
 
-        if (! isFinished())
-            resultMap.put(JSON_RESULT,"");
+        if (!isFinished())
+            resultMap.put(JSON_RESULT, "");
         else
             resultMap.put(JSON_RESULT, isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
 
@@ -442,6 +443,7 @@ public class RunResult {
         resultMap.put("tests", listVerificationsJson);
         return resultMap;
     }
+
     /**
      * Return "" if info is null: in a Map.of(), a null pointer return an exception
      *

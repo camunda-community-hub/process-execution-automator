@@ -212,7 +212,7 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
             } catch (Exception e) {
                 logger.error("Error task[{}] PI[{}] : {}", flowServiceTask.getId(),
                         (externalTask != null ? externalTask.getProcessDefinitionKey() : activatedJob.getProcessInstanceKey()),
-                        e.getMessage(),e);
+                        e.getMessage(), e);
 
                 flowServiceTask.runResult.registerAddErrorStepExecution();
 

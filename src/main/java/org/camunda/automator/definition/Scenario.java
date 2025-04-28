@@ -8,8 +8,6 @@ package org.camunda.automator.definition;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * the Scenario Head group a scenario definition
@@ -69,7 +66,7 @@ public class Scenario {
             scenario.afterUnSerialize();
             return scenario;
         } catch (Exception e) {
-            logger.error("Scenario: can't unparse Json content [{}] : {}", jsonContent,e.getMessage(),e);
+            logger.error("Scenario: can't unparse Json content [{}] : {}", jsonContent, e.getMessage(), e);
             throw new AutomatorException("Scenario: can't unparse GSon file:" + e.getMessage());
         }
     }
@@ -183,7 +180,7 @@ public class Scenario {
         try {
             return new File(scenarioFile);
         } catch (Exception e) {
-            logger.error("Can't access file [{}] : {} ", scenarioFile, e.getMessage(),e);
+            logger.error("Can't access file [{}] : {} ", scenarioFile, e.getMessage(), e);
             return null;
         }
     }
@@ -204,12 +201,13 @@ public class Scenario {
 
     /**
      * Return JSON information for the scenario
+     *
      * @param details
      * @return
      */
-    public Map<String, Object> getJson( boolean details ) {
+    public Map<String, Object> getJson(boolean details) {
         HashMap jsonMap = new HashMap();
-        jsonMap.putAll( Map.of("name", name == null ? "" : name,//
+        jsonMap.putAll(Map.of("name", name == null ? "" : name,//
                 "server", serverName == null ? "" : serverName, //
                 "serverType", serverType == null ? "" : serverType, //
                 "processId", processId == null ? "" : processId, //
