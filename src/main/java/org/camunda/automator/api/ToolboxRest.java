@@ -80,12 +80,14 @@ public class ToolboxRest {
                 pleaseTryAgain = true;
                 message += "EXCEPT " + e.getMessage();
             }
-            if (pleaseTryAgain && countEngineIsNotReady < 10) {
+            if (pleaseTryAgain && countEngineIsNotReady < 5) {
                 logger.info(
                         "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}]",
                         message, countEngineIsNotReady, scenario.getName(), scenario.getName(), scenario.getServerName());
                 try {
-                    Thread.sleep(((long) 1000) * 30);
+                    logger.info("Sleep 10 s - wait the engine start");
+                    Thread.sleep(((long) 1000) * 10);
+                    logger.info("Wake up");
                 } catch (InterruptedException e) {
                     // nothing to do
                 }

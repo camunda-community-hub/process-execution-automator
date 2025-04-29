@@ -270,13 +270,13 @@ public class ScenarioStep {
     public String getSynthesis() {
         String traceVariables = "";
         if (getVariables() != null)
-            traceVariables += "Variables:" + getVariables().entrySet().stream()
+            traceVariables += "Variables: [" + getVariables().entrySet().stream()
                     .map(entry -> entry.getKey() + ":" + entry.getValue())
-                    .collect(Collectors.joining(";"));
+                    .collect(Collectors.joining(";"))+"] ";
         if (getVariablesOperations() != null)
-            traceVariables += "VariablesOperation:" + getVariablesOperations().entrySet().stream()
+            traceVariables += "VariablesOperation: [" + getVariablesOperations().entrySet().stream()
                     .map(entry -> entry.getKey() + ":" + entry.getValue())
-                    .collect(Collectors.joining(";"));
+                    .collect(Collectors.joining(";"))+"]";
         return
                 switch (getType()) {
                     case SERVICETASK ->

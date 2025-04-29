@@ -16,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("pea")
@@ -124,10 +121,16 @@ public class UnitTestController {
     public List<Map<String, Object>> getListUnitTest(@RequestParam(name = "details", required = false) Boolean details) {
         logger.info("UnitTestController.GetListUnitTest details:[{}]", details);
         List<Map<String, Object>> listUnitTest = new ArrayList<>();
-        for (RunResult runResult : runScenarioService.getRunResult()) {
+
+        List<RunResult> sortedList = runScenarioService.getRunResult().stream()
+                .sorted(Comparator.comparing(RunResult::getStartDate, Comparator.nullsLast(Date::compareTo)))
+                .toList();
+
+        for (RunResult runResult : sortedList) {
             listUnitTest.add(runResult.getJson(details == null || Boolean.FALSE.equals(details))
             );
         }
+
         return listUnitTest;
     }
 

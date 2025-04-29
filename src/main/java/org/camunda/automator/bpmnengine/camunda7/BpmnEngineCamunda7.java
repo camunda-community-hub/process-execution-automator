@@ -402,9 +402,11 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         VariableInstanceQueryDto variableQuery = new VariableInstanceQueryDto();
         variableQuery.processInstanceIdIn(List.of(processInstanceId));
         try {
-            List<VariableInstanceDto> variableInstanceDtos = variableInstanceApi.queryVariableInstances(0, 1000, true,
-                    variableQuery);
-
+            List<VariableInstanceDto> variableInstanceDtos;
+            synchronized (this) {
+                variableInstanceDtos = variableInstanceApi.queryVariableInstances(0, 1000, true,
+                        variableQuery);
+            }
             Map<String, Object> variables = new HashMap<>();
             for (VariableInstanceDto variable : variableInstanceDtos) {
                 variables.put(variable.getName(), variable.getValue());

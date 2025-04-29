@@ -267,7 +267,24 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     @Override
     public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
             throws AutomatorException {
-        return taskListClient.searchUserTasksByProcessInstance(processInstanceId, userTaskId, maxResult);
+        AutomatorException automatorException;
+        try {
+            return taskListClient.searchUserTasksByProcessInstance(processInstanceId, userTaskId, maxResult);
+
+        } catch (AutomatorException e) {
+            automatorException = e;
+        }
+        // Try by Operate
+        try {
+            logger.info("TaskList failed, search by Operate");
+            List<BpmnEngine.TaskDescription> listTask = operateClient.searchTasksByProcessInstanceId(processInstanceId, userTaskId, 100);
+            return listTask.stream().map(t->t.taskId).toList();
+
+        } catch (AutomatorException e) {
+            // Throw the TaskList exception
+            logger.error("Operate search failed too, return the TaskList exception. OperateException: ", e);
+            throw automatorException;
+        }
     }
 
     @Override

@@ -104,6 +104,9 @@ public class TaskListClient {
             taskListBuilder.useZeebeUserTasks();
             taskClient = taskListBuilder.build();
 
+            // Check the connection
+            // TaskList taskList= taskClient.getTasks(false,TaskState.CREATED, false, new Pagination().setPageSize(1));
+
             analysis.append("successfully, ");
             lastCallToTaskList = System.currentTimeMillis();
 

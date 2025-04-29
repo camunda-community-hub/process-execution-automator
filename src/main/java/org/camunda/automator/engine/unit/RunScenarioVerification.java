@@ -145,9 +145,10 @@ public class RunScenarioVerification {
                     // None of them is null here
                     isSuccess = value.toString().equals(verificationActivity.value.toString());
                 }
-            } else
+            } else {
+                message.append("] variable does not exist");
                 isSuccess = false;
-
+            }
             message.append("] status: ");
             message.append(isSuccess);
 
