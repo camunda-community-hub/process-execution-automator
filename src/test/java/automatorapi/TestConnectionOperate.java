@@ -38,7 +38,7 @@ public class TestConnectionOperate {
                     URI.create(
                                     "http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token")
                             .toURL();
-// bootstrapping
+
             JwtCredential credentials =
                     new JwtCredential(clientId, clientSecret, audience, authUrl, scope);
             ObjectMapper objectMapper = new ObjectMapper();
@@ -48,6 +48,8 @@ public class TestConnectionOperate {
                             authentication, operateUrl, objectMapper, HttpClients.createDefault());
             CamundaOperateClient operateClient = new CamundaOperateClient(configuration);
 
+
+            // Ok, fine, now search
             FlowNodeInstanceFilter flownodeFilter = FlowNodeInstanceFilter.builder()
                     .processInstanceKey(Long.valueOf(3444))
                     .build();
@@ -59,7 +61,7 @@ public class TestConnectionOperate {
 
 
         } catch (Exception e) {
-            logger.error("LocalTest: error during initialization {}", e.getMessage(), e);
+            logger.error("LocalTest: error during executing query {}", e.getMessage(), e);
         }
     }
 }
