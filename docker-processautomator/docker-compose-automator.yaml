@@ -7,7 +7,7 @@ services:
     ports:
       - "8380:8380"
     environment:
-      - automator.servers.camunda8.zeebeGatewayAddress=zeebe:26500
+      - automator.servers.camunda8.zeebeGrpcGatewayAddress=zeebe:26500
       - automator.servers.camunda8.operateUserName=demo
       - automator.servers.camunda8.operateUserPassword=demo
       - automator.servers.camunda8.operateUrl=http://operate:8080
@@ -38,7 +38,7 @@ services:
     ports:
       - "8381:8380"
     environment:
-      - automator.servers.camunda8.zeebeGatewayAddress=zeebe:26500
+      - automator.servers.camunda8.zeebeGrpcGatewayAddress=zeebe:26500
       - automator.servers.camunda8.operateUserName=demo
       - automator.servers.camunda8.operateUserPassword=demo
       - automator.servers.camunda8.operateUrl=http://operate:8080

@@ -79,7 +79,7 @@
         <dependency>
             <groupId>io.camunda.spring</groupId>
             <artifactId>java-client-operate</artifactId>
-            <version>8.6.3</version>
+            <version>8.6.5</version>
         </dependency>
 
 
@@ -92,7 +92,7 @@
         <dependency>
             <groupId>io.camunda</groupId>
             <artifactId>camunda-tasklist-client-java</artifactId>
-            <version>8.6.6</version>
+            <version>8.6.10</version>
         </dependency>
 
         <!-- Camunda 7 -->

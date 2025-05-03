@@ -2,6 +2,7 @@ package org.camunda.automator.api;
 
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
+import org.camunda.automator.configuration.ConfigurationServersEngine;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
@@ -48,19 +49,21 @@ public class UnitTestController {
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
     private final RunScenarioService runScenarioService;
-
-    ToolboxRest toolboxRest;
+    private final ConfigurationServersEngine configurationServersEngine;
+    private final ToolboxRest toolboxRest;
 
     public UnitTestController(ConfigurationStartup configurationStartup,
                               ContentManager contentManager,
                               AutomatorAPI automatorAPI,
                               ToolboxRest toolboxRest,
-                              RunScenarioService runScenarioService) {
+                              RunScenarioService runScenarioService,
+                              ConfigurationServersEngine configurationServersEngine) {
         this.configurationStartup = configurationStartup;
         this.contentManager = contentManager;
         this.automatorAPI = automatorAPI;
         this.toolboxRest = toolboxRest;
         this.runScenarioService = runScenarioService;
+        this.configurationServersEngine = configurationServersEngine;
     }
 
     @PostMapping(value = "/api/unittest/run", produces = "application/json")
@@ -140,7 +143,8 @@ public class UnitTestController {
         runScenarioService.clearAll();
     }
 
-    private Map<String, Object> startTest(String scenarioName, String serverName,
+    private Map<String, Object> startTest(String scenarioName,
+                                          String serverName,
                                           boolean asynchronous) {
         Map<String, Object> resultMap = new HashMap<>();
         resultMap.put(JSON_SCENARIO_FILE_NAME, scenarioName);
@@ -153,20 +157,23 @@ public class UnitTestController {
         } catch (AutomatorException ae) {
             logger.error("Error during accessing InputStream from scenarioName [{}]: {}", scenarioName,
                     ae.getMessage(), ae);
-            resultMap.put(JSON_STATUS, JSON_STATUS_V_NOTEXIST);
+            resultMap.put(JSON_RESULT, JSON_STATUS_V_NOTEXIST);
             return resultMap;
         }
 
 
         RunParameters runParameters = new RunParameters();
+        String runServerName=serverName == null ? configurationStartup.getServerName() : serverName;
+        resultMap.put(JSON_SERVER_NAME, runServerName);
         runParameters.setExecution(true)
-                .setServerName(serverName == null ? configurationStartup.getServerName() : serverName)
+                .setServerName(runServerName)
                 .setLogLevel(configurationStartup.getLogLevelEnum());
         BpmnEngine bpmnEngine = toolboxRest.connectToEngine(scenario, runParameters, resultMap);
         if (bpmnEngine == null) {
             logger.error("Scenario [{}] Server [{}] No BPM ENGINE running.", scenario.getName(),
                     runParameters.getServerName());
-            resultMap.put(JSON_STATUS, JSON_STATUS_V_NOBPMNSERVER);
+            resultMap.put(JSON_MESSAGE, "No BPM ENGINE running from ["+runServerName+"]");
+            resultMap.put(JSON_RESULT, JSON_STATUS_V_NOBPMNSERVER);
             return resultMap;
         }
         bpmnEngine.turnHighFlowMode(false);

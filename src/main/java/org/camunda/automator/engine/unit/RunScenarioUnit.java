@@ -123,8 +123,8 @@ public class RunScenarioUnit {
                 if (runParameters.isExecution()) {
                     // we just finish executing process instance, so wait 30 S to let the engine finish
                     try {
-                        logger.info("Wait 10 s to let Operate collect data");
-                        Thread.sleep(10 * 1000);
+                        logger.info("Wait {} s to let Operate collect data",scnExecution.getWaitForOperateImport());
+                        Thread.sleep(scnExecution.getWaitForOperateImport() * 1000);
 
                     } catch (Exception e) {
                         // nothing to do

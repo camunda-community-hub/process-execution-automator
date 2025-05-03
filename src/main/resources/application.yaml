@@ -15,7 +15,7 @@ automator:
 
   startup:
     # give the server to run all tests at startup. The name must be registered in the list of server after
-    serverName: Camunda8Ruby
+    serverName: Camunda8Topaz
 
     scenarioPath:
     # list of scenario separate by ;
@@ -49,8 +49,7 @@ automator:
   # <name>,CAMUNDA_8_SAAS,zeebeCloudRegion,zeebeCloudClusterId,zeebeCloudClientId,
   #          zeebeCloudOAuthUrl,zeebeCloudAudience,clientSecret,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive
 
-  serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest; \
-    Camunda8Safir,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
+  serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Tanzanite,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
 
   # other way to provide the list of server connection
   serversList:
@@ -59,18 +58,67 @@ automator:
       url: "http://localhost:8080/engine-rest"
       workerMaxJobsActive: 1
 
+    # -------------------------------------------------------------------
+    # ----- Camunda 8 LocalHost
+    # Camunda8Ruby: no identity
+    # Camunda8Lazuli: with identity
+    # ----- Camunda 8 cluster
+    # Camunda8Topaz: no identity
+    # Camunda8Sapphire: cluster, with identity
+    #
+    # ----- Camunda 8 Saas
+    # Camunda8Grena : SaaS
+    #
+    # ----- easy to configure
+    # Camunda8Calcair: configure via automator.servers.camunda8.XXX
+    # -------------------------------------------------------------------
     - name: "Camunda8Ruby"
       type: "camunda8"
       description: "Simple authentication, localhost"
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeGrpcAddress: "http://localhost:26500"
       zeebeRestAddress: "http://localhost:9600"
+      zeebeClientId: ""
+      zeebeClientSecret: ""
+      authenticationUrl: ""
+      zeebeAudience: "zeebe"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
+
+
+    # LocalHost + Identity
+    - name: "Camunda8Lazuli"
+      type: "camunda8"
+      description: "A Zeebe+Identity server"
+      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcAddress: "http://localhost:26500"
+      zeebeRestAddress: "http://localhost:9600"
+      zeebeClientId: "zeebe"
+      zeebeClientSecret: "FsWEvP8S96"
+      authenticationUrl: "http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token"
+      zeebeAudience: "zeebe"
+      zeebePlainText: true
+
+      operateClientId: "operate"
+      operateClientSecret: "XhB0HZub9B"
+      operateUserName: "demo"
+      operateUserPassword: "demo"
+      operateUrl: "http://localhost:8081"
+
+      taskListClientId: "tasklist"
+      taskListClientSecret: "yrsX5qkt5z"
+      taskListUserName: "demo"
+      taskListUserPassword: "demo"
+      taskListUrl: "http://localhost:8082"
+      taskListKeycloakUrl: "http://35.237.139.124:8080/auth/realms/camunda-platform"
+
       workerExecutionThreads: 200
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
@@ -92,42 +140,31 @@ automator:
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
-    # LocalHost + Identity
-    - name: "Camunda8Lazuli"
+    - name: "Camunda8Sapphire"
       type: "camunda8"
-      description: "A Zeebe+Identity server"
-      zeebeGatewayAddress: "127.0.0.1:26500"
-      zeebeGrpcAddress: "http://localhost:26500"
-      zeebeRestAddress: "http://localhost:9600"
+      description: "Hybernetes+Identity server"
+      zeebeGatewayAddress: "camunda-zeebe-gateway:26500"
+      zeebeGrpcAddress: "http://camunda-zeebe-gateway:26500"
+      zeebeRestAddress: "http://camunda-zeebe-gateway:9600"
       zeebeClientId: "zeebe"
       zeebeClientSecret: "LHwdAq56bZ"
       zeebeAudience: "zeebe"
       zeebePlainText: true
       authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
 
-      operateClientId: "operate"
-      operateClientSecret: "Ns0ZGTrm24"
       operateUserName: "demo"
       operateUserPassword: "demo"
-      operateUrl: "http://localhost:8081"
+      operateUrl: "http://camunda-operate:80"
+      operateClientId: "operate"
+      operateClientSecret: "Ns0ZGTrm24"
 
-      taskListClientId: "tasklist"
-      taskListClientSecret: "DCjtjiIwmd"
       taskListUserName: "demo"
       taskListUserPassword: "demo"
-      taskListUrl: "http://localhost:8082"
+      taskListUrl: "http://camunda-tasklist:80"
+      taskListClientId: "tasklist"
+      taskListClientSecret: "DCjtjiIwmd"
       taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
 
-      workerExecutionThreads: 200
-      # -1 means : align the jobsActive to the workerExecutionThreads
-      workerMaxJobsActive: -1
-
-    - name: "Camunda8ZeebeOnly"
-      type: "camunda8"
-      zeebeGatewayAddress: "127.0.0.1:26500"
-      zeebeGrpcAddress: "http://127.0.0.1:26500"
-      zeebeRestAddress: "http://localhost:9600"
-      zeebePlainText: true
       workerExecutionThreads: 200
       # -1 means : align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
@@ -155,17 +192,26 @@ automator:
       taskListClientId: "H5uyrOHGkG8C8S~FlbA3EWsWsyzXP8mr"
       taskListClientSecret: ".7~Lhx0~dntq5hfRc0kbD_5iZLyWWIZ6ZZXbg.LG5snMYIDIaaCDtj8~r~dq.yxk"
 
-  # This definition is very simple to use in the K8 definition, because one variable can be override
+
+  # This definition is very simple to use in the K8 definition, because one variable can be overide
   servers:
+
     camunda7:
       name: "Camunda7Granit"
       url: "http://localhost:8080/engine-rest"
+      description: "Camunda 7 easy modifiable by environment variable"
       workerMaxJobsActive: 1
 
     camunda8:
       name: "Camunda8Calcair"
+      description: "Camunda 8 easy modifiable by environment variable"
       zeebeGatewayAddress: "127.0.0.1:26500"
-      zeebeGrpcAddress2: "http://127.0.0.1:26500"
+      zeebeGrpcAddress: "http://localhost:26500"
+      zeebeClientId: ""
+      zeebeClientSecret: ""
+      authenticationUrl: ""
+      zeebePlainText: true
+      zeebeAudience: "zeebe"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
@@ -177,9 +223,10 @@ automator:
       workerMaxJobsActive: -1
 
     camunda8Saas:
-      name: "Camunda8Marbble"
+      name: "Camunda8Marble"
+      description: "Camunda 8 SaaS easy modifiable by environment variable"
       workerExecutionThreads: 200
-      # -1 means : align the jobsActive to the workerExecutionThreads
+      # -1 means: align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
       operateUserName: "demo"
@@ -187,9 +234,9 @@ automator:
 
       region: "bru-2"
       clusterId: "45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
-      clientId: "MmM-SXhFH0vjYUil8y6uwHReObcIl7eX"
-      secret: "8u8ofInkS78lnGNrqvZEgUZ7dKFDfWxmTS-L~0_Pizy9dL7uZH5HHwQHfmXV54g4"
-      oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
+      zeebeClientId: "MmM-SXhFH0vjYUil8y6uwHReObcIl7eX"
+      zeebeClientSecret: "8u8ofInkS78lnGNrqvZEgUZ7dKFDfWxmTS-L~0_Pizy9dL7uZH5HHwQHfmXV54g4"
+      authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
       audience: "zeebe.camunda.io"
       operateUrl: "https://bru-2.operate.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
       taskListUrl: "https://bru-2.tasklist.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"

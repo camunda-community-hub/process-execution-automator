@@ -14,6 +14,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {Container, Nav, Navbar} from 'react-bootstrap';
 import TestResult from "./testresult/TestResult";
 import Scenario from "./scenario/Scenario";
+import Server from "./server/Server";
 import Parameters from "./parameters/Parameters";
 import HeaderMessage from "./HeaderMessage/HeaderMessage";
 import RestCallService from "./services/RestCallService";
@@ -21,6 +22,7 @@ import RestCallService from "./services/RestCallService";
 const FRAME_NAME = {
     TESTRESULT: "TestResult",
     SCENARIO: "Scenario",
+    SERVER: "Servers",
     PARAMETERS: "Parameters"
 
 }
@@ -70,6 +72,11 @@ class PeaApp extends React.Component {
 
 
                             <Nav.Link onClick={() => {
+                                this.clickMenu(FRAME_NAME.SERVER)
+                            }}>{FRAME_NAME.SERVER}</Nav.Link>
+
+
+                            <Nav.Link onClick={() => {
                                 this.clickMenu(FRAME_NAME.PARAMETERS)
                             }}>{FRAME_NAME.PARAMETERS}</Nav.Link>
 
@@ -82,6 +89,9 @@ class PeaApp extends React.Component {
                 }
                 {
                     this.state.frameContent === FRAME_NAME.SCENARIO && <Scenario/>
+                }
+                {
+                    this.state.frameContent === FRAME_NAME.SERVER && <Server/>
                 }
                 {
                     this.state.frameContent === FRAME_NAME.PARAMETERS && <Parameters/>

@@ -432,7 +432,7 @@ public class RunResult {
                     .toList());
             recordResult.put(JSON_ERRORS, runResultUnit.getListErrors().stream()
                     .map(t -> { //
-                        return Map.of(JSON_ID, t.step.getId(), //
+                        return Map.of(JSON_ID, t.step!=null? t.step.getId(): "", //
                                 JSON_MESSAGE, t.explanation //
                         );
                     })//

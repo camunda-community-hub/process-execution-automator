@@ -130,6 +130,7 @@ class TestResult extends React.Component {
                                                                     </td>
                                                                     <td>
                                                                         ProcessInstance: {test.processInstancesId}
+                                                                        Server: {this.state.testresults.serverName}
                                                                     </td>
                                                                     <td style={{textAlign: 'right'}}>
                                                                         {test.result === "SUCCESS" &&

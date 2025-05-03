@@ -7,23 +7,21 @@ import org.camunda.automator.configuration.BpmnEngineList;
  */
 public class BpmnEngineConfigurationInstance {
 
-    public static BpmnEngineList getZeebeSaas(String zeebeGatewayAddress, Boolean zeebePlainText) {
+    public static BpmnEngineList getZeebeSaas(String name, String description, String zeebeGrpcGatewayAddress, Boolean zeebePlainText) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-        serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
-        serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8);
+        serverDefinition.zeebeGrpcAddress = zeebeGrpcGatewayAddress;
         serverDefinition.zeebePlainText = zeebePlainText;
 
         bpmEngineConfiguration.addExplicitServer(serverDefinition);
         return bpmEngineConfiguration;
     }
 
-    public static BpmnEngineList getCamunda7(String serverUrl) {
+    public static BpmnEngineList getCamunda7(String name, String description, String serverUrl) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-        serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_7;
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_7);
         serverDefinition.camunda7ServerUrl = serverUrl;
 
         bpmEngineConfiguration.addExplicitServer(serverDefinition);
@@ -31,12 +29,11 @@ public class BpmnEngineConfigurationInstance {
         return bpmEngineConfiguration;
     }
 
-    public static BpmnEngineList getCamunda8(String zeebeGatewayAddress, String zeebeGrpcAddress, String zeebeRestAddress) {
+    public static BpmnEngineList getCamunda8(String name, String description, String zeebeGrpcAddress, String zeebeRestAddress) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-        serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
-        serverDefinition.zeebeGatewayAddress = zeebeGatewayAddress;
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8);
+        serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
         serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
         serverDefinition.zeebeRestAddress = zeebeRestAddress;
 
@@ -45,14 +42,15 @@ public class BpmnEngineConfigurationInstance {
         return bpmEngineConfiguration;
     }
 
-    public static BpmnEngineList getCamundaSaas8(String zeebeCloudRegister,
+    public static BpmnEngineList getCamundaSaas8(String name,
+                                                 String description,
+                                                 String zeebeCloudRegister,
                                                  String zeebeCloudRegion,
                                                  String zeebeCloudClusterId,
                                                  String zeebeCloudClientId) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-        serverDefinition.serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description,BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
         serverDefinition.zeebeSaasRegion = zeebeCloudRegion;
         serverDefinition.zeebeSaasClusterId = zeebeCloudClusterId;
         serverDefinition.zeebeClientId = zeebeCloudClientId;
@@ -65,8 +63,7 @@ public class BpmnEngineConfigurationInstance {
     public static BpmnEngineList getDummy() {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = new BpmnEngineList.BpmnServerDefinition();
-        serverDefinition.serverType = BpmnEngineList.CamundaEngine.DUMMY;
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance("Dummy", "Dummy instance",BpmnEngineList.CamundaEngine.DUMMY);
 
         bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

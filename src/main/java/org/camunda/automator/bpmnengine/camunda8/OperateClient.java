@@ -4,8 +4,10 @@ package org.camunda.automator.bpmnengine.camunda8;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.CamundaOperateClientConfiguration;
-import io.camunda.operate.auth.*;
-import io.camunda.operate.auth.TokenResponseMapper.JacksonTokenResponseMapper;
+import io.camunda.operate.auth.JwtAuthentication;
+import io.camunda.operate.auth.JwtCredential;
+import io.camunda.operate.auth.SimpleAuthentication;
+import io.camunda.operate.auth.SimpleCredential;
 import io.camunda.operate.exception.OperateException;
 import io.camunda.operate.model.*;
 import io.camunda.operate.search.*;
@@ -72,8 +74,8 @@ public class OperateClient {
                 JwtCredential credentials =
                         new JwtCredential(serverDefinition.zeebeClientId, serverDefinition.zeebeClientSecret, "operate.camunda.io", authUrl, null);
                 ObjectMapper objectMapper = new ObjectMapper();
-                TokenResponseMapper tokenResponseMapper = new JacksonTokenResponseMapper(objectMapper);
-                JwtAuthentication authentication = new JwtAuthentication(credentials, tokenResponseMapper);
+                // TokenResponseMapper tokenResponseMapper = new JacksonTokenResponseMapper(objectMapper);
+                JwtAuthentication authentication = new JwtAuthentication(credentials);
                 configuration =
                         new CamundaOperateClientConfiguration(
                                 authentication, operateUrl, objectMapper, HttpClients.createDefault());
@@ -89,46 +91,63 @@ public class OperateClient {
             //---------------------------- Camunda 8 Self Manage
         } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
 
-            isOk = engineCamunda8.stillOk(serverDefinition.zeebeGatewayAddress, "GatewayAddress", analysis, true, true, isOk);
+            isOk = engineCamunda8.stillOk(serverDefinition.zeebeGrpcAddress, "GatewayAddress", analysis, true, true, isOk);
 
-            try {
-                if (serverDefinition.isAuthenticationUrl()) {
-                    isOk = engineCamunda8.stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
-                    isOk = engineCamunda8.stillOk(serverDefinition.operateClientId, "operateClientId", analysis, true, true, isOk);
-                    isOk = engineCamunda8.stillOk(serverDefinition.operateClientSecret, "operateClientSecret", analysis, true, false, isOk);
 
-                    String scope = "";
-                    URL authUrl =
-                            URI.create(
-                                            "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token")
-                                    .toURL();
-                    URL operateUrl = URI.create(serverDefinition.operateUrl).toURL();
+            if (serverDefinition.isAuthenticationUrl()) {
+                isOk = engineCamunda8.stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.operateClientId, "operateClientId", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.operateClientSecret, "operateClientSecret", analysis, true, false, isOk);
+
+                String scope = "";
+                if (!isOk) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
+                }
+
+                try {
+                    URL operateURL = URI.create(serverDefinition.operateUrl).toURL();
+                    URL authenticationURL = URI.create(serverDefinition.authenticationUrl).toURL();
                     // bootstrapping
                     JwtCredential credentials =
-                            new JwtCredential(serverDefinition.operateClientId, serverDefinition.operateClientSecret, "operate-api", authUrl, scope);
+                            new JwtCredential(serverDefinition.operateClientId, serverDefinition.operateClientSecret, "operate-api",
+                                    authenticationURL, scope);
                     ObjectMapper objectMapper = new ObjectMapper();
-                    TokenResponseMapper tokenResponseMapper = new JacksonTokenResponseMapper(objectMapper);
-                    JwtAuthentication authentication = new JwtAuthentication(credentials, tokenResponseMapper);
+                    // TokenResponseMapper tokenResponseMapper = new JacksonTokenResponseMapper(objectMapper);
+                    // JwtAuthentication authentication = new JwtAuthentication(credentials, tokenResponseMapper);
+                    JwtAuthentication authentication = new JwtAuthentication(credentials);
                     configuration =
                             new CamundaOperateClientConfiguration(
-                                    authentication, operateUrl, objectMapper, HttpClients.createDefault());
+                                    authentication, operateURL, objectMapper, HttpClients.createDefault());
+                } catch (Exception e) {
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis, e);
+                    throw new AutomatorException(
+                            "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
+                }
+            } else {
+                // Simple authentication
+                isOk = engineCamunda8.stillOk(serverDefinition.operateUserName, "operateUserName", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.operateUserPassword, "operateUserPassword", analysis, true, false, isOk);
+                if (!isOk) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
+                }
+                try {
+                    URL operateURL = URI.create(serverDefinition.operateUrl).toURL();
 
-                } else {
-                    // Simple authentication
-                    isOk = engineCamunda8.stillOk(serverDefinition.operateUserName, "operateUserName", analysis, true, true, isOk);
-                    isOk = engineCamunda8.stillOk(serverDefinition.operateUserPassword, "operateUserPassword", analysis, true, false, isOk);
-                    URL operateUrl = URI.create(serverDefinition.operateUrl).toURL();
-
-                    SimpleCredential credentials = new SimpleCredential(serverDefinition.operateUserName, serverDefinition.operateUserPassword, operateUrl, Duration.ofMinutes(10));
+                    SimpleCredential credentials = new SimpleCredential(serverDefinition.operateUserName, serverDefinition.operateUserPassword, operateURL, Duration.ofMinutes(10));
                     SimpleAuthentication authentication = new SimpleAuthentication(credentials);
                     ObjectMapper objectMapper = new ObjectMapper();
-                    configuration = new CamundaOperateClientConfiguration(authentication, operateUrl, objectMapper, HttpClients.createDefault());
+                    configuration = new CamundaOperateClientConfiguration(authentication, operateURL, objectMapper, HttpClients.createDefault());
+
+                } catch (Exception e) {
+                    logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
+                    throw new AutomatorException(
+                            "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
+                                    + e.getMessage());
                 }
-            } catch (Exception e) {
-                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
-                throw new AutomatorException(
-                        "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
-                                + e.getMessage());
             }
 
         } else

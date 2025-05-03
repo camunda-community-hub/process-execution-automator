@@ -198,7 +198,7 @@ Camunda8Local is defined in the application.yaml file
 automator.servers:
   camunda8:
       name: "Camunda8Local"
-      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"

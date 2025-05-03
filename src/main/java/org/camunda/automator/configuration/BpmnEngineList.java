@@ -39,6 +39,9 @@ public class BpmnEngineList {
     public static final String CONF_OPERATE_CLIENT_SECRET = "operateClientSecret";
     public static final String CONF_OPERATE_AUDIENCE = "operateAudientce";
 
+    /**
+     * GATEWAY ADDRESS is deprecated, but if define, populate the GRPC field
+     */
     public static final String CONF_ZEEBE_GATEWAY_ADDRESS = "zeebeGatewayAddress";
     public static final String CONF_ZEEBE_GRPC_ADDRESS = "zeebeGrpcAddress";
     public static final String CONF_ZEEBE_REST_ADDRESS = "zeebeRestAddress";
@@ -87,7 +90,7 @@ public class BpmnEngineList {
                 }
 
                 serverDetails += switch (server.serverType) {
-                    case CAMUNDA_8 -> "ZeebeadressGateway [" + server.zeebeGatewayAddress + "]";
+                    case CAMUNDA_8 -> "ZeebeadressGateway [" + server.zeebeGrpcAddress + "]";
                     case CAMUNDA_8_SAAS ->
                             "ZeebeClientId [" + server.zeebeClientId + "] ClusterId[" + server.zeebeSaasClusterId + "] RegionId["
                                     + server.zeebeSaasRegion + "]";
@@ -190,6 +193,7 @@ public class BpmnEngineList {
             count++;
             BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
             bpmnServerDefinition.name = getString("name", serverMap, null, "ServerList #" + count, true);
+            bpmnServerDefinition.description = getString("description", serverMap, null, "ServerList #" + count, true);
             String contextLog = "ServerList #" + count + " Name [" + bpmnServerDefinition.name + "]";
             bpmnServerDefinition.workerMaxJobsActive = getInteger(CONF_WORKER_MAX_JOBS_ACTIVE, serverMap,
                     DEFAULT_VALUE_MAX_JOBS_ACTIVE, contextLog);
@@ -204,7 +208,7 @@ public class BpmnEngineList {
 
             if (CONF_TYPE_V_CAMUNDA_8.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog, true))) {
                 bpmnServerDefinition.serverType = CamundaEngine.CAMUNDA_8;
-                bpmnServerDefinition.zeebeGatewayAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,
+                bpmnServerDefinition.zeebeGrpcAddress = getString(CONF_ZEEBE_GATEWAY_ADDRESS, serverMap, null, contextLog,
                         true);
                 bpmnServerDefinition.zeebeGrpcAddress = getString(CONF_ZEEBE_GRPC_ADDRESS, serverMap, null, contextLog,
                         false);
@@ -241,9 +245,9 @@ public class BpmnEngineList {
 
                 bpmnServerDefinition.workerExecutionThreads = getInteger(CONF_WORKER_EXECUTION_THREADS, serverMap,
                         DEFAULT_VALUE_EXECUTION_THREADS, contextLog);
-                if (bpmnServerDefinition.zeebeGatewayAddress == null)
+                if (bpmnServerDefinition.zeebeGrpcAddress == null)
                     throw new AutomatorException(
-                            "Incorrect Definition - [zeebeGatewayAddress] expected for [" + CONF_TYPE_V_CAMUNDA_8 + "] type");
+                            "Incorrect Definition - [zeebeGrpcAddress] expected for [" + CONF_TYPE_V_CAMUNDA_8 + "] type");
             }
 
             if (CONF_TYPE_V_CAMUNDA_8_SAAS.equalsIgnoreCase(getString(CONF_TYPE, serverMap, null, contextLog, true))) {
@@ -297,7 +301,7 @@ public class BpmnEngineList {
                 bpmnServerDefinition.camunda7ServerUrl = (st.hasMoreTokens() ? st.nextToken() : null);
 
             } else if (CamundaEngine.CAMUNDA_8.equals(bpmnServerDefinition.serverType)) {
-                bpmnServerDefinition.zeebeGatewayAddress = (st.hasMoreTokens() ? st.nextToken() : null);
+                bpmnServerDefinition.zeebeGrpcAddress = (st.hasMoreTokens() ? st.nextToken() : null);
                 bpmnServerDefinition.operateUrl = (st.hasMoreTokens() ? st.nextToken() : null);
                 bpmnServerDefinition.operateUserName = (st.hasMoreTokens() ? st.nextToken() : null);
                 bpmnServerDefinition.operateUserPassword = (st.hasMoreTokens() ? st.nextToken() : null);
@@ -343,9 +347,7 @@ public class BpmnEngineList {
 
         // get the direct list
         if (hasValue(configurationServersEngine.camunda7Url)) {
-            BpmnServerDefinition camunda7 = new BpmnServerDefinition();
-            camunda7.serverType = CamundaEngine.CAMUNDA_7;
-            camunda7.name = configurationServersEngine.camunda7Name;
+            BpmnServerDefinition camunda7 = BpmnServerDefinition.getInstanceC7(configurationServersEngine.camunda7Name, configurationServersEngine.camunda7Description);
             camunda7.camunda7ServerUrl = configurationServersEngine.camunda7Url;
             camunda7.camunda7UserName = configurationServersEngine.camunda7UserName;
             camunda7.camunda7Password = configurationServersEngine.camunda7Password;
@@ -361,24 +363,32 @@ public class BpmnEngineList {
             logger.info("Configuration: Camunda7 Name[{}] url[{}] MaxJobsActive[{}]", camunda7.name,
                     camunda7.camunda7ServerUrl, camunda7.workerMaxJobsActive);
         }
-        if (hasValue(configurationServersEngine.zeebeGatewayAddress)) {
-            BpmnServerDefinition camunda8 = new BpmnServerDefinition();
-            camunda8.serverType = CamundaEngine.CAMUNDA_8;
-            camunda8.name = configurationServersEngine.zeebeName;
-            camunda8.zeebeGatewayAddress = configurationServersEngine.zeebeGatewayAddress;
+        if (hasValue(configurationServersEngine.zeebeName)) {
+            BpmnServerDefinition camunda8 = BpmnServerDefinition.getInstanceC8(configurationServersEngine.zeebeName, configurationServersEngine.zeebeDescription);
             camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress;
             camunda8.zeebeRestAddress = configurationServersEngine.zeebeRestAddress;
+            camunda8.zeebeClientId = configurationServersEngine.zeebeClientId;
+            camunda8.zeebeClientSecret = configurationServersEngine.zeebeClientSecret;
+            camunda8.authenticationUrl = configurationServersEngine.zeebeAuthenticationUrl;
+            camunda8.zeebeAudience =  configurationServersEngine.zeebeAudience;
+            camunda8.zeebePlainText = configurationServersEngine.zeebePlainText;
 
             camunda8.workerExecutionThreads = parseInt("Camunda8." + CONF_WORKER_EXECUTION_THREADS,
                     configurationServersEngine.zeebeWorkerExecutionThreads, DEFAULT_VALUE_EXECUTION_THREADS, "");
             camunda8.workerMaxJobsActive = parseInt("Camunda8." + CONF_WORKER_MAX_JOBS_ACTIVE,
                     configurationServersEngine.zeebeWorkerMaxJobsActive, DEFAULT_VALUE_MAX_JOBS_ACTIVE, "");
             camunda8.operateUrl = configurationServersEngine.zeebeOperateUrl;
+            camunda8.operateClientId = configurationServersEngine.operateClientId;
+            camunda8.operateClientSecret = configurationServersEngine.operateClientSecret;
             camunda8.operateUserName = configurationServersEngine.zeebeOperateUserName;
             camunda8.operateUserPassword = configurationServersEngine.zeebeOperateUserPassword;
+
             camunda8.taskListUrl = configurationServersEngine.zeebeTaskListUrl;
+            camunda8.taskListClientId = configurationServersEngine.taskListClientId;
+            camunda8.taskListClientSecret = configurationServersEngine.taskListClientSecret;
             camunda8.taskListUserName = configurationServersEngine.zeebeTaskListUserName;
             camunda8.taskListUserPassword = configurationServersEngine.zeebeTaskListUserPassword;
+            camunda8.taskListKeycloakUrl =  configurationServersEngine.taskListKeycloakUrl;
             list.add(camunda8);
             logger.info(
                     "Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] " + "OperateURL[{}]",
@@ -386,15 +396,13 @@ public class BpmnEngineList {
                     camunda8.operateUrl);
 
         }
-        if (hasValue(configurationServersEngine.zeebeSaasClusterId)) {
-            BpmnServerDefinition camunda8 = new BpmnServerDefinition();
-            camunda8.serverType = CamundaEngine.CAMUNDA_8_SAAS;
-            camunda8.name = configurationServersEngine.zeebeSaasName;
+        if (hasValue(configurationServersEngine.zeebeSaasName)) {
+            BpmnServerDefinition camunda8 = BpmnServerDefinition.getInstanceC8Saas(configurationServersEngine.zeebeSaasName, configurationServersEngine.zeebeSaasDescription);
             camunda8.zeebeSaasRegion = configurationServersEngine.zeebeSaasRegion;
             camunda8.zeebeSaasClusterId = configurationServersEngine.zeebeSaasClusterId;
             camunda8.zeebeClientId = configurationServersEngine.zeebeSaasClientId;
             camunda8.zeebeClientSecret = configurationServersEngine.zeebeSaasClientSecret;
-            camunda8.authenticationUrl = configurationServersEngine.zeebeSaasOAuthUrl;
+            camunda8.authenticationUrl = configurationServersEngine.zeebeSaasAuthenticationUrl;
             camunda8.zeebeAudience = configurationServersEngine.zeebeSaasAudience;
             camunda8.operateUrl = configurationServersEngine.zeebeOperateUrl;
             camunda8.operateUserName = configurationServersEngine.zeebeOperateUserName;
@@ -515,6 +523,7 @@ public class BpmnEngineList {
 
     public static class BpmnServerDefinition {
         public String name;
+        public String description;
 
         public CamundaEngine serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
 
@@ -522,7 +531,6 @@ public class BpmnEngineList {
         /**
          * My Zeebe Address
          */
-        public String zeebeGatewayAddress;
         public String zeebeGrpcAddress;
         public String zeebeRestAddress;
         public Boolean zeebePlainText;
@@ -571,6 +579,39 @@ public class BpmnEngineList {
         public Integer workerExecutionThreads = Integer.valueOf(DEFAULT_VALUE_EXECUTION_THREADS);
         public Integer workerMaxJobsActive = Integer.valueOf(DEFAULT_VALUE_MAX_JOBS_ACTIVE);
 
+        private BpmnServerDefinition() {
+
+        }
+
+        public static BpmnServerDefinition getInstance(String name, String description, CamundaEngine serverType) {BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
+            bpmnServerDefinition.name = name;
+            bpmnServerDefinition.description = description;
+            bpmnServerDefinition.serverType = serverType;
+            return bpmnServerDefinition;
+        }
+
+        public static BpmnServerDefinition getInstanceC7(String name, String description) {
+            return BpmnServerDefinition.getInstance(name, description, CamundaEngine.CAMUNDA_7);
+        }
+
+        public static BpmnServerDefinition getInstanceC8(String name, String description) {
+            return BpmnServerDefinition.getInstance(name, description, CamundaEngine.CAMUNDA_8);
+        }
+
+        public static BpmnServerDefinition getInstanceC8Saas(String name, String description) {
+            return BpmnServerDefinition.getInstance(name, description, CamundaEngine.CAMUNDA_8_SAAS);
+
+        }
+
+
+        public String getName() {
+            return name;
+        }
+
+        public CamundaEngine getServerType() {
+            return serverType;
+        }
+
         /**
          * return true if the definition have an Operate connection valid
          *
@@ -594,7 +635,7 @@ public class BpmnEngineList {
                 synthesis += " url[" + camunda7ServerUrl + "] userName[" + camunda7UserName + "]";
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8)) {
-                synthesis += " GrpcAddress[" + zeebeGatewayAddress + "] RestAddress[" + zeebeRestAddress + "] workerThread[" + workerExecutionThreads + "] MaxJobActive["
+                synthesis += " GrpcAddress[" + zeebeGrpcAddress + "] RestAddress[" + zeebeRestAddress + "] workerThread[" + workerExecutionThreads + "] MaxJobActive["
                         + workerMaxJobsActive + "]";
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
@@ -608,24 +649,56 @@ public class BpmnEngineList {
             Map<String, Object> synthesis = new HashMap<>();
             synthesis.put("name", name);
             synthesis.put("type", serverType.name());
+            synthesis.put("description", description);
 
             if (serverType.equals(CamundaEngine.CAMUNDA_7)) {
-                synthesis.put("url", camunda7ServerUrl);
+                synthesis.put("camunda7ServerUrl", camunda7ServerUrl);
                 synthesis.put("userName", camunda7UserName);
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8)) {
-                synthesis.put("grpcAddress", zeebeGatewayAddress);
-                synthesis.put("RestAddress", zeebeRestAddress);
-                synthesis.put("workerThread", workerExecutionThreads);
-                synthesis.put("maxJobActive", workerMaxJobsActive);
+                synthesis.put("zeebeGrpcAddress", zeebeGrpcAddress);
+                synthesis.put("zeebeRestAddress", zeebeRestAddress);
             }
             if (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS)) {
-                synthesis.put("clusterId", zeebeSaasClusterId);
-                synthesis.put("workerThread", workerExecutionThreads);
-                synthesis.put("maxJobActive", workerMaxJobsActive);
+                synthesis.put("zeebeSaasClusterId", zeebeSaasClusterId);
+                synthesis.put("zeebeSaasRegion", zeebeSaasRegion);
+            }
+            if ((serverType.equals(CamundaEngine.CAMUNDA_8)) ||
+                    (serverType.equals(CamundaEngine.CAMUNDA_8_SAAS))) {
+
+                synthesis.put("identityUrl", identityUrl);
+                synthesis.put("zeebeClientId", zeebeClientId);
+                synthesis.put("zeebeClientSecret", getOffuscatedSecret(zeebeClientSecret));
+                synthesis.put("authenticationUrl", authenticationUrl);
+                synthesis.put("plainText", zeebePlainText);
+
+                synthesis.put("operateUrl", operateUrl);
+                synthesis.put("operateClientId", operateClientId);
+                synthesis.put("operateClientSecret", getOffuscatedSecret(operateClientSecret));
+                synthesis.put("operateUserName", operateUserName);
+                synthesis.put("operateClientId", operateClientId);
+
+                synthesis.put("taskListUrl", taskListUrl);
+                synthesis.put("taskListClientId", taskListClientId);
+                synthesis.put("taskListClientSecret", getOffuscatedSecret(taskListClientSecret));
+                synthesis.put("taskListUserName", taskListUserName);
+                synthesis.put("taskListClientId", taskListClientId);
+
+                synthesis.put("taskListKeycloakUrl", taskListKeycloakUrl);
+
+                synthesis.put("workerExecutionThreads", workerExecutionThreads);
+                synthesis.put("workerMaxJobsActive", workerMaxJobsActive);
             }
             return synthesis;
         }
+
+        private String getOffuscatedSecret(String secret) {
+            if (secret != null && secret.length() > 3) {
+                return secret.substring(0, 3) + "*****";
+            }
+            return "*****";
+        }
+
     }
 
 }

@@ -25,7 +25,7 @@ spec:
           env:
             - name: JAVA_TOOL_OPTIONS
               value: >-
-                -Dautomator.servers.camunda8.zeebeGatewayAddress=http://camunda-zeebe-gateway:26500
+                -Dautomator.servers.camunda8.zeebeGrpcGatewayAddress=http://camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80

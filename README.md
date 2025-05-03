@@ -201,7 +201,8 @@ To connect to a C8 self-manage with no authentication, the Camunda8Ruby is the b
 
 ```
 -Dautomator.servers.camunda8.name=MyTestServer
--Dautomator.servers.camunda8.zeebeGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
+-Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
 -Dautomator.servers.camunda8.operateUserName="demo"
 -Dautomator.servers.camunda8.operateUserPassword="demo"
 -Dautomator.servers.camunda8.operateUrl="http://localhost:8081"
@@ -219,7 +220,8 @@ server name definition in all sources. It will found it behind of the definition
 
 ```
 -Dautomator.servers.camunda8.name=MyTestServer
--Dautomator.servers.camunda8.zeebeGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
 -Dautomator.servers.camunda8.operateUserName="demo"
 -Dautomator.servers.camunda8.operateUserPassword="demo"
 -Dautomator.servers.camunda8.operateUrl="http://localhost:8081"
@@ -233,12 +235,14 @@ server name definition in all sources. It will found it behind of the definition
 The example in the list of server is `Camunda8Lazuli`
 
 ```
--Dautomator.servers.camunda8.zeebeGatewayAddress=127.0.0.1:26500
+-Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
 -Dautomator.servers.camunda8.zeebeClientId=zeebe
 -Dautomator.servers.camunda8.zeebeClientSecret=LHwdAq56bZ
 -Dautomator.servers.camunda8.zeebeAudience=zeebe
 -Dautomator.servers.camunda8.zeebePlainText=true
 -Dautomator.servers.camunda8.authenticationUrl=http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token
+
 -Dautomator.servers.camunda8.operateClientId=operate
 -Dautomator.servers.camunda8.operateClientSecret=Ns0ZGTrm24
 -Dautomator.servers.camunda8.operateUserName=demo
@@ -257,7 +261,8 @@ The example in the list of server is `Camunda8Lazuli`
 The example in the list of server is `Camunda8Grena`
 
 ```
--Dautomator.servers.camunda8.zeebeGatewayAddress=127.0.0.1:26500
+-Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
+-Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
 -Dautomator.servers.camunda8.region=jfk-1
 -Dautomator.servers.camunda8.clusterId=b16d70cb-b654-4d76-a3a4-d4e438e4447c
 -Dautomator.servers.camunda8.zeebeClientId=nDyNLPuBqNrlQs4_3RsTDsFCgn~LkmJB
@@ -368,7 +373,8 @@ The following parameters depend on the type.
 
 **CAMUNDA_8**
 
-* ZeebeGatewayAddress,
+* ZeebeGrpcGatewayAddress,
+* ZeebeRestAddress
 * OperateUserName,
 * OperateUserPassword,
 * OperateUrl,
@@ -415,7 +421,7 @@ automator.serversList:
 
     - type: "camunda8"
       name: "Camunda8Ruby"
-      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
@@ -453,7 +459,7 @@ automator.servers:
 
   camunda8:
     name: "Camunda8Calcair"
-    zeebeGatewayAddress: "127.0.0.1:26500"
+    zeebeGrpcGatewayAddress: "127.0.0.1:26500"
     operateUserName: "demo"
     operateUserPassword: "demo"
     operateUrl: "http://localhost:8081"

@@ -32,6 +32,11 @@ public class ScenarioExecution {
      */
     private Integer numberOfThreads;
     private Policy policy;
+
+    /**
+     * Time to wait at the end of the execution, to let operate the time to import everything
+     */
+    private Integer waitForOperateImport;
     /**
      * if set to false, this execution is skipped
      */
@@ -141,8 +146,25 @@ public class ScenarioExecution {
         this.numberOfThreads = numberOfThreads;
     }
 
+
     public Policy getPolicy() {
         return (policy == null ? Policy.STOPATFIRSTERROR : policy);
+    }
+
+    public void setNumberProcessInstances(Integer numberProcessInstances) {
+        this.numberProcessInstances = numberProcessInstances;
+    }
+
+    public void setPolicy(Policy policy) {
+        this.policy = policy;
+    }
+
+    public Integer getWaitForOperateImport() {
+        return waitForOperateImport==null? 10: waitForOperateImport;
+    }
+
+    public void setWaitForOperateImport(Integer waitForOperateImport) {
+        this.waitForOperateImport = waitForOperateImport;
     }
 
     public boolean isExecution() {
@@ -157,6 +179,8 @@ public class ScenarioExecution {
         jsonMap.put("description", description);
         jsonMap.put("numberProcessInstances", numberProcessInstances);
         jsonMap.put("numberOfThreads", numberOfThreads);
+        jsonMap.put("waitForOperateImport", waitForOperateImport);
+
 
         jsonMap.put("steps", steps.stream().map(
                 t -> {

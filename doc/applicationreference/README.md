@@ -93,7 +93,7 @@ For Camunda 7:
 
 For Camunda 8 to Self-manage
 ```
-<name>,CAMUNDA_8,ZeebeGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive;
+<name>,CAMUNDA_8,ZeebegrpcGatewayAddress,OperateUserName,OperateUserPassword,OperateUrl,ExecutionThreads,MaxJobActive;
 ```
 
 For Camunda 8 Saas:
@@ -115,24 +115,25 @@ automator.serversConnection: \
 ### List of servers
 In the YAML, the list of servers can be done by giving a list:
 
-| Parameter              | Explanation                                                  | Type    | Default |
-|------------------------|--------------------------------------------------------------|---------|---------|
-| name                   | Name of server (to be use to define the server to connect)   | String  | ""      |
-| type                   | "CAMUNDA_7", "CAMUNDA_8", "CAMUNDA_8_SAAS"                   | String  | ""      |
-| workerExecutionThreads | (CAMUNDA_8, CAMUNDA_8_SAAS) Number of threads to use         | Integer | 20      |           
-| workerMaxJobsActive    | (all) Number of jobs to fetch                                | Integer | 10      |               
-| url                    | (CAMUNDA_7) Url to connect to Camunda 7                      | String  | ""      |
-| zeebeGatewayAddress    | (CAMUNDA_8) Address to connect Camunda 8                     | String  | ""      |
-| operateUrl             | (CAMUNDA_8, CAMUNDA_8_SAAS) Url to connect Operate           | String  | ""      |  
-| taskListUrl            | (CAMUNDA_8, CAMUNDA_8_SAAS) Url to connect Tasklist          | String  | ""      | 
-| operateUserName        | (CAMUNDA_8, CAMUNDA_8_SAAS) User name to connect to Operate  | String  | "demo"  |
-| operateUserPassword    | (CAMUNDA_8, CAMUNDA_8_SAAS) Password to connect to Operate   | String  | "demo"  |                    
-| region                 | (CAMUNDA_8_SAAS) Saas region                                 | String  | ""      |
-| clusterId              | (CAMUNDA_8_SAAS) Cluster ID                                  | String  | ""      |
-| clientId               | (CAMUNDA_8_SAAS) Client ID                                   | String  | ""      |
-| oAuthUrl               | (CAMUNDA_8_SAAS) Authorization URL                           | String  | ""      |
-| audience               | (CAMUNDA_8_SAAS) Audience                                    | String  | ""      |
-| secret                 | (CAMUNDA_8_SAAS) Secret                                      | String  | ""      |
+| Parameter                | Explanation                                                 | Type    | Default |
+|--------------------------|-------------------------------------------------------------|---------|---------|
+| name                     | Name of server (to be use to define the server to connect)  | String  | ""      |
+| type                     | "CAMUNDA_7", "CAMUNDA_8", "CAMUNDA_8_SAAS"                  | String  | ""      |
+| workerExecutionThreads   | (CAMUNDA_8, CAMUNDA_8_SAAS) Number of threads to use        | Integer | 20      |           
+| workerMaxJobsActive      | (all) Number of jobs to fetch                               | Integer | 10      |               
+| url                      | (CAMUNDA_7) Url to connect to Camunda 7                     | String  | ""      |
+| zeebeGrpcGatewayAddress  | (CAMUNDA_8) Address to connect Camunda 8                    | String  | ""      |
+| zeebeRestGatewayAddress  | (CAMUNDA_8) Address to connect Camunda 8 via REST           | String  | ""      |
+| operateUrl               | (CAMUNDA_8, CAMUNDA_8_SAAS) Url to connect Operate          | String  | ""      |  
+| taskListUrl              | (CAMUNDA_8, CAMUNDA_8_SAAS) Url to connect Tasklist         | String  | ""      | 
+| operateUserName          | (CAMUNDA_8, CAMUNDA_8_SAAS) User name to connect to Operate | String  | "demo"  |
+| operateUserPassword      | (CAMUNDA_8, CAMUNDA_8_SAAS) Password to connect to Operate  | String  | "demo"  |                    
+| region                   | (CAMUNDA_8_SAAS) Saas region                                | String  | ""      |
+| clusterId                | (CAMUNDA_8_SAAS) Cluster ID                                 | String  | ""      |
+| clientId                 | (CAMUNDA_8_SAAS) Client ID                                  | String  | ""      |
+| oAuthUrl                 | (CAMUNDA_8_SAAS) Authorization URL                          | String  | ""      |
+| audience                 | (CAMUNDA_8_SAAS) Audience                                   | String  | ""      |
+| secret                   | (CAMUNDA_8_SAAS) Secret                                     | String  | ""      |
 
 ***Example***
 
@@ -145,7 +146,7 @@ automator.serversList:
 
     - name: "Platinium"
       type: "CAMUNDA_8"
-      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
@@ -180,7 +181,7 @@ env:
   value: >-
     -Dautomator.startup.serverName=zeebeCloud
     -Dautomator.servers.camunda8.name=zeebeCloud
-    -Dautomator.servers.camunda8.zeebeGatewayAddress=camunda-zeebe-gateway:26500
+    -Dautomator.servers.camunda8.zeebeGrpcGatewayAddress=camunda-zeebe-gateway:26500
     -Dautomator.servers.camunda8.operateUserName=demo
     -Dautomator.servers.camunda8.operateUserPassword=demo
     -Dautomator.servers.camunda8.operateUrl=http://camunda-operate:80
@@ -201,16 +202,17 @@ Prefix **automator.servers.camunda7**
 
 Prefix **automator.servers.camunda8**
 
-| Parameter              | Explanation                                                | Type    | Default |
-|------------------------|------------------------------------------------------------|---------|---------|
-| name                   | Name of server (to be use to define the server to connect) | String  | ""      |
-| zeebeGatewayAddress    | Address to connect Camunda 8                               | String  | ""      |
-| operateUrl             | Url to connect Operate                                     | String  | ""      |  
-| taskListUrl            | Url to connect Tasklist                                    | String  | ""      | 
-| operateUserName        | User name to connect to Operate                            | String  | "demo"  |
-| operateUserPassword    | Password to connect to Operate                             | String  | "demo"  |                    
-| workerExecutionThreads | Number of threads to use                                   | Integer | 20      |           
-| workerMaxJobsActive    | Number of jobs to fetch                                    | Integer | 10      |               
+| Parameter                | Explanation                                                | Type    | Default |
+|--------------------------|------------------------------------------------------------|---------|---------|
+| name                     | Name of server (to be use to define the server to connect) | String  | ""      |
+| zeebeGrpcGatewayAddress  | Address to connect Camunda 8 in Grpc                       | String  | ""      |
+| zeebeRestGatewayAddress  | Address to connect Camunda 8 in Rest                       | String  | ""      |
+| operateUrl               | Url to connect Operate                                     | String  | ""      |  
+| taskListUrl              | Url to connect Tasklist                                    | String  | ""      | 
+| operateUserName          | User name to connect to Operate                            | String  | "demo"  |
+| operateUserPassword      | Password to connect to Operate                             | String  | "demo"  |                    
+| workerExecutionThreads   | Number of threads to use                                   | Integer | 20      |           
+| workerMaxJobsActive      | Number of jobs to fetch                                    | Integer | 10      |               
 
 
 Prefix **automator.servers.camunda8Saas**
@@ -246,7 +248,7 @@ automator.servers:
 
     camunda8:
       name: "Camunda8Calcair"
-      zeebeGatewayAddress: "127.0.0.1:26500"
+      zeebeGrpcGatewayAddress: "127.0.0.1:26500"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"

@@ -75,25 +75,42 @@ public class TaskListClient {
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListClientSecret, "taskListClientSecret", analysis, true, false, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListKeycloakUrl, "taskListKeycloakUrl", analysis, true, true, isOk);
-
-                taskListBuilder.taskListUrl(serverDefinition.taskListUrl)
-                        .selfManagedAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret,
-                                serverDefinition.taskListKeycloakUrl);
+                if (!isOk) {
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis );
+                }
+                try {
+                    taskListBuilder.taskListUrl(serverDefinition.taskListUrl)
+                            .selfManagedAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret,
+                                    serverDefinition.taskListKeycloakUrl);
+                } catch(Exception e) {
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis,e);
+                    throw new AutomatorException(
+                            "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
+                }
             } else {
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListUserName, "User", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListUserPassword, "Password", analysis, true, false, isOk);
+                if (!isOk) {
+
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis );
+                }
                 try {
                     SimpleCredential credentials = new SimpleCredential(serverDefinition.taskListUserName,
                             serverDefinition.taskListUserPassword, new URL(serverDefinition.taskListUrl), Duration.ofHours(1000));
                     Authentication authentication = new SimpleAuthentication(credentials);
                     taskListBuilder.taskListUrl(serverDefinition.taskListUrl).authentication(authentication);
                 } catch (MalformedURLException e) {
-                    throw new AutomatorException("Invalid Url for TaskList: [" + serverDefinition.taskListUrl + "]");
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis,e);
+                    throw new AutomatorException("Invalid Url for TaskList: [" + serverDefinition.taskListUrl + "] : "+analysis+" : "+e.getMessage());
 
                 }
             }
         } else
-            throw new AutomatorException("Invalid configuration");
+            throw new AutomatorException("Invalid configuration " + analysis);
 
         if (!isOk)
             throw new AutomatorException("Invalid configuration " + analysis);
