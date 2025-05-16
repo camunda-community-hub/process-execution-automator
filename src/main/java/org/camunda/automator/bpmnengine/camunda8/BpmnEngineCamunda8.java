@@ -81,7 +81,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                      String operateUserPassword,
                                                      String tasklistUrl,
                                                      BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance( name, description,BpmnEngineList.CamundaEngine.CAMUNDA_8);
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8);
         serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
         serverDefinition.zeebeRestAddress = zeebeRestAddress;
         serverDefinition.zeebePlainText = zeebePlainText;
@@ -122,7 +122,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                          String tasklistUrl,
                                                          BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description,BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
 
         /*
          * SaaS Zeebe
@@ -176,6 +176,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         return zeebeClient != null;
     }
 
+    public ConnectionStatus testAdminConnection() {
+        return operateClient.testAdminConnection();
+    }
+
+    public ConnectionStatus testTaskListConnection() {
+        return taskListClient.testAdminConnection();
+    }
+
     /* ******************************************************************** */
     /*                                                                      */
     /*  Manage process instance                                             */
@@ -191,7 +199,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         this.hightFlowMode = highFlowMode;
     }
 
-    public boolean isHightFlowMode() {
+    public boolean isHighFlowMode() {
         return hightFlowMode;
     }
 
@@ -564,7 +572,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                     zeebeClient = null;
                     logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis);
                     throw new AutomatorException(
-                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis );
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
 
                 try {
@@ -579,10 +587,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                             .defaultTenantId(serverDefinition.zeebeTenantId == null ? "<default>" : serverDefinition.zeebeTenantId)
                             .credentialsProvider(credentialsProvider);
 
-                    if (serverDefinition.zeebeGrpcAddress!=null)
-                            clientBuilder=clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
-                    if (serverDefinition.zeebeRestAddress!=null)
-                            clientBuilder=clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
+                    if (serverDefinition.zeebeGrpcAddress != null)
+                        clientBuilder = clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
+                    if (serverDefinition.zeebeRestAddress != null)
+                        clientBuilder = clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
 
 
                     if (Boolean.TRUE.equals(serverDefinition.zeebePlainText))

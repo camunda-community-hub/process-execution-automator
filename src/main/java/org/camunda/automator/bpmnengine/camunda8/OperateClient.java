@@ -40,6 +40,31 @@ public class OperateClient {
     }
 
     /**
+     * Test the connection and return a detailed status
+     *
+     * @return connectionStatus
+     */
+    public BpmnEngine.ConnectionStatus testAdminConnection() {
+        BpmnEngine.ConnectionStatus connectionStatus = new BpmnEngine.ConnectionStatus();
+        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        if (!serverDefinition.isOperate()) {
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.NOT_NEEDED;
+            return connectionStatus;
+        }
+        try {
+            StringBuilder analysis = new StringBuilder();
+            connectOperate(analysis);
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.OK;
+            connectionStatus.message = analysis.toString();
+
+        } catch (AutomatorException e) {
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.OK;
+            connectionStatus.message = e.getMessage();
+        }
+        return connectionStatus;
+    }
+
+    /**
      * Connect Operate
      *
      * @param analysis to cpmplete the analysis
@@ -91,9 +116,6 @@ public class OperateClient {
             //---------------------------- Camunda 8 Self Manage
         } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
 
-            isOk = engineCamunda8.stillOk(serverDefinition.zeebeGrpcAddress, "GatewayAddress", analysis, true, true, isOk);
-
-
             if (serverDefinition.isAuthenticationUrl()) {
                 isOk = engineCamunda8.stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.operateClientId, "operateClientId", analysis, true, true, isOk);
@@ -111,15 +133,16 @@ public class OperateClient {
                     URL authenticationURL = URI.create(serverDefinition.authenticationUrl).toURL();
                     // bootstrapping
                     JwtCredential credentials =
-                            new JwtCredential(serverDefinition.operateClientId, serverDefinition.operateClientSecret, "operate-api",
+                            new JwtCredential(serverDefinition.operateClientId,
+                                    serverDefinition.operateClientSecret,
+                                    "operate-api",
                                     authenticationURL, scope);
                     ObjectMapper objectMapper = new ObjectMapper();
                     // TokenResponseMapper tokenResponseMapper = new JacksonTokenResponseMapper(objectMapper);
                     // JwtAuthentication authentication = new JwtAuthentication(credentials, tokenResponseMapper);
                     JwtAuthentication authentication = new JwtAuthentication(credentials);
-                    configuration =
-                            new CamundaOperateClientConfiguration(
-                                    authentication, operateURL, objectMapper, HttpClients.createDefault());
+                    configuration = new CamundaOperateClientConfiguration(
+                            authentication, operateURL, objectMapper, HttpClients.createDefault());
                 } catch (Exception e) {
                     logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis, e);
                     throw new AutomatorException(

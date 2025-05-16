@@ -7,6 +7,7 @@ import io.camunda.tasklist.auth.SimpleAuthentication;
 import io.camunda.tasklist.auth.SimpleCredential;
 import io.camunda.tasklist.dto.*;
 import io.camunda.tasklist.exception.TaskListException;
+import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.BpmnEngineList;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
@@ -28,6 +29,31 @@ public class TaskListClient {
 
     protected TaskListClient(BpmnEngineCamunda8 engineCamunda8) {
         this.engineCamunda8 = engineCamunda8;
+    }
+
+    /**
+     * Test the connection and return a detailed status
+     *
+     * @return connectionStatus
+     */
+    public BpmnEngine.ConnectionStatus testAdminConnection() {
+        BpmnEngine.ConnectionStatus connectionStatus = new BpmnEngine.ConnectionStatus();
+        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        if (!serverDefinition.isOperate()) {
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.NOT_NEEDED;
+            return connectionStatus;
+        }
+        try {
+            StringBuilder analysis = new StringBuilder();
+            connectTaskList(analysis);
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.OK;
+            connectionStatus.message = analysis.toString();
+
+        } catch (AutomatorException e) {
+            connectionStatus.status = BpmnEngine.CONNECTION_STATUS.OK;
+            connectionStatus.message = e.getMessage();
+        }
+        return connectionStatus;
     }
 
     /**
@@ -78,14 +104,14 @@ public class TaskListClient {
                 if (!isOk) {
                     logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis);
                     throw new AutomatorException(
-                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis );
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
                 try {
                     taskListBuilder.taskListUrl(serverDefinition.taskListUrl)
                             .selfManagedAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret,
                                     serverDefinition.taskListKeycloakUrl);
-                } catch(Exception e) {
-                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis,e);
+                } catch (Exception e) {
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis, e);
                     throw new AutomatorException(
                             "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -96,7 +122,7 @@ public class TaskListClient {
 
                     logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis);
                     throw new AutomatorException(
-                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis );
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
                 try {
                     SimpleCredential credentials = new SimpleCredential(serverDefinition.taskListUserName,
@@ -104,8 +130,8 @@ public class TaskListClient {
                     Authentication authentication = new SimpleAuthentication(credentials);
                     taskListBuilder.taskListUrl(serverDefinition.taskListUrl).authentication(authentication);
                 } catch (MalformedURLException e) {
-                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis,e);
-                    throw new AutomatorException("Invalid Url for TaskList: [" + serverDefinition.taskListUrl + "] : "+analysis+" : "+e.getMessage());
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis, e);
+                    throw new AutomatorException("Invalid Url for TaskList: [" + serverDefinition.taskListUrl + "] : " + analysis + " : " + e.getMessage());
 
                 }
             }
@@ -161,7 +187,7 @@ public class TaskListClient {
             boolean getAllTasks = tasksList.size() < maxResult;
             List<String> listTasksResult = new ArrayList<>();
             do {
-                if (!engineCamunda8.isHightFlowMode()) {
+                if (!engineCamunda8.isHighFlowMode()) {
                     // We check that the task is the one expected
                     listTasksResult.addAll(tasksList.getItems().stream().filter(t -> {
                                 List<Variable> listVariables = t.getVariables();

@@ -8,6 +8,7 @@ import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
+import org.camunda.automator.engine.RunResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -17,9 +18,8 @@ import java.util.Map;
 @Component
 public class ToolboxRest {
     private static final Logger logger = LoggerFactory.getLogger(ToolboxRest.class.getName());
-
-    BpmnEngineList bpmnEngineList;
     private final AutomatorAPI automatorAPI;
+    BpmnEngineList bpmnEngineList;
 
     public ToolboxRest(ConfigurationStartup configurationStartup, ContentManager contentManager,
                        AutomatorAPI automatorAPI, BpmnEngineList bpmnEngineList) {
@@ -51,7 +51,7 @@ public class ToolboxRest {
                     bpmnEngine = automatorAPI.getBpmnEngineFromScenario(scenario, bpmnEngineList);
                 } else {
                     if (runParameters.getServerName() == null) {
-                        result = completeMessage(result, ServerController.StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");
+                        result = completeMessage(result, RunResult.StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");
                         return null;
                     }
 
@@ -60,7 +60,7 @@ public class ToolboxRest {
                     BpmnEngineList.BpmnServerDefinition serverDefinition = bpmnEngineList.getByServerName(
                             runParameters.getServerName());
                     if (serverDefinition == null) {
-                        result = completeMessage(result, ServerController.StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");
+                        result = completeMessage(result, RunResult.StatusTest.ENGINE_NOT_EXIST, "Engine [" + runParameters.getServerName() + "] does not exist in the list");
                         return null;
                     }
 
@@ -96,7 +96,7 @@ public class ToolboxRest {
         return bpmnEngine;
     }
 
-    protected Map<String, Object> completeMessage(Map<String, Object> result, ServerController.StatusTest status, String complement) {
+    protected Map<String, Object> completeMessage(Map<String, Object> result, RunResult.StatusTest status, String complement) {
         result.put("status", status.toString());
         result.put("complement", complement);
         return result;

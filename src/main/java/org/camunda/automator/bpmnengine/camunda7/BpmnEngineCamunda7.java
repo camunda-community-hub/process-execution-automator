@@ -124,7 +124,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     public boolean isReady() {
         if (count > 2)
             return true;
-
         try {
             engineApi.getProcessEngineNames();
         } catch (ApiException e) {
@@ -132,6 +131,20 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public ConnectionStatus testAdminConnection() {
+        ConnectionStatus connectionStatus = new ConnectionStatus();
+        connectionStatus.status = isReady() ? CONNECTION_STATUS.OK : CONNECTION_STATUS.FAIL;
+        return connectionStatus;
+    }
+
+    @Override
+    public ConnectionStatus testTaskListConnection() {
+        ConnectionStatus connectionStatus = new ConnectionStatus();
+        connectionStatus.status = isReady() ? CONNECTION_STATUS.OK : CONNECTION_STATUS.FAIL;
+        return connectionStatus;
     }
 
     /* ******************************************************************** */

@@ -6,7 +6,6 @@
 /* ******************************************************************** */
 package org.camunda.automator.engine;
 
-import org.camunda.automator.api.ServerController;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.definition.ScenarioVerificationBasic;
@@ -63,6 +62,7 @@ public class RunResult {
      */
     private final Map<String, RecordCreationPI> recordCreationPIMap = new HashMap<>();
     private final List<RunResult> listRunResults = new ArrayList<>();
+    private final String executionId;
     Logger logger = LoggerFactory.getLogger(RunResult.class);
     private int numberOfSteps = 0;
     private int numberOfErrorSteps = 0;
@@ -72,13 +72,14 @@ public class RunResult {
     private long timeExecution;
     private Date startDate;
     private Date endDate;
-    private final String executionId;
+
 
     public RunResult(RunScenario runScenario, String executionId) {
         this.runScenario = runScenario;
         this.scnExecution = null;
         this.executionId = executionId;
     }
+
 
     public RunResult(RunScenario runScenario, ScenarioExecution scnExecution, String executionId) {
         this.runScenario = runScenario;
@@ -109,11 +110,6 @@ public class RunResult {
     public String getExecutionId() {
         return executionId;
     }
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  method used during the execution to collect information             */
-    /*                                                                      */
-    /* ******************************************************************** */
 
     /**
      * Add the process instance - this is mandatory to
@@ -127,6 +123,11 @@ public class RunResult {
         create.nbCreated++;
         recordCreationPIMap.put(processId, create);
     }
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  method used during the execution to collect information             */
+    /*                                                                      */
+    /* ******************************************************************** */
 
     /**
      * large flow: just register the number of PI
@@ -166,15 +167,15 @@ public class RunResult {
 
     }
 
+    public List<ErrorDescription> getListErrors() {
+        return listErrors;
+    }
+
     /* ******************************************************************** */
     /*                                                                      */
     /*  Errors                                                              */
     /*                                                                      */
     /* ******************************************************************** */
-
-    public List<ErrorDescription> getListErrors() {
-        return listErrors;
-    }
 
     public void addError(ScenarioStep step, String explanation) {
         this.listErrors.add(new ErrorDescription(step, explanation));
@@ -193,15 +194,15 @@ public class RunResult {
         this.listVerifications.add(verificationStatus);
     }
 
+    public boolean hasErrors() {
+        return !listErrors.isEmpty();
+    }
+
     /* ******************************************************************** */
     /*                                                                      */
     /*  Verifications                                                     */
     /*                                                                      */
     /* ******************************************************************** */
-
-    public boolean hasErrors() {
-        return !listErrors.isEmpty();
-    }
 
     public List<VerificationStatus> getListVerifications() {
         return listVerifications;
@@ -258,12 +259,6 @@ public class RunResult {
         merge(runResult);
     }
 
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  merge                                                               */
-    /*                                                                      */
-    /* ******************************************************************** */
-
     public boolean isSuccess() {
         long nbVerificationErrors = listVerifications.stream().filter(t -> !t.isSuccess).count();
         return listErrors.isEmpty() && nbVerificationErrors == 0;
@@ -271,13 +266,19 @@ public class RunResult {
 
     /* ******************************************************************** */
     /*                                                                      */
-    /*  method to get information                                           */
+    /*  merge                                                               */
     /*                                                                      */
     /* ******************************************************************** */
 
     public String getFirstProcessInstanceId() {
         return listProcessInstancesId.isEmpty() ? null : listProcessInstancesId.get(0);
     }
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  method to get information                                           */
+    /*                                                                      */
+    /* ******************************************************************** */
 
     public List<String> getListProcessInstancesId() {
         return listProcessInstancesId;
@@ -389,7 +390,6 @@ public class RunResult {
 
     }
 
-
     /**
      * @return result ready for a JSON format
      */
@@ -399,7 +399,7 @@ public class RunResult {
         if (!isFinished())
             resultMap.put(JSON_RESULT, "");
         else
-            resultMap.put(JSON_RESULT, isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
+            resultMap.put(JSON_RESULT, isSuccess() ? RunResult.StatusTest.SUCCESS.toString() : RunResult.StatusTest.FAIL.toString());
 
         resultMap.put(JSON_ID, getExecutionId());
         resultMap.put(JSON_SCENARIO_NAME, getRunScenario().getScenario().getName());
@@ -421,10 +421,10 @@ public class RunResult {
             recordResult.put(JSON_NAME, runResultUnit.getScnExecution().getName());
             recordResult.put(JSON_DESCRIPTION, runResultUnit.getScnExecution().getDescription());
 
-            recordResult.put(JSON_RESULT, runResultUnit.isSuccess() ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString());
+            recordResult.put(JSON_RESULT, runResultUnit.isSuccess() ? RunResult.StatusTest.SUCCESS.toString() : RunResult.StatusTest.FAIL.toString());
             recordResult.put(JSON_DETAIL, runResultUnit.getListVerifications().stream()
                     .map(t -> { //
-                        return Map.of(JSON_RESULT, t.isSuccess ? ServerController.StatusTest.SUCCESS.toString() : ServerController.StatusTest.FAIL.toString(), //
+                        return Map.of(JSON_RESULT, t.isSuccess ? RunResult.StatusTest.SUCCESS.toString() : RunResult.StatusTest.FAIL.toString(), //
                                 JSON_MESSAGE, getSecureValue(t.message),
                                 JSON_TYPEVERIFICATION, t.verification.getTypeVerification(),
                                 JSON_INFO, getSecureValue(t.verification.getSynthesis()));
@@ -432,7 +432,7 @@ public class RunResult {
                     .toList());
             recordResult.put(JSON_ERRORS, runResultUnit.getListErrors().stream()
                     .map(t -> { //
-                        return Map.of(JSON_ID, t.step!=null? t.step.getId(): "", //
+                        return Map.of(JSON_ID, t.step != null ? t.step.getId() : "", //
                                 JSON_MESSAGE, t.explanation //
                         );
                     })//
@@ -454,6 +454,7 @@ public class RunResult {
         return info == null ? "" : info;
     }
 
+    public enum StatusTest {SCENARIO_NOT_EXIST, ENGINE_NOT_EXIST, SUCCESS, FAIL}
 
     public static class StepExecution {
         public final List<ErrorDescription> listErrors = new ArrayList<>();

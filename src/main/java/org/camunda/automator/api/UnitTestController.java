@@ -96,7 +96,7 @@ public class UnitTestController {
             resultScenario.add(resultOneScenario);
 
             String status = (String) resultOneScenario.get(JSON_RESULT);
-            if (status != null && !ServerController.StatusTest.SUCCESS.toString().equals(status)) {
+            if (status != null && !RunResult.StatusTest.SUCCESS.toString().equals(status)) {
                 allScenarioAreOk = false;
             }
         }
@@ -115,7 +115,7 @@ public class UnitTestController {
         if (runResult != null) {
             return runResult.getJson(false);
         } else {
-            return Map.of(ServerController.JSON_STATUS, JSON_STATUS_V_NOTEXIST);
+            return Map.of(RunResult.JSON_STATUS, JSON_STATUS_V_NOTEXIST);
         }
     }
 
@@ -163,7 +163,7 @@ public class UnitTestController {
 
 
         RunParameters runParameters = new RunParameters();
-        String runServerName=serverName == null ? configurationStartup.getServerName() : serverName;
+        String runServerName = serverName == null ? configurationStartup.getServerName() : serverName;
         resultMap.put(JSON_SERVER_NAME, runServerName);
         runParameters.setExecution(true)
                 .setServerName(runServerName)
@@ -172,7 +172,7 @@ public class UnitTestController {
         if (bpmnEngine == null) {
             logger.error("Scenario [{}] Server [{}] No BPM ENGINE running.", scenario.getName(),
                     runParameters.getServerName());
-            resultMap.put(JSON_MESSAGE, "No BPM ENGINE running from ["+runServerName+"]");
+            resultMap.put(JSON_MESSAGE, "No BPM ENGINE running from [" + runServerName + "]");
             resultMap.put(JSON_RESULT, JSON_STATUS_V_NOBPMNSERVER);
             return resultMap;
         }

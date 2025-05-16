@@ -19,7 +19,10 @@ import {
     TableRow, Tag,
     TextInput
 } from "carbon-components-react";
-import {ArrowRepeat} from "react-bootstrap-icons";
+import { ArrowRepeat } from "react-bootstrap-icons";
+import { BookmarkPlusFill } from "react-bootstrap-icons";
+
+
 import {ChevronDown, ChevronRight} from '@carbon/icons-react';
 
 
@@ -33,7 +36,11 @@ class Server extends React.Component {
             servers: [],
             preferateServer: "",
             openIds: new Set(),
-            testconnection: {},
+            testconnection: {
+                engine: {status: "", AnalyseHuman: []},
+                admin: {status: "", AnalyseHuman: []},
+                tasklist: {status: "", AnalyseHuman: []},
+            },
             display: {
                 loading: false
             },
@@ -91,18 +98,62 @@ class Server extends React.Component {
                                     Test connection
                                 </Button>
                                 <p/>
-                                {this.state.testconnection && this.state.testconnection.status === "OK" && (
-                                    <Tag type="green">OK</Tag>
-                                )}
-                                <p></p>
-                                {this.state.testconnection && this.state.testconnection.status === "FAIL" && (
-                                    <Tag type="red">FAIL</Tag>
-                                )}
+                                <table>
+                                    <tr>
+                                        <td>Engine (Zeebe,Camunda 7 Engine)</td>
+                                        <td>
+                                            {this.state.testconnection?.engine?.status === "OK" && (
+                                                <Tag type="green">OK</Tag>
+                                            )}
+                                            <p></p>
+                                            {this.state.testconnection?.engine?.status === "FAIL" && (
+                                                <Tag type="red">FAIL</Tag>
+                                            )}
 
-                                {this.state.testconnection.AnalyseHuman && this.state.testconnection.AnalyseHuman.map((name, index) => (
-                                    <p key={index}>{name}</p>
-                                ))}
+                                            {this.state.testconnection?.engine?.AnalyseHuman?.map((name, index) => (
+                                                <p key={index}>{name}</p>
+                                            ))}
+                                            </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Admin (Operate, Cockpit)</td>
+                                        <td>
+                                            {this.state.testconnection?.admin?.status === "OK" && (
+                                                <Tag type="green">OK</Tag>
+                                            )}
+                                            <p></p>
+                                            {this.state.testconnection?.admin?.status === "FAIL" && (
+                                                <Tag type="red">FAIL</Tag>
+                                            )}
+                                            {this.state.testconnection?.admin?.status === "NOT_NEEDED" && (
+                                                <Tag type="default">Not configured</Tag>
+                                            )}
 
+                                            {this.state.testconnection?.admin?.AnalyseHuman?.map((name, index) => (
+                                                <p key={index}>{name}</p>
+                                            ))}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>TaskList</td>
+                                        <td>
+                                            {this.state.testconnection?.tasklist?.status === "OK" && (
+                                                <Tag type="green">OK</Tag>
+                                            )}
+                                            <p></p>
+                                            {this.state.testconnection?.tasklist?.status === "FAIL" && (
+                                                <Tag type="red">FAIL</Tag>
+                                            )}
+                                            {this.state.testconnection?.tasklist?.status === "NOT_NEEDED" && (
+                                                <Tag type="default">Not configured</Tag>
+                                            )}
+
+                                            {this.state.testconnection?.tasklist?.AnalyseHuman?.map((name, index) => (
+                                                <p key={index}>{name}</p>
+                                            ))}
+                                        </td>
+                                    </tr>
+                                </table>
                             </Card.Body>
                         </Card>
                     </div>
@@ -114,11 +165,10 @@ class Server extends React.Component {
                         <Card>
                             <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Server</Card.Header>
                             <Card.Body>
-
-
                                 <Table>
                                     <TableHead>
                                         <TableRow>
+                                            <TableHeader></TableHeader>
                                             <TableHeader>Server Name</TableHeader>
                                             <TableHeader>Type</TableHeader>
                                             <TableHeader>Address</TableHeader>
@@ -132,6 +182,8 @@ class Server extends React.Component {
                                                     <TableRow style={{
                                                         backgroundColor: index % 2 === 1 ? '#f4f4f4' : 'white'
                                                     }}>
+                                                        <td>{ item.name === this.state.preferateServer ? <BookmarkPlusFill style={{ color: '#24a148' }} size={24}/>:<div/>}
+                                                        </td>
                                                         <td>{item.name}</td>
                                                         <td>{item.type}</td>
                                                         <td>{item.zeebeGrpcAddress}
@@ -182,21 +234,21 @@ class Server extends React.Component {
                                                                                 <td>{item.zeebeRestAddress}</td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td> zeebeClientId< /td>
                                                                                 <td>{item.zeebeClientId}
                                                                                 </td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td> zeebeClientSecret< /td>
                                                                                 <td>{item.zeebeClientSecret}
                                                                                 </td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>Identity URL</td>
                                                                                 <td>{item.identityUrl}</td>
@@ -211,66 +263,66 @@ class Server extends React.Component {
                                                                                 <td>{item.zeebeSaasRegion}</td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>Authentication URL</td>
                                                                                 <td>{item.authenticationUrl}</td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>Operate URL</td>
                                                                                 <td>{item.operateUrl}</td>
                                                                             </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>OperteClientId< /td>
                                                                                 <td>{item.operateClientId}
                                                                                 </td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>OperateClientSecret< /td>
                                                                                 <td>{item.operateClientSecret}
                                                                                 </td>
                                                                             </tr>
-                                                                        )}{(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        )}{(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>Operate user name</td>
                                                                                 <td>{item.operateUserName}</td>
                                                                             </tr>)}
 
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>TaskList URL</td>
                                                                                 <td>{item.taskListUrl}</td>
                                                                             </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>TaskList ClientId< /td>
                                                                                 <td>{item.taskListClientId}
                                                                                 </td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>TaskList ClientSecret< /td>
                                                                                 <td>{item.taskListClientSecret}
                                                                                 </td>
                                                                             </tr>
                                                                         )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>TaskList UserName</td>
                                                                                 <td>{item.taskListUserName}</td>
                                                                             </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>TaskList Keycloack URL</td>
                                                                                 <td>{item.taskListKeycloakUrl}</td>
                                                                             </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type == "CAMUNDA_8_SAAS") && (
+                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
                                                                             <tr>
                                                                                 <td>Worker Execution Thread</td>
                                                                                 <td>{item.workerExecutionThreads}</td>

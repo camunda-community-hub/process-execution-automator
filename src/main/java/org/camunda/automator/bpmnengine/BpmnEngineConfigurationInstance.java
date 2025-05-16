@@ -50,7 +50,7 @@ public class BpmnEngineConfigurationInstance {
                                                  String zeebeCloudClientId) {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description,BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
         serverDefinition.zeebeSaasRegion = zeebeCloudRegion;
         serverDefinition.zeebeSaasClusterId = zeebeCloudClusterId;
         serverDefinition.zeebeClientId = zeebeCloudClientId;
@@ -63,7 +63,7 @@ public class BpmnEngineConfigurationInstance {
     public static BpmnEngineList getDummy() {
         BpmnEngineList bpmEngineConfiguration = new BpmnEngineList();
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance("Dummy", "Dummy instance",BpmnEngineList.CamundaEngine.DUMMY);
+        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance("Dummy", "Dummy instance", BpmnEngineList.CamundaEngine.DUMMY);
 
         bpmEngineConfiguration.addExplicitServer(serverDefinition);
 

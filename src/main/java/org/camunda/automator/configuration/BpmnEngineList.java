@@ -370,7 +370,7 @@ public class BpmnEngineList {
             camunda8.zeebeClientId = configurationServersEngine.zeebeClientId;
             camunda8.zeebeClientSecret = configurationServersEngine.zeebeClientSecret;
             camunda8.authenticationUrl = configurationServersEngine.zeebeAuthenticationUrl;
-            camunda8.zeebeAudience =  configurationServersEngine.zeebeAudience;
+            camunda8.zeebeAudience = configurationServersEngine.zeebeAudience;
             camunda8.zeebePlainText = configurationServersEngine.zeebePlainText;
 
             camunda8.workerExecutionThreads = parseInt("Camunda8." + CONF_WORKER_EXECUTION_THREADS,
@@ -388,7 +388,7 @@ public class BpmnEngineList {
             camunda8.taskListClientSecret = configurationServersEngine.taskListClientSecret;
             camunda8.taskListUserName = configurationServersEngine.zeebeTaskListUserName;
             camunda8.taskListUserPassword = configurationServersEngine.zeebeTaskListUserPassword;
-            camunda8.taskListKeycloakUrl =  configurationServersEngine.taskListKeycloakUrl;
+            camunda8.taskListKeycloakUrl = configurationServersEngine.taskListKeycloakUrl;
             list.add(camunda8);
             logger.info(
                     "Configuration: Camunda8 Name[{}] zeebeGateway[{}] MaxJobsActive[{}] WorkerThreads[{}] " + "OperateURL[{}]",
@@ -583,7 +583,8 @@ public class BpmnEngineList {
 
         }
 
-        public static BpmnServerDefinition getInstance(String name, String description, CamundaEngine serverType) {BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
+        public static BpmnServerDefinition getInstance(String name, String description, CamundaEngine serverType) {
+            BpmnServerDefinition bpmnServerDefinition = new BpmnServerDefinition();
             bpmnServerDefinition.name = name;
             bpmnServerDefinition.description = description;
             bpmnServerDefinition.serverType = serverType;

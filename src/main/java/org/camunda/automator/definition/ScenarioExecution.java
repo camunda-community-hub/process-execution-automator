@@ -117,6 +117,10 @@ public class ScenarioExecution {
         return this;
     }
 
+    public void setNumberProcessInstances(Integer numberProcessInstances) {
+        this.numberProcessInstances = numberProcessInstances;
+    }
+
     public Scenario getScnHead() {
         return scnHead;
     }
@@ -146,13 +150,8 @@ public class ScenarioExecution {
         this.numberOfThreads = numberOfThreads;
     }
 
-
     public Policy getPolicy() {
         return (policy == null ? Policy.STOPATFIRSTERROR : policy);
-    }
-
-    public void setNumberProcessInstances(Integer numberProcessInstances) {
-        this.numberProcessInstances = numberProcessInstances;
     }
 
     public void setPolicy(Policy policy) {
@@ -160,7 +159,7 @@ public class ScenarioExecution {
     }
 
     public Integer getWaitForOperateImport() {
-        return waitForOperateImport==null? 10: waitForOperateImport;
+        return waitForOperateImport == null ? 10 : waitForOperateImport;
     }
 
     public void setWaitForOperateImport(Integer waitForOperateImport) {

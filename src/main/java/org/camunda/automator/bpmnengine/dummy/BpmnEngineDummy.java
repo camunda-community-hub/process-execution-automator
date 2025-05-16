@@ -35,6 +35,20 @@ public class BpmnEngineDummy implements BpmnEngine {
         // nothing to do here
     }
 
+    @Override
+    public ConnectionStatus testAdminConnection() {
+        ConnectionStatus connectionStatus = new ConnectionStatus();
+        connectionStatus.status = CONNECTION_STATUS.NOT_NEEDED;
+        return connectionStatus;
+    }
+
+    @Override
+    public ConnectionStatus testTaskListConnection() {
+        ConnectionStatus connectionStatus = new ConnectionStatus();
+        connectionStatus.status = CONNECTION_STATUS.NOT_NEEDED;
+        return connectionStatus;
+    }
+
     /**
      * Engine is ready. If not, a connection() method must be call
      *

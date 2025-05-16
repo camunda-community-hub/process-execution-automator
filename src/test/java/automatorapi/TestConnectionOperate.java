@@ -9,23 +9,21 @@ import io.camunda.operate.model.FlowNodeInstance;
 import io.camunda.operate.search.FlowNodeInstanceFilter;
 import io.camunda.operate.search.SearchQuery;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.camunda.automator.bpmnengine.camunda8.LocalTest;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URL;
 import java.util.List;
 
 public class TestConnectionOperate {
 
-    static Logger logger = LoggerFactory.getLogger(LocalTest.class);
+    static Logger logger = LoggerFactory.getLogger(TestConnectionOperate.class);
 
     @Test
     public void init() {
-        logger.info("LocalTest soon");
+        logger.info("TestConnectionOperate soon");
 
         try {
             String clientId = "operate";

@@ -101,7 +101,7 @@ automator:
       zeebeGrpcAddress: "http://localhost:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebeClientId: "zeebe"
-      zeebeClientSecret: "FsWEvP8S96"
+      zeebeClientSecret: "..."
       authenticationUrl: "http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token"
       zeebeAudience: "zeebe"
       zeebePlainText: true
@@ -113,7 +113,7 @@ automator:
       operateUrl: "http://localhost:8081"
 
       taskListClientId: "tasklist"
-      taskListClientSecret: "yrsX5qkt5z"
+      taskListClientSecret: "..."
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
@@ -147,7 +147,7 @@ automator:
       zeebeGrpcAddress: "http://camunda-zeebe-gateway:26500"
       zeebeRestAddress: "http://camunda-zeebe-gateway:9600"
       zeebeClientId: "zeebe"
-      zeebeClientSecret: "LHwdAq56bZ"
+      zeebeClientSecret: "..."
       zeebeAudience: "zeebe"
       zeebePlainText: true
       authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
@@ -156,13 +156,13 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://camunda-operate:80"
       operateClientId: "operate"
-      operateClientSecret: "Ns0ZGTrm24"
+      operateClientSecret: "..."
 
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://camunda-tasklist:80"
       taskListClientId: "tasklist"
-      taskListClientSecret: "DCjtjiIwmd"
+      taskListClientSecret: "..."
       taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
 
       workerExecutionThreads: 200
@@ -177,20 +177,20 @@ automator:
       workerMaxJobsActive: -1
 
       region: "jfk-1"
-      clusterId: "b16d70cb-b654-4d76-a3a4-d4e438e4447c"
-      zeebeClientId: "nDyNLPuBqNrlQs4_3RsTDsFCgn~LkmJB"
-      zeebeClientSecret: "6HwNaOHVjHCUSjVmzm4J8zDtyohyxk7b~JF1PatZqnpDjujneQ62~dEh6M-j3APc"
+      clusterId: "..."
+      zeebeClientId: "..."
+      zeebeClientSecret: "..."
       # Cluster 8.3.0
       authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
       zeebeAudience: "zeebe.camunda.io"
 
       operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
-      operateClientId: SJRsNvQ3sS~LeLh.bYkkIZsRCKs-Y3jr
-      operateClientSecret: zyB5ihdg62L5afrOcPU.RR~O4poL97BoF5k8YUv.f3WBg9QqadYypp09ffIEXchW
+      operateClientId: "..."
+      operateClientSecret: "..."
 
       taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
-      taskListClientId: "H5uyrOHGkG8C8S~FlbA3EWsWsyzXP8mr"
-      taskListClientSecret: ".7~Lhx0~dntq5hfRc0kbD_5iZLyWWIZ6ZZXbg.LG5snMYIDIaaCDtj8~r~dq.yxk"
+      taskListClientId: "..."
+      taskListClientSecret: "..."
 
 
   # This definition is very simple to use in the K8 definition, because one variable can be overide
@@ -233,13 +233,13 @@ automator:
       operateUserPassword: "demo"
 
       region: "bru-2"
-      clusterId: "45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
-      zeebeClientId: "MmM-SXhFH0vjYUil8y6uwHReObcIl7eX"
-      zeebeClientSecret: "8u8ofInkS78lnGNrqvZEgUZ7dKFDfWxmTS-L~0_Pizy9dL7uZH5HHwQHfmXV54g4"
+      clusterId: "..."
+      zeebeClientId: "..."
+      zeebeClientSecret: "..."
       authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
       audience: "zeebe.camunda.io"
-      operateUrl: "https://bru-2.operate.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
-      taskListUrl: "https://bru-2.tasklist.camunda.io/45cf5a2e-cee0-462f-b676-7c4330a9ce8a"
+      operateUrl: "https://bru-2.operate.camunda.io/..."
+      taskListUrl: "https://bru-2.tasklist.camunda.io/..."
 
 
 

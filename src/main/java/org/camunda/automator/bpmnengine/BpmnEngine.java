@@ -29,6 +29,10 @@ public interface BpmnEngine {
 
     void disconnection() throws AutomatorException;
 
+    ConnectionStatus testAdminConnection();
+
+    ConnectionStatus testTaskListConnection();
+
     /**
      * Engine is ready. If not, a connection() method must be call
      *
@@ -62,13 +66,6 @@ public interface BpmnEngine {
      */
     void endProcessInstance(String processInstanceId, boolean cleanAll) throws AutomatorException;
 
-
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  User task                                                           */
-    /*                                                                      */
-    /* ******************************************************************** */
-
     /**
      * @param processInstanceId Process Instance Id
      * @param filterTaskId      If not null, list if filtered to return only this task
@@ -89,6 +86,13 @@ public interface BpmnEngine {
      */
     List<String> searchUserTasks(String userTaskId, int maxResult) throws AutomatorException;
 
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  User task                                                           */
+    /*                                                                      */
+    /* ******************************************************************** */
+
     /**
      * @param userTaskId BPMN Id (Review)
      * @param userId     User id who executes the task
@@ -96,13 +100,6 @@ public interface BpmnEngine {
      * @throws AutomatorException in case of error
      */
     void executeUserTask(String userTaskId, String userId, Map<String, Object> variables) throws AutomatorException;
-
-
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  Service tasks                                                       */
-    /*                                                                      */
-    /* ******************************************************************** */
 
     /**
      * @param workerId        workerId
@@ -131,6 +128,13 @@ public interface BpmnEngine {
     List<String> activateServiceTasks(String processInstanceId, String serviceTaskId, String topic, int maxResult)
             throws AutomatorException;
 
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Service tasks                                                       */
+    /*                                                                      */
+    /* ******************************************************************** */
+
     /**
      * Execute a service task
      *
@@ -153,12 +157,6 @@ public interface BpmnEngine {
      */
     List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
             throws AutomatorException;
-
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  Generic tasks                                                       */
-    /*                                                                      */
-    /* ******************************************************************** */
 
     /**
      * Search process instance by a variable content
@@ -184,6 +182,12 @@ public interface BpmnEngine {
 
     /* ******************************************************************** */
     /*                                                                      */
+    /*  Generic tasks                                                       */
+    /*                                                                      */
+    /* ******************************************************************** */
+
+    /* ******************************************************************** */
+    /*                                                                      */
     /*  CountInformation                                                    */
     /*                                                                      */
     /* ******************************************************************** */
@@ -205,20 +209,7 @@ public interface BpmnEngine {
      */
     String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException;
 
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  Deployment                                                          */
-    /*                                                                      */
-    /* ******************************************************************** */
-
     BpmnEngineList.CamundaEngine getTypeCamundaEngine();
-
-
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  get server definition                                               */
-    /*                                                                      */
-    /* ******************************************************************** */
 
     /**
      * return the signature of the engine, to log it for example
@@ -227,7 +218,27 @@ public interface BpmnEngine {
      */
     String getSignature();
 
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Deployment                                                          */
+    /*                                                                      */
+    /* ******************************************************************** */
+
     int getWorkerExecutionThreads();
+
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  get server definition                                               */
+    /*                                                                      */
+    /* ******************************************************************** */
+
+    enum CONNECTION_STATUS {OK, NOT_NEEDED, FAIL}
+
+    class ConnectionStatus {
+        public CONNECTION_STATUS status;
+        public String message;
+    }
 
     class RegisteredTask {
         public TopicSubscription topicSubscription;
