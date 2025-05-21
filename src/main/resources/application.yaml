@@ -18,7 +18,7 @@ automator:
     serverName: Camunda8Topaz
 
     scenarioPath:
-    # list of scenario separate by ;
+    # list of scenarios separate by ;
     scenarioFileAtStartup:
 
     # one scenario resource - to be accessible in a Docker container via a configMap
@@ -51,7 +51,7 @@ automator:
 
   serversConnection: Camunda7Diamond,CAMUNDA_7,http://localhost:8080/engine-rest;Camunda8Tanzanite,CAMUNDA_8,127.0.0.1:26500,demo,demo,http://localhost:8081
 
-  # other way to provide the list of server connection
+  # another way to provide the list of server connection
   serversList:
     - name: "camunda7Emeraud"
       type: "camunda7"
@@ -79,7 +79,7 @@ automator:
       zeebeGrpcAddress: "http://localhost:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebeClientId: ""
-      zeebeClientSecret: ""
+      zeebeClientSecret: "HereTheSecret"
       authenticationUrl: ""
       zeebeAudience: "zeebe"
       operateUserName: "demo"
@@ -101,19 +101,19 @@ automator:
       zeebeGrpcAddress: "http://localhost:26500"
       zeebeRestAddress: "http://localhost:9600"
       zeebeClientId: "zeebe"
-      zeebeClientSecret: "..."
+      zeebeClientSecret: "HereTheSecret"
       authenticationUrl: "http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token"
       zeebeAudience: "zeebe"
       zeebePlainText: true
 
       operateClientId: "operate"
-      operateClientSecret: "XhB0HZub9B"
+      operateClientSecret: "HereTheSecret"
       operateUserName: "demo"
       operateUserPassword: "demo"
       operateUrl: "http://localhost:8081"
 
       taskListClientId: "tasklist"
-      taskListClientSecret: "..."
+      taskListClientSecret: "HereTheSecret"
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://localhost:8082"
@@ -137,7 +137,7 @@ automator:
       taskListUserPassword: "demo"
       taskListUrl: "http://camunda-tasklist:80"
       workerExecutionThreads: 200
-      # -1 means : align the jobsActive to the workerExecutionThreads
+      # -1 mean: align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
     - name: "Camunda8Sapphire"
@@ -147,7 +147,7 @@ automator:
       zeebeGrpcAddress: "http://camunda-zeebe-gateway:26500"
       zeebeRestAddress: "http://camunda-zeebe-gateway:9600"
       zeebeClientId: "zeebe"
-      zeebeClientSecret: "..."
+      zeebeClientSecret: "HereTheSecret"
       zeebeAudience: "zeebe"
       zeebePlainText: true
       authenticationUrl: "http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token"
@@ -156,13 +156,13 @@ automator:
       operateUserPassword: "demo"
       operateUrl: "http://camunda-operate:80"
       operateClientId: "operate"
-      operateClientSecret: "..."
+      operateClientSecret: "HereTheSecret"
 
       taskListUserName: "demo"
       taskListUserPassword: "demo"
       taskListUrl: "http://camunda-tasklist:80"
       taskListClientId: "tasklist"
-      taskListClientSecret: "..."
+      taskListClientSecret: "HereTheSecret"
       taskListKeycloakUrl: "http://localhost:18080/auth/realms/camunda-platform"
 
       workerExecutionThreads: 200
@@ -179,18 +179,18 @@ automator:
       region: "jfk-1"
       clusterId: "..."
       zeebeClientId: "..."
-      zeebeClientSecret: "..."
+      zeebeClientSecret: "HereTheSecret"
       # Cluster 8.3.0
       authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
       zeebeAudience: "zeebe.camunda.io"
 
       operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
       operateClientId: "..."
-      operateClientSecret: "..."
+      operateClientSecret: "HereTheSecret"
 
       taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
       taskListClientId: "..."
-      taskListClientSecret: "..."
+      taskListClientSecret: "HereTheSecret"
 
 
   # This definition is very simple to use in the K8 definition, because one variable can be overide
@@ -208,7 +208,7 @@ automator:
       zeebeGatewayAddress: "127.0.0.1:26500"
       zeebeGrpcAddress: "http://localhost:26500"
       zeebeClientId: ""
-      zeebeClientSecret: ""
+      zeebeClientSecret: "HereTheSecret"
       authenticationUrl: ""
       zeebePlainText: true
       zeebeAudience: "zeebe"

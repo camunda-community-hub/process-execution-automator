@@ -29,7 +29,7 @@ spec:
                 -Dautomator.servers.camunda8.name=Camunda8Calcair
                 -Dautomator.servers.camunda8.zeebeGrpcAddress=http://camunda-zeebe-gateway:26500
                 -Dautomator.servers.camunda8.zeebeClientId=zeebe
-                -Dautomator.servers.camunda8.zeebeClientSecret=...
+                -Dautomator.servers.camunda8.zeebeClientSecret="HereTheSecret"
                 -Dautomator.servers.camunda8.zeebeAudience=zeebe
                 -Dautomator.servers.camunda8.zeebePlainText=true
                 -Dautomator.servers.camunda8.authenticationUrl=http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token                
@@ -37,12 +37,12 @@ spec:
                 -Dautomator.servers.camunda8.operateUserName=demo
                 -Dautomator.servers.camunda8.operateUserPassword=demo
                 -Dautomator.servers.camunda8.operateClientId=operate
-                -Dautomator.servers.camunda8.operateClientSecret=...
+                -Dautomator.servers.camunda8.operateClientSecret="HereTheSecret"
                 -Dautomator.servers.camunda8.taskListUrl=http://camunda-tasklist:80
                 -Dautomator.servers.camunda8.taskListUserName=demo
                 -Dautomator.servers.camunda8.taskListUserPassword=demo
                 -Dautomator.servers.camunda8.taskListClientId=tasklist
-                -Dautomator.servers.camunda8.taskListClientSecret=...
+                -Dautomator.servers.camunda8.taskListClientSecret="HereTheSecret"
                 -Dautomator.servers.camunda8.taskListKeycloakUrl=http://35.237.139.124:8080/auth/realms/camunda-platform/protocol/openid-connect/token
                 -Dautomator.servers.camunda8.workerExecutionThreads=2000
                 -Dautomator.startup.logLevel=MAIN
