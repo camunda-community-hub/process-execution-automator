@@ -8,10 +8,10 @@
 # Process-execution-automator
 
 # Objectives
-Create scenarios to automate any execution of processes. Objectives are
+Create scenarios to automate any execution of processes. Goals are
 * Unit test and regression: You need to verify that a process reacts the same if you create a process instance with the variable "amount=100", and that the process comes to the user task "review".
 * Unit performance test: The process calls a service task "getCreditScore," and you want to verify this execution stays under 200 ms
-* Developer reason: you developed the task "getCreditScore", and this task is in the process after 4 user tasks and 3 service tasks that you need to simulate
+* Developer reason: you developed the task `getCreditScore`, and this task is in the process after 4 user tasks and 3 service tasks that you need to simulate
 
 The Unit Test section covers these goals.
 
@@ -29,7 +29,7 @@ Process-execution-automator is a software starting on the same cluster. It conne
 Process-execution-automator executes scenario. One scenario pilot a process.
 
 
-It is possible to execute multiple scenario at the same time to handle a use case like
+It is possible to execute multiple scenarios at the same time to handle a use case like
 "generate 100 process instances/minute on process Review, 5 process instances per second on process Expense."
 
 Automator does not start a Camunda Engine; it communicates with it. It can be a Camunda 7 server or a Camunda 8 server.
@@ -63,9 +63,9 @@ What process-execution-automator do:
 * It can throw a BPMN Message
 * Simulate execute service task in Flow Scenario
 
-process-execution-automator do not
+process-execution-automator does not
 
-* Execute service task in unit-scenario
+* Execute service tasks in unit-scenario
 * It is not expected to catch a BPMN Message in the flow:  process-execution-automator piloted a real system.
 
 ## Requirement
@@ -125,12 +125,12 @@ A scenario define
   * Execute service task,
   * Execute user tasks
 * some objectives
-  * How many process instance must be created
-  * How many service task has to be executed
+  * How many process instances must be created?
+  * How many service tasks have to be executed?
   * Time to execute a section in the process
 * a warm-up section
 
-Due to the “backoff strategy”, workers need to be wake up
+Due to the “backoff strategy” workers need to wake up.
 
 Robots can be registered in the same pod
 ![C8CrawlUrl.png](doc/scenarioreference/C8CrawlUrl.png)
@@ -182,8 +182,8 @@ At the execution, two parameters are mandatory:
 In this way, using the same scenario in different environments is possible.
 
 For example, let's say you want to start the tool in a Kubernetes deployment.
-The best way is then to use the Spring capability's to override a parameter via the -D options.
-You check the application.yaml, and decided the simple ways is to override the `automator.servers.camunda8` section.
+The best way is then to use the Spring capability to override a parameter via the -D options.
+You check the `application.yaml`, and decided the simple ways are to override the `automator.servers.camunda8` section.
 
 1/ you specify which server the tool will connect the server given at the configuration.
 For example, using the SpringBoot functionality to override a configuration variable: 
@@ -238,18 +238,18 @@ The example in the list of server is `Camunda8Lazuli`
 -Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
 -Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
 -Dautomator.servers.camunda8.zeebeClientId=zeebe
--Dautomator.servers.camunda8.zeebeClientSecret=LHwdAq56bZ
+-Dautomator.servers.camunda8.zeebeClientSecret=HereTheSecret
 -Dautomator.servers.camunda8.zeebeAudience=zeebe
 -Dautomator.servers.camunda8.zeebePlainText=true
 -Dautomator.servers.camunda8.authenticationUrl=http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token
 
 -Dautomator.servers.camunda8.operateClientId=operate
--Dautomator.servers.camunda8.operateClientSecret=Ns0ZGTrm24
+-Dautomator.servers.camunda8.operateClientSecret=HereTheSecret
 -Dautomator.servers.camunda8.operateUserName=demo
 -Dautomator.servers.camunda8.operateUserPassword=demo
 -Dautomator.servers.camunda8.operateUrl=http://localhost:8081
 -Dautomator.servers.camunda8.taskListClientId=tasklist
--Dautomator.servers.camunda8.taskListClientSecret=DCjtjiIwmd
+-Dautomator.servers.camunda8.taskListClientSecret=HereTheSecret
 -Dautomator.servers.camunda8.taskListUserName=demo
 -Dautomator.servers.camunda8.taskListUserPassword=demo
 -Dautomator.servers.camunda8.taskListUrl=http://localhost:8082
@@ -264,17 +264,17 @@ The example in the list of server is `Camunda8Grena`
 -Dautomator.servers.camunda8.zeebeGrpcGatewayAddress="127.0.0.1:26500"
 -Dautomator.servers.camunda8.zeebeRestGatewayAddress="127.0.0.1:8080"
 -Dautomator.servers.camunda8.region=jfk-1
--Dautomator.servers.camunda8.clusterId=b16d70cb-b654-4d76-a3a4-d4e438e4447c
--Dautomator.servers.camunda8.zeebeClientId=nDyNLPuBqNrlQs4_3RsTDsFCgn~LkmJB
--Dautomator.servers.camunda8.zeebeClientSecret=6HwNaOHVjHCUSjVmzm4J8zDtyohyxk7b~JF1PatZqnpDjujneQ62~dEh6M-j3APc
+-Dautomator.servers.camunda8.clusterId=HereTheClusterId
+-Dautomator.servers.camunda8.zeebeClientId=HereTheClientId
+-Dautomator.servers.camunda8.zeebeClientSecret=HereTheSecret
 -Dautomator.servers.camunda8.authenticationUrl=https://login.cloud.camunda.io/oauth/token
 -Dautomator.servers.camunda8.zeebeAudience=zeebe.camunda.io
--Dautomator.servers.camunda8.operateUrl=https://bru-2.operate.camunda.io/4b..e2
--Dautomator.servers.camunda8.operateClientId=SJRsNvQ3sS~LeLh.bYkkIZsRCKs-Y3jr
--Dautomator.servers.camunda8.operateClientSecret=zyB5ihdg62L5afrOcPU.RR~O4poL97BoF5k8YUv.f3WBg9QqadYypp09ffIEXchW
--Dautomator.servers.camunda8.taskListUrl=https://bru-2.tasklist.camunda.io/4b..e2
--Dautomator.servers.camunda8.taskListClientId=H5uyrOHGkG8C8S~FlbA3EWsWsyzXP8mr
--Dautomator.servers.camunda8.taskListClientSecret=.7~Lhx0~dntq5hfRc0kbD_5iZLyWWIZ6ZZXbg.LG5snMYIDIaaCDtj8~r~dq.yxk
+-Dautomator.servers.camunda8.operateUrl=https://bru-2.operate.camunda.io/HereTheOperateId
+-Dautomator.servers.camunda8.operateClientId=HereTheClientid
+-Dautomator.servers.camunda8.operateClientSecret=HereTheSecret
+-Dautomator.servers.camunda8.taskListUrl=https://bru-2.tasklist.camunda.io/HereTheTasklistId
+-Dautomator.servers.camunda8.taskListClientId=HereTheClientId
+-Dautomator.servers.camunda8.taskListClientSecret=HereTheSecret
 ```
 
 
@@ -302,7 +302,7 @@ Scenario and Server configuration can be set up at startup.
 
 ## Use in Kubernetes
 
-The project can be used in a docker environment to create, for example,
+The project can be used in a docker environment to create, for example.
 * one container to run a scenario within a context, creating 500 process instances every 40 seconds
 * one container to simulate the service task `getCreditScore`. This worker runs 200 threads
 * twenty containers to simulate the service task `checkRisk`. This worker runs 100 threads in ThreadExecutionWorker implementation.
@@ -341,7 +341,7 @@ This section gives different parameters to execute at startup.
 A combinaison of "DEPLOYPROCESS", "WARMINGUP","CREATION","SERVICETASK"", "USERTASK", for example "WARMINUP|CREATION|USERTASK"
 
 SERVICETASK is running in combination with the filterService value.
-The application runs only these role. Doing that, in a cluster, it's possible to start 10 pods running the creation and 5 pods running specific service tasks.
+The application runs only these roles. Doing that, in a cluster, it's possible to start 10 pods running the creation and 5 pods running specific service tasks.
 
 ## main information
 
@@ -356,7 +356,7 @@ The application runs only these role. Doing that, in a cluster, it's possible to
 ### String connection
 
 The string contains a list of connections, separate by a semi-colon (":").
-Each parameter in the connection is separated by a comma (,)
+A comma separates each parameter in the connection (,)
 
 First parameters are
 
@@ -471,18 +471,18 @@ automator.servers:
     name: "Camunda8Marbble"
     workerExecutionThreads: 10
     workerMaxJobsActive: 10
-    operateUrl: "https://ont-1.operate.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
-    taskListUrl: "https://ont-1.tasklist.camunda.io/25fdd1e6-e4a1-4362-b49c-5eced08cb893"
+    operateUrl: "https://ont-1.operate.camunda.io/HereTheOperateId"
+    taskListUrl: "https://ont-1.tasklist.camunda.io/HereTheTasklistId"
 
     operateUserName: "demo"
     operateUserPassword: "demo"
 
     region: "ont-1"
-    clusterId: "25fdd1e6-e4a1-4362-b49c-5eced08cb893"
-    clientId: "eknOoiO5GYDdFf4ZjDSh8yaLG-BVCw9L"
+    clusterId: "HereTheClusterId"
+    clientId: "HereTheSecret"
     oAuthUrl: "https://login.cloud.camunda.io/oauth/token"
     audience: ""
-    secret: "4BPUva1U4lDtoG2-torvAtx6w5RbHULUFhGZ-bBXOMWwZJG3d3VDlfPHjVO3Kz-N"
+    secret: "HereTheSecret"
 ````
 
 # Build
@@ -520,5 +520,5 @@ docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
 Check on
-https://github.com/camunda-community-hub/zeebe-cherry-runtime/pkgs/container/process-execution-automator
+https://github.com/camunda-community-hub/process-execution-automator/pkgs/container/process-execution-automator
 
