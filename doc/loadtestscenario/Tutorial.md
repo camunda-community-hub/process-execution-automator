@@ -3,6 +3,8 @@
 The goal of this tutorial is to create a load test, execute it, check the metrics on Zeebe,
 change the different parameters to find the correct configuration for the platform.
 
+> Note: this tutorial was developping using small machine like "n1-standard-16" in Google cloud. using a faster machine will have different result.
+
 ## Platform
 A Zeebe cluster is mandatory to run the test. This cluster may be deployed locally, on a cloud, or
 in the SaaS environment. The Grafana page is a plus for understanding how the Zeebe platform reacts.
@@ -284,6 +286,7 @@ Then, deploy and start the docker image.
 
 All this configuration is available in the file `ku-c8CrawlUrl.yaml`, so run it with
 ````
+cd doc/loadtestscenario
 kubectl create -f ku-c8CrawlUrl.yaml
 ````
 
@@ -364,7 +367,7 @@ This is then 400 process instances/minute.
 
 The first task needs 2 seconds duration. To execute 400 process instances, it will need 2*400=800 s.
 Because this throughput is required by minute, multiple workers must do it in parallel.
-One worker has a throughput of 60 s per 60 s. Workers must handle 800 s, 800/60=13.3 (so, 14).
+One worker has throughput of 60 s per 60 s. Workers must handle 800 s, 800/60=13.3 (so, 14).
 
 The simple way to calculate the number of workers is to calculate
 * The Capacity for one thread. The capacity is how many tasks a thread can handle on a period
@@ -466,13 +469,19 @@ This deployment creates one pod per service task.
 Each change:
 * The change must be applied in the file
 * The deployment must be run
+
+
+To start the first test
 ````
-kubectl create -f ku-c8CrawlUrlMultiple.yaml
+cd doc/loadtestscenario/
+kubectl create configmap crawurlscnmap --from-file=resources/C8CrawlUrlScn.json 
+
+kubectl create -f test_1/test-1-c8CrawlUrlMultiple.yaml
 ````
 
 Then, the cluster must be deleted.
 `````
-kubectl delete -f ku-c8CrawlUrlMultiple.yaml
+kubectl delete -f test_1/test-1-c8CrawlUrlMultiple.yaml
 `````
 
 ## Check the basic
@@ -578,7 +587,7 @@ d)[3884 (97 % ) CreateFail(AutomatorRecord)[1]
 Looking at the Grafana overview, one partition gets a backpressure
 ![Back pressure](test_1/test-1-Backpressure.png)
 
-Looking Operate, we can identify which service task was the bottleneck.
+Looking at Operate, we can identify which service task was the bottleneck.
 
 ![Operate](test_1/test-1-operate.png)
 
