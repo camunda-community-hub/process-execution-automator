@@ -212,7 +212,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                 marker = getUniqueMarker(processId);
                 variables.put(THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME, marker);
             }
-
+            if (processId == null)
+                throw new AutomatorException("CreateProcessInstance no processId defined ");
             ProcessInstanceEvent processInstanceEvent = zeebeClient.newCreateInstanceCommand()
                     .bpmnProcessId(processId)
                     .latestVersion()
@@ -223,8 +224,10 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                 cacheProcessInstanceMarker.put(marker, processInstanceId);
             }
             return String.valueOf(processInstanceId);
+        } catch (AutomatorException e1) {
+            throw e1;
         } catch (Exception e) {
-            throw new AutomatorException("CreateProcessInstance Error[" + processId + "] :" + e.getMessage());
+            throw new AutomatorException("CreateProcessInstance Error processId[" + processId + "] :" + e.getMessage());
         }
     }
 
@@ -523,7 +526,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             analysis.append("SaaS;");
 
             String gatewayAddressCloud =
-                    serverDefinition.zeebeSaasClusterId + "." + serverDefinition.zeebeSaasRegion + ".zeebe.camunda.io:443";
+                    "https://" + serverDefinition.zeebeSaasClusterId + "." + serverDefinition.zeebeSaasRegion + ".zeebe.camunda.io:443";
             isOk = stillOk(gatewayAddressCloud, "GatewayAddress", analysis, true, true, isOk);
             isOk = stillOk(serverDefinition.zeebeClientId, "ClientId", analysis, true, true, isOk);
 
@@ -656,11 +659,13 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             zeebeClient = clientBuilder.build();
 
             // simple test
+            long timeBegin = System.currentTimeMillis();
             Topology join = zeebeClient.newTopologyRequest().send().join();
 
             // Actually, if an error arrived, an exception is thrown
 
             analysis.append(join != null ? "successfully, " : "error, ");
+            analysis.append("in " + (System.currentTimeMillis() - timeBegin) + " ms");
 
         } catch (Exception e) {
             zeebeClient = null;

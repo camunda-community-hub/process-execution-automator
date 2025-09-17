@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 
 public class ServersController {
+
     public static final String JSON_SCENARIO_NAME = "scenarioName";
     public static final String JSON_SERVER_NAME = "serverName";
     public static final String JSON_ID = "id";
@@ -40,7 +41,9 @@ public class ServersController {
     public static final String JSON_CONNECTION_ADMIN = "admin";
     public static final String JSON_CONNECTION_TASKLIST = "tasklist";
     public static final String JSON_CONNECTION_ENGINE = "engine";
+
     private static final Logger logger = LoggerFactory.getLogger(ServersController.class.getName());
+
     private final ConfigurationStartup configurationStartup;
     private final ContentManager contentManager;
     private final AutomatorAPI automatorAPI;
@@ -67,6 +70,7 @@ public class ServersController {
 
     @GetMapping(value = "/api/server/list", produces = "application/json")
     public Map<String, Object> getServerList() {
+
         List<BpmnEngineList.BpmnServerDefinition> listServers = bpmnEngineList.getListServers();
         logger.info("ServerController: getServerList listServers:[{}] : [{}]", listServers.size(),
                 listServers.stream().map(BpmnEngineList.BpmnServerDefinition::getName)

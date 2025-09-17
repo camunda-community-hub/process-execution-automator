@@ -185,12 +185,8 @@ automator:
       zeebeAudience: "zeebe.camunda.io"
 
       operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
-      operateClientId: "..."
-      operateClientSecret: "HereTheSecret"
 
       taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
-      taskListClientId: "..."
-      taskListClientSecret: "HereTheSecret"
 
 
   # This definition is very simple to use in the K8 definition, because one variable can be overide
@@ -229,8 +225,6 @@ automator:
       # -1 means: align the jobsActive to the workerExecutionThreads
       workerMaxJobsActive: -1
 
-      operateUserName: "demo"
-      operateUserPassword: "demo"
 
       region: "bru-2"
       clusterId: "..."

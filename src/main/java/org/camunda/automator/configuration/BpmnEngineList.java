@@ -83,18 +83,18 @@ public class BpmnEngineList {
             // log all servers detected
             logger.info("ConfigurationBpmEngine: servers detected : {} ", allServers.size());
             for (BpmnServerDefinition server : allServers) {
-                String serverDetails = "Configuration Server Type[" + server.serverType + "] ";
+                String serverDetails = "Configuration Server Name[" + server.getName() + "] Type[" + server.getServerType() + "] ";
                 if (server.serverType == null) {
-                    logger.error("ServerType not declared for server [{}]", server.name);
+                    logger.error("ServerType not declared for server [{}]", server.getName());
                     return;
                 }
 
                 serverDetails += switch (server.serverType) {
-                    case CAMUNDA_8 -> "ZeebeadressGateway [" + server.zeebeGrpcAddress + "]";
+                    case CAMUNDA_8 -> "ZeebeGrpcAdress[" + server.zeebeGrpcAddress + "]";
                     case CAMUNDA_8_SAAS ->
-                            "ZeebeClientId [" + server.zeebeClientId + "] ClusterId[" + server.zeebeSaasClusterId + "] RegionId["
+                            "ZeebeClientId[" + server.zeebeClientId + "] ClusterId[" + server.zeebeSaasClusterId + "] RegionId["
                                     + server.zeebeSaasRegion + "]";
-                    case CAMUNDA_7 -> "Camunda7URL [" + server.camunda7ServerUrl + "]";
+                    case CAMUNDA_7 -> "Camunda7URL[" + server.camunda7ServerUrl + "]";
                     case DUMMY -> "Dummy";
                 };
                 logger.info(serverDetails);
@@ -346,6 +346,7 @@ public class BpmnEngineList {
         List<BpmnServerDefinition> list = new ArrayList<>();
 
         // get the direct list
+        // is automator.servers.camunda7 has a value?
         if (hasValue(configurationServersEngine.camunda7Url)) {
             BpmnServerDefinition camunda7 = BpmnServerDefinition.getInstanceC7(configurationServersEngine.camunda7Name, configurationServersEngine.camunda7Description);
             camunda7.camunda7ServerUrl = configurationServersEngine.camunda7Url;
@@ -363,9 +364,11 @@ public class BpmnEngineList {
             logger.info("Configuration: Camunda7 Name[{}] url[{}] MaxJobsActive[{}]", camunda7.name,
                     camunda7.camunda7ServerUrl, camunda7.workerMaxJobsActive);
         }
+
+        // is automator.servers.camunda8 has a value?
         if (hasValue(configurationServersEngine.zeebeName)) {
             BpmnServerDefinition camunda8 = BpmnServerDefinition.getInstanceC8(configurationServersEngine.zeebeName, configurationServersEngine.zeebeDescription);
-            camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress;
+            camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress==null ? configurationServersEngine.zeebeGatewayAddress : configurationServersEngine.zeebeGrpcAddress;
             camunda8.zeebeRestAddress = configurationServersEngine.zeebeRestAddress;
             camunda8.zeebeClientId = configurationServersEngine.zeebeClientId;
             camunda8.zeebeClientSecret = configurationServersEngine.zeebeClientSecret;
@@ -396,6 +399,7 @@ public class BpmnEngineList {
                     camunda8.operateUrl);
 
         }
+        // is automator.servers.camunda8Saas: has a value?
         if (hasValue(configurationServersEngine.zeebeSaasName)) {
             BpmnServerDefinition camunda8 = BpmnServerDefinition.getInstanceC8Saas(configurationServersEngine.zeebeSaasName, configurationServersEngine.zeebeSaasDescription);
             camunda8.zeebeSaasRegion = configurationServersEngine.zeebeSaasRegion;
@@ -404,10 +408,10 @@ public class BpmnEngineList {
             camunda8.zeebeClientSecret = configurationServersEngine.zeebeSaasClientSecret;
             camunda8.authenticationUrl = configurationServersEngine.zeebeSaasAuthenticationUrl;
             camunda8.zeebeAudience = configurationServersEngine.zeebeSaasAudience;
-            camunda8.operateUrl = configurationServersEngine.zeebeOperateUrl;
-            camunda8.operateUserName = configurationServersEngine.zeebeOperateUserName;
-            camunda8.operateUserPassword = configurationServersEngine.zeebeOperateUserPassword;
-            camunda8.taskListUrl = configurationServersEngine.zeebeTaskListUrl;
+            camunda8.operateUrl = configurationServersEngine.zeebeSaasOperateUrl;
+            camunda8.taskListUrl = configurationServersEngine.zeebeSaasTaskListUrl;
+            camunda8.workerExecutionThreads = parseInt("ExecutionThread", configurationServersEngine.zeebeSaasWorkerExecutionThreads, 1, "SaasExecutionThreads");
+            camunda8.workerMaxJobsActive = parseInt("maxJobActive", configurationServersEngine.zeebeSaasWorkerMaxJobsActive, 1, "SaasExecutionThreads");
             list.add(camunda8);
 
         }
@@ -677,13 +681,11 @@ public class BpmnEngineList {
                 synthesis.put("operateClientId", operateClientId);
                 synthesis.put("operateClientSecret", getOffuscatedSecret(operateClientSecret));
                 synthesis.put("operateUserName", operateUserName);
-                synthesis.put("operateClientId", operateClientId);
 
                 synthesis.put("taskListUrl", taskListUrl);
                 synthesis.put("taskListClientId", taskListClientId);
                 synthesis.put("taskListClientSecret", getOffuscatedSecret(taskListClientSecret));
                 synthesis.put("taskListUserName", taskListUserName);
-                synthesis.put("taskListClientId", taskListClientId);
 
                 synthesis.put("taskListKeycloakUrl", taskListKeycloakUrl);
 

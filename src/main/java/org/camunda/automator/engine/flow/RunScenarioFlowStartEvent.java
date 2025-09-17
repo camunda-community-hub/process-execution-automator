@@ -144,8 +144,14 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
             }
             executionBatchNumber++;
 
-            Duration durationToCreateProcessInstances = Duration.parse(scenarioStep.getFrequency());
-
+            Duration durationToCreateProcessInstances = null;
+            try {
+                durationToCreateProcessInstances = Duration.parse(scenarioStep.getFrequency());
+            } catch (Exception e) {
+                runResult.addError(scenarioStep,
+                        "No Frequency defined or parsing failed [" + scenarioStep.getFrequency() + "] Process[" + scenarioStep.getProcessId() + "]");
+                return;
+            }
             long begin = System.currentTimeMillis();
             boolean isOverloadSection = false;
 

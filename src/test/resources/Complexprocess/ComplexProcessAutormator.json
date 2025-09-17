@@ -2,6 +2,7 @@
   "name": "Example of process with user and service task",
   "processId": "ComplexProcess",
   "numberOfExecutions" : 1000,
+  "scenarioType": "FLOW",
   "deployments": [
     {
       "serverType": "CAMUNDA_7",

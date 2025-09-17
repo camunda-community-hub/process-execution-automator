@@ -62,7 +62,8 @@ public class CreateProcessInstanceThread {
         int totalNumberOfPi = 0;
 
         int processInstancePerThread = (int) Math.ceil(1.0 * scenarioStep.getNumberOfExecutions() / nbThreads);
-        logger.info("StartNbThreads Step:[{}] PI:{} Duration:[{}] Thread:{} {} PI/thread:{}", scenarioStep.getTaskId(),
+        logger.info("StartNbThreads Step:[{}] PI:{} Duration:[{}] Thread:{} {} PI/thread:{}",
+                scenarioStep.getTaskId(),
                 scenarioStep.getNumberOfExecutions(), durationToCreateProcessInstances, nbThreads, additionalComment,
                 processInstancePerThread);
         // Submit tasks to the executor
@@ -89,7 +90,7 @@ public class CreateProcessInstanceThread {
     }
 
     public int getNumberOfRunningThreads() {
-        return (int) listStartProcess.stream().filter(t -> t.isRunning()).count();
+        return (int) listStartProcess.stream().filter(StartProcess::isRunning).count();
     }
 
     public int getTotalCreation() {
@@ -101,7 +102,7 @@ public class CreateProcessInstanceThread {
     }
 
     /**
-     * return true if the creation overload the durationToCreate: we can't create all PI in the duration
+     * return true if the creation overloads the durationToCreate: we can't create all PI in the duration
      *
      * @return true if it wasn't possible to create all PI during the duration
      */

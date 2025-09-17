@@ -1,5 +1,6 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
+
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.CamundaTaskListClientBuilder;
 import io.camunda.tasklist.auth.Authentication;
@@ -78,16 +79,16 @@ public class TaskListClient {
         // ---------------------------- Camunda Saas
         if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
             try {
-                isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasRegion, "zeebeSaasRegion", analysis, true, true, isOk);
-                isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasClusterId, "zeebeSaasClusterId", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.taskListUrl, "taskListUrl", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientSecret, "zeebeClientSecret", analysis, true, false, isOk);
 
-                String taskListUrl = "https://" + serverDefinition.zeebeSaasRegion + ".tasklist.camunda.io/"
-                        + serverDefinition.zeebeSaasClusterId;
+                String taskListUrl = serverDefinition.taskListUrl;
 
                 taskListBuilder.taskListUrl(taskListUrl)
-                        .saaSAuthentication(serverDefinition.taskListClientId, serverDefinition.taskListClientSecret);
+                        .saaSAuthentication(serverDefinition.zeebeClientId, serverDefinition.zeebeClientSecret);
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());
@@ -245,18 +246,27 @@ public class TaskListClient {
         }
     }
 
-    public void executeUserTask(String userTaskId, String userId, Map<String, Object> variables)
+    /**
+     * Execute a user task
+     *
+     * @param taskId    taskId to complete
+     * @param userId    userId who run the task
+     * @param variables variables to updates
+     * @throws AutomatorException if the user task cannot be executed
+     */
+    public void executeUserTask(String taskId, String userId, Map<String, Object> variables)
             throws AutomatorException {
         checkConnection();
         try {
-            taskClient.claim(userTaskId, engineCamunda8.getServerDefinition().operateUserName);
-            taskClient.completeTask(userTaskId, variables);
+            taskClient.claim(taskId, userId == null ? "demo" : userId);
+            taskClient.completeTask(taskId, variables);
+            logger.debug("Execute user task: taskId[{}] userId[{}] : variables {}", taskId, userId, variables);
         } catch (TaskListException e) {
-            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage(), e);
-            throw new AutomatorException("Can't execute task [" + userTaskId + "]");
+            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", taskId, userId, e.getMessage(), e);
+            throw new AutomatorException("Can't execute task [" + taskId + "]");
         } catch (Exception e) {
-            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", userTaskId, userId, e.getMessage(), e);
-            throw new AutomatorException("Can't execute task [" + userTaskId + "]");
+            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", taskId, userId, e.getMessage(), e);
+            throw new AutomatorException("Can't execute task [" + taskId + "]");
         }
     }
 

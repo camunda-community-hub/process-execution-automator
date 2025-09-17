@@ -95,6 +95,7 @@ public class AutomatorStartup {
                 if (Files.exists(scenarioFile)) {
                     try {
                         contentManager.addFile(scenarioFile);
+                        scenarioList.add(scenarioFile);
                     } catch (IOException e) {
                         logger.error("AutomatorStartup/StartupScenario: File [{}] Can't add in the repository: {}", scenarioFile.toAbsolutePath(), e.getMessage(), e);
                     }
@@ -120,6 +121,7 @@ public class AutomatorStartup {
                     configurationStartup.getScenarioResourceAtStartupName());
             for (Resource resource : scenarioResource) {
                 try {
+                    contentManager.addResource(resource);
                     scenarioList.add(contentManager.addResource(resource));
                 } catch (IOException e) {
                     logger.error("Error loading resource [{}] ; {}", resource.getFilename(), e.getMessage(), e);

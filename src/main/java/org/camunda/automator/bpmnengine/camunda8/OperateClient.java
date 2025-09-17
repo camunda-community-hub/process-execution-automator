@@ -88,13 +88,12 @@ public class OperateClient {
         if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
 
             try {
-                isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasRegion, "zeebeSaasRegion", analysis, true, true, isOk);
-                isOk = engineCamunda8.stillOk(serverDefinition.zeebeSaasClusterId, "zeebeSaasClusterId", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientSecret, "zeebeClientSecret", analysis, true, false, isOk);
+                isOk = engineCamunda8.stillOk(serverDefinition.operateUrl, "operateUrl", analysis, true, false, isOk);
 
-                URL operateUrl = URI.create("https://" + serverDefinition.zeebeSaasRegion + ".operate.camunda.io/"
-                        + serverDefinition.zeebeSaasClusterId).toURL();
+
+                URL operateUrl = URI.create(serverDefinition.operateUrl).toURL();
                 URL authUrl = URI.create("https://login.cloud.camunda.io/oauth/token").toURL();
                 JwtCredential credentials =
                         new JwtCredential(serverDefinition.zeebeClientId, serverDefinition.zeebeClientSecret, "operate.camunda.io", authUrl, null);
@@ -107,7 +106,7 @@ public class OperateClient {
 
 
             } catch (Exception e) {
-                logger.error("Can't connect to SaaS environemnt[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
                 throw new AutomatorException(
                         "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
                                 + e.getMessage());

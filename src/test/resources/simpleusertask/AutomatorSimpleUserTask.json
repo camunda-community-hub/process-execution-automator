@@ -1,39 +1,49 @@
 {
   "name": "Simple User Task",
   "processId": "SimpleUserTask",
+  "typeScenario": "FLOW",
   "modeVerification": "STRICT",
-  "executions": [
+  "flowControl": {
+    "duration": "PT10M"
+  },
+  "flows": [
     {
-      "name": "HappyPath",
-      "numberProcessInstances" : 30,
-      "numberOfThreads" : 10,
-      "steps": [
-        {
-          "type": "STARTEVENT",
-          "activityId": "Start Review",
-          "variables": {}
-        },
-        {
-          "type": "USERTASK",
-          "delay": "PT0.1S",
-          "activityId": "Activity_Review_1",
-          "variables": {}
-        },
-        {
-          "type": "USERTASK",
-          "activityId": "Activity_Review_2",
-          "variables": {}
-        },
-        {
-          "type": "USERTASK",
-          "activityId": "Activity_Review_3",
-          "variables": {}
-        },
-        {
-          "type": "ENDEVENT",
-          "activityId": "EndEvent_Review"
-        }
-      ]
+      "type": "STARTEVENT",
+      "taskId": "StartEvent_Review",
+      "numberOfExecutions": "30",
+      "nbThreads": "10",
+      "frequency": "PT10S",
+      "processId": "SimpleUserTask",
+      "variables": {
+        "transaction": "UE",
+        "checkId": "122"
+      },
+      "variablesOperation": {
+        "listAccreditionsOrg": "generaterandomlist(2)"
+      }
+    },
+    {
+      "type": "USERTASK",
+      "delay": "PT0.1S",
+      "taskId": "Activity_Review_1",
+      "userId" : "reviewer_Bryan",
+      "variables": {}
+    },
+    {
+      "type": "USERTASK",
+      "taskId": "Activity_Review_2",
+      "userId" : "reviewer_Bob",
+      "variables": {}
+    },
+    {
+      "type": "USERTASK",
+      "taskId": "Activity_Review_3",
+      "userId" : "reviewer_Bryce",
+      "variables": {}
+    },
+    {
+      "type": "ENDEVENT",
+      "taskId": "EndEvent_Review"
     }
-    ]
+  ]
 }

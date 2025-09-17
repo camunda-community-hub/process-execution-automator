@@ -105,15 +105,11 @@ public class ConfigurationServersEngine {
 
     @Value("${automator.servers.camunda8Saas.operateUrl:''}")
     public String zeebeSaasOperateUrl;
-    @Value("${automator.servers.camunda8Saas.operateUserName:''}")
-    public String zeebeSaasOperateUserName;
-    @Value("${automator.servers.camunda8Saas.operateUserPassword:''}")
-    public String zeebeSaasOperateUserPassword;
     @Value("${automator.servers.camunda8Saas.taskListUrl:''}")
     public String zeebeSaasTaskListUrl;
-    @Value("${automator.servers.camunda8Saas.workerExecutionThreads:''}")
+    @Value("${automator.servers.camunda8Saas.workerExecutionThreads:'1'}")
     public String zeebeSaasWorkerExecutionThreads;
-    @Value("${automator.servers.camunda8Saas.workerMaxJobsActive:''}")
+    @Value("${automator.servers.camunda8Saas.workerMaxJobsActive:'1'}")
     public String zeebeSaasWorkerMaxJobsActive;
 
     public List<Map<String, Object>> getServersList() {
