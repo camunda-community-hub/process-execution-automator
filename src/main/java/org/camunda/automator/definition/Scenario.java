@@ -159,6 +159,14 @@ public class Scenario {
         return this;
     }
 
+    public TYPESCENARIO getTypeScenario() {
+        return typeScenario;
+    }
+
+    public void setTypeScenario(TYPESCENARIO typeScenario) {
+        this.typeScenario = typeScenario;
+    }
+
     public String getVersion() {
         return version;
     }
@@ -202,8 +210,8 @@ public class Scenario {
     /**
      * Return JSON information for the scenario
      *
-     * @param details
-     * @return
+     * @param details if true add details
+     * @return the object for JSON
      */
     public Map<String, Object> getJson(boolean details) {
         HashMap jsonMap = new HashMap();

@@ -9,7 +9,7 @@
 import React from 'react';
 
 import {Button, InlineNotification, Tag} from "carbon-components-react";
-import {ChevronDown, ChevronRight, IbmKnowledgeCatalogStandard, DataCheck, Timer, TrashCan } from '@carbon/icons-react';
+import {ChevronDown, ChevronRight, DataCheck, IbmKnowledgeCatalogStandard, Timer, TrashCan} from '@carbon/icons-react';
 
 
 import {Card} from 'react-bootstrap';
@@ -93,21 +93,26 @@ class TestResult extends React.Component {
                                                 <td>{item.id}</td>
                                                 <td>
                                                     {item.status === "INPROGRESS" &&
-                                                        <Tag type="blue">In progress</Tag>
+                                                        <div>
+                                                            <Tag type="blue">In progress</Tag>
+                                                            &nbsp;{item.advancement}&nbsp;%
+                                                        </div>
                                                     }
 
                                                     {item.result === "FAIL" &&
-                                                            <Tag type="red">Fail</Tag>
+                                                        <Tag type="red">Fail</Tag>
                                                     }
                                                     {item.result === "SUCCESS" &&
                                                         <Tag type="green">Success</Tag>
                                                     }
 
-                                                    <button disabled={item.status === "INPROGRESS"}
-                                                        onClick={() => this.toggleDetail(item.id)}>
-                                                        {this.state.openIds.has(item.id) ? <ChevronDown/> :
-                                                            <ChevronRight/>}
-                                                    </button>
+                                                    {item.status !== "INPROGRESS" &&
+                                                        <button disabled={item.status === "INPROGRESS"}
+                                                                onClick={() => this.toggleDetail(item.id)}>
+                                                                    {this.state.openIds.has(item.id) ? <ChevronDown/> :
+                                                                <ChevronRight/>}
+                                                        </button>
+                                                    }
                                                 </td>
                                                 <td>
                                                     {this.dateDisplay(item.startDate)}
@@ -159,12 +164,12 @@ class TestResult extends React.Component {
                                                                     <tr key={i}>
                                                                         <td style={{paddingRight: "20px"}}>
                                                                             {d.typeVerification === "GOBYTASK" &&
-                                                                                <IbmKnowledgeCatalogStandard /> }
+                                                                                <IbmKnowledgeCatalogStandard/>}
                                                                             {d.typeVerification === "VARIABLE" &&
-                                                                                <DataCheck />
+                                                                                <DataCheck/>
                                                                             }
                                                                             {d.typeVerification === "PERFORMANCE" &&
-                                                                                <Timer />
+                                                                                <Timer/>
                                                                             }
                                                                         </td>
                                                                         <td>{d.info}</td>
@@ -213,7 +218,7 @@ class TestResult extends React.Component {
                                     this.clearAll()
                                 }}
                                 disabled={this.state.display.loading}>
-                            <TrashCan /> Clear All test
+                            <TrashCan/> Clear All test
                         </Button>
                     </div>
 
@@ -246,6 +251,7 @@ class TestResult extends React.Component {
 
         }
     }
+
     startAll() {
         console.log("Definition.refreshList http[/pea/api/unittest/runall]");
         this.setState({runners: [], status: ""});
@@ -253,7 +259,7 @@ class TestResult extends React.Component {
         restCallService.getJson('/pea/api/unittest/runall?wait=false&server=Camunda8Ruby', this, this.refreshListCallback);
     }
 
-    clearAll ()  {
+    clearAll() {
         let uri = '/pea/api/unittest/clearall?';
         console.log("TestResult.clearAll http[" + uri + "]");
 
@@ -263,7 +269,7 @@ class TestResult extends React.Component {
         restCallService.putJson(uri, {}, this, this.clearAllCallback);
     }
 
-    clearAllCallback  (httpPayload) {
+    clearAllCallback(httpPayload) {
         console.log("DashBoard.refreshTestResultCallback");
 
         this.setDisplayProperty("loading", false);
@@ -312,7 +318,7 @@ class TestResult extends React.Component {
 
 
     dateDisplay = (isoDate) => {
-        if (isoDate===null || isoDate==="")
+        if (isoDate === null || isoDate === "")
             return "";
         return new Date(isoDate).toLocaleString(); // local timezone
     };

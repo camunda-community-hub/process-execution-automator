@@ -1,0 +1,43 @@
+{
+  "name": "Simple User Task",
+  "processId": "SimpleUserTask",
+  "typeScenario": "UNIT",
+  "modeVerification": "STRICT",
+  "flows": [
+    {
+      "type": "STARTEVENT",
+      "taskId": "StartEvent_Review",
+      "processId": "SimpleUserTask",
+      "variables": {
+        "transaction": "UE",
+        "checkId": "122"
+      },
+      "variablesOperation": {
+        "listAccreditionsOrg": "generaterandomlist(2)"
+      }
+    },
+    {
+      "type": "USERTASK",
+      "delay": "PT0.1S",
+      "taskId": "Activity_Review_1",
+      "userId" : "reviewer_Bryan",
+      "variables": {}
+    },
+    {
+      "type": "USERTASK",
+      "taskId": "Activity_Review_2",
+      "userId" : "reviewer_Bob",
+      "variables": {}
+    },
+    {
+      "type": "USERTASK",
+      "taskId": "Activity_Review_3",
+      "userId" : "reviewer_Bryce",
+      "variables": {}
+    },
+    {
+      "type": "ENDEVENT",
+      "taskId": "EndEvent_Review"
+    }
+  ]
+}

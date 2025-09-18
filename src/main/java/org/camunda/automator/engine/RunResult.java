@@ -38,7 +38,7 @@ public class RunResult {
     public static final String JSON_START_DATE = "startDate";
     public static final String JSON_END_DATE = "endDate";
     public static final String JSON_TYPEVERIFICATION = "typeVerification";
-
+    public static final String JSON_ADVANCEMENT ="advancement";
     /**
      * Scenario attached to this execution
      */
@@ -73,6 +73,8 @@ public class RunResult {
     private Date startDate;
     private Date endDate;
 
+    // A percentage
+    private int advancement=0;
 
     public RunResult(RunScenario runScenario, String executionId) {
         this.runScenario = runScenario;
@@ -101,6 +103,14 @@ public class RunResult {
 
     public void setEndDate(Date date) {
         this.endDate = date;
+    }
+
+    public int getAdvancement() {
+        return advancement;
+    }
+
+    public void setAdvancement(int advancement) {
+        this.advancement = advancement;
     }
 
     public boolean isFinished() {
@@ -239,6 +249,8 @@ public class RunResult {
             startDate = runResult.getStartDate();
         if (endDate == null)
             endDate = runResult.getEndDate();
+        if (advancement < runResult.getAdvancement())
+            advancement = runResult.getAdvancement();
     }
 
     /**
@@ -406,6 +418,7 @@ public class RunResult {
         resultMap.put(JSON_STATUS, isFinished() ? JSON_STATUS_V_EXECUTED : JSON_STATUS_V_INPROGRESS);
         resultMap.put(JSON_START_DATE, getStartDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getStartDate().toInstant()) : "");
         resultMap.put(JSON_END_DATE, getEndDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getEndDate().toInstant()) : "");
+        resultMap.put(JSON_ADVANCEMENT, advancement);
 
         if (shortDescription)
             return resultMap;
@@ -441,6 +454,8 @@ public class RunResult {
 
 
         resultMap.put("tests", listVerificationsJson);
+        resultMap.put("errors", listErrors.stream().map(ErrorDescription::getMap).toList());
+
         return resultMap;
     }
 
@@ -490,6 +505,18 @@ public class RunResult {
         public ErrorDescription(ScenarioVerificationBasic verificationBasic, String explanation) {
             this.verificationBasic = verificationBasic;
             this.explanation = explanation;
+        }
+        public Map<String,Object> getMap() {
+            Map<String, Object> result = new HashMap<>();
+            if (step!=null) {
+                result.put("stepId", step.getId());
+                result.put("stepType", step.getType());
+            }
+            if (verificationBasic!=null) {
+                result.put("verificationType", verificationBasic.getTypeVerification());
+            }
+            result.put("explanation", explanation);
+                return result;
         }
     }
 

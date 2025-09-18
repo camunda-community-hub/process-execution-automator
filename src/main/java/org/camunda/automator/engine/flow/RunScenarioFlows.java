@@ -59,7 +59,7 @@ public class RunScenarioFlows {
         logger.info("ScenarioFlow: ------ Start");
         List<RunScenarioFlowBasic> listFlows = startExecution(runScenarioWarmingUp.getListWarmingUpTask());
 
-        waitEndExecution(runObjectives, startTestDate, listFlows);
+        waitEndExecution(runObjectives, startTestDate, listFlows, runResult);
 
         Date endTestDate = new Date();
         runObjectives.setEndDate(endTestDate);
@@ -73,6 +73,7 @@ public class RunScenarioFlows {
         // Check with Objective now
         logger.info("ScenarioFlow: ------ CheckObjectives");
         checkObjectives(runObjectives, startTestDate, endTestDate, runResult);
+        runResult.setEndDate(new Date());
 
         logger.info("ScenarioFlow: ------ TheEnd");
     }
@@ -159,7 +160,7 @@ public class RunScenarioFlows {
      * @param runObjectives checkObjectif: we may have a Flow Objectives
      * @param listFlows     list of flows to monitor the execution
      */
-    private void waitEndExecution(RunObjectives runObjectives, Date startTestDate, List<RunScenarioFlowBasic> listFlows) {
+    private void waitEndExecution(RunObjectives runObjectives, Date startTestDate, List<RunScenarioFlowBasic> listFlows, RunResult runResult) {
         // Then wait the delay, and kill everything after
         Duration durationExecution = runScenario.getScenario().getFlowControl().getDuration();
         Duration durationWarmingUp = Duration.ZERO;
@@ -182,9 +183,11 @@ public class RunScenarioFlows {
             try {
                 Thread.sleep(sleepTime);
             } catch (InterruptedException e) {
+                // Do nothing
             }
             int advancement = (int) (100.0 * (currentTime - startTestDate.getTime()) / (endTimeExpected
                     - startTestDate.getTime()));
+            runResult.setAdvancement( advancement);
             runObjectives.heartBeat();
             logRealTime(listFlows, endTimeExpected - System.currentTimeMillis(), advancement);
         }
@@ -255,6 +258,10 @@ public class RunScenarioFlows {
      * @param runResult     result to populate
      */
     private void checkObjectives(RunObjectives runObjectives, Date startTestDate, Date endTestDate, RunResult runResult) {
+
+        // don't wait if there is no objective for the test
+        if (runObjectives.check().isEmpty())
+            return;
 
         // Objectives ask Operate, which get the result with a delay. So, wait 1 mn
         logger.info("CollectingData... (sleep 30s)");

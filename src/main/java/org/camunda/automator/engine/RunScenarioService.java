@@ -53,10 +53,10 @@ public class RunScenarioService {
     /**
      * Execute a test
      *
-     * @param bpmnEngine
-     * @param runParameters
-     * @param scenario
-     * @return
+     * @param bpmnEngine engine to execute scenario
+     * @param runParameters parameters
+     * @param scenario scenario to execute
+     * @return the result
      */
     private RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
         String executionId = createExecutionId(scenario);
@@ -81,7 +81,10 @@ public class RunScenarioService {
         runResult.setStartDate(new Date());
         cacheRunScenario.put(executionId, runResult);
 
-        runResult.merge(runScenario.executeTheScenario(executionId));
+        runScenario.executeTheScenario(executionId,runResult);
+
+        cacheRunScenario.put(executionId, runResult);
+
         return runResult;
     }
 

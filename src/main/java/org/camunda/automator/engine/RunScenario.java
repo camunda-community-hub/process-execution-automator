@@ -56,48 +56,51 @@ public class RunScenario {
      * <p>
      * these steps are controlled by the runParameters
      *
-     * @return tue result object
+     * @param executionId executionId provided by the caller
+     * @param runResult if null, then a new one is created. Else this one is fulfill
+     * @return the result object
      */
-    public RunResult executeTheScenario(String executionId) {
-        RunResult result = new RunResult(this, executionId);
+    public RunResult executeTheScenario(String executionId, RunResult runResult) {
+        if (runResult==null)
+            runResult = new RunResult(this, executionId);
 
         // control
         if (scenario.typeScenario == null) {
-            result.addError(null, "TypeScenario undefined");
+            runResult.addError(null, "TypeScenario undefined");
         }
         // ------------ unit scenario
         if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.UNIT)) {
             if (scenario.getExecutions() == null || scenario.getExecutions().isEmpty()) {
-                result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.UNIT + "] must have a list of [executions]");
-                return result;
+                runResult.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.UNIT + "] must have a list of [executions]");
+                return runResult;
             }
             // force information in execution
             for (ScenarioExecution execution : scenario.getExecutions()) {
                 execution.setNumberProcessInstances(1);
                 execution.setNumberOfThreads(1);
             }
-            // Verification must be move to true
+            // Verification must be moved to true
             runParameters.setVerification(true);
 
 
             // ------------- flow scenario
         } else if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.FLOW)) {
             if (scenario.getFlowControl() == null)
-                result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flowControl]");
+                runResult.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flowControl]");
             if (scenario.getFlows() == null || scenario.getFlows().isEmpty())
-                result.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flows]");
+                runResult.addError(null, "TypeScenario[" + Scenario.TYPESCENARIO.FLOW + "] must have a list of [flows]");
         }
-        if (result.hasErrors())
-            return result;
+        if (runResult.hasErrors())
+            return runResult;
 
         logger.info("RunScenario: ------ Deployment ({})", runParameters.isDeploymentProcess());
         if (runParameters.isDeploymentProcess())
-            result.merge(executeDeployment(executionId));
+            runResult.merge(executeDeployment(executionId));
         logger.info("RunScenario: ------ End deployment ");
 
         // verification is inside execution
-        result.merge(runExecutions(executionId));
-        return result;
+        runExecutions(executionId, runResult);
+        return runResult;
     }
 
     /**
@@ -140,13 +143,14 @@ public class RunScenario {
 
     /**
      * Execute the scenario.
-     * Note: this method is multi thread safe.
+     * Note: this method is multi-thread safe.
      * Note: if the execution has verification AND runParameters.execution == true, then the verification is started
      *
+     * @param runResult give the runTesult to be completed
      * @return the execution
      */
-    public RunResult runExecutions(String executionId) {
-        RunResult runResult = new RunResult(this, executionId);
+    public RunResult runExecutions(String executionId,RunResult runResult) {
+
         runResult.setStartDate(new Date());
 
         // the scenario can be an Execution or a Flow
@@ -190,6 +194,7 @@ public class RunScenario {
             RunScenarioFlows scenarioFlows = new RunScenarioFlows(serviceAccess, this);
             scenarioFlows.execute(runResult);
             logger.info("RunScenario: ------ End execution");
+            runResult.setEndDate(new Date());
         }
 
         return runResult;

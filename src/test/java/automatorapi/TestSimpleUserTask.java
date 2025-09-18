@@ -10,16 +10,12 @@ import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class TestSimpleUserTask {
 
-  @Autowired
   AutomatorAPI automatorApi;
 
   @Test
@@ -60,7 +56,7 @@ public class TestSimpleUserTask {
         assert(true);
         return;
       }
-      Path userTaskFile = Paths.get("./test/resources/simpleusertask/AutomatorSimpleUserTask.json");
+      Path userTaskFile = Paths.get("./test/resources/simpleusertask/SimpleUserTask_Flow.json");
       Scenario scenario = automatorApi.loadFromFile(userTaskFile);
       assert(scenario!=null);
     } catch (Exception e) {

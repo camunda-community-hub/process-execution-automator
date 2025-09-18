@@ -500,22 +500,22 @@ The docker image is build using the Dockerfile present on the root level.
 
 Push the image to 
 ````
-docker build -t pierre-yves-monnet/process-execution-automator:1.8.2 .
+docker build -t pierre-yves-monnet/process-execution-automator:2.0.4 .
 ````
 
 
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.2 ghcr.io/camunda-community-hub/process-execution-automator:1.8.2
-docker push ghcr.io/camunda-community-hub/process-execution-automator:1.8.2
+docker tag pierre-yves-monnet/process-execution-automator:2.0.4 ghcr.io/camunda-community-hub/process-execution-automator:2.0.4
+docker push ghcr.io/camunda-community-hub/process-execution-automator:2.0.4
 ````
 
 
 
 Tag as the latest:
 ````
-docker tag pierre-yves-monnet/process-execution-automator:1.8.2 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/process-execution-automator:2.0.4 ghcr.io/camunda-community-hub/process-execution-automator:latest
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 

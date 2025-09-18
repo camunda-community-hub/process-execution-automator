@@ -4,7 +4,7 @@
   "typeScenario": "FLOW",
   "modeVerification": "STRICT",
   "flowControl": {
-    "duration": "PT10M"
+    "duration": "PT4M"
   },
   "flows": [
     {
