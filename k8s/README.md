@@ -37,17 +37,33 @@ Or use the image generated on camunda-hub
 kubectl create -f pea.yaml -n camunda
 ````
 
-A pod is started, and a service `pea-service` is available, under theport number `8381`
+A pod is started, and a service `pea-service` is available, under the port number `8381`
 
-This kubernetes starts a load balancer with a public address.
+
 ````shell
 $ kubectl get svc
-pea-public                          LoadBalancer   34.118.231.236   35.229.70.3       8381:30440/TCP                 29s
 pea-service                         ClusterIP      34.118.237.219   <none>            8381/TCP                       4m35s
-p
 ````
 Use this port-forward command
 
 ````shell
 kubectl port-forward svc/pea-service 8381:8381 -n camunda
 ````
+Access localhost:8381
+
+![PEA via the Port forward](PEA_PortForward.png)
+
+This kubernetes starts a load balancer with a public address.
+
+````shell
+kubectl create -f pea-public-loadbalancer.yaml -n camunda
+````
+Then get the public address
+
+````shell
+$ kubectl get svc
+pea-public                        LoadBalancer   34.118.238.71    34.24.149.91   8381:30150/TCP                 46s
+pea-service                       ClusterIP      34.118.238.219   <none>         8381/TCP                       5m7s
+````
+
+Then access http://34.24.149.91:8381
