@@ -15,7 +15,8 @@ automator:
 
   startup:
     # give the server to run all tests at startup. The name must be registered in the list of server after
-    serverName: Camunda8MySaas
+    serverNameOrig : Camunda8MySaas
+    serverName: zeebe-orbit
 
     scenarioPath:
     # list of scenarios separate by ;
@@ -187,6 +188,26 @@ automator:
       operateUrl: "https://bru-2.operate.camunda.io/4b..e2"
 
       taskListUrl: "https://bru-2.tasklist.camunda.io/4b..e2"
+
+    - name: "zeebe-orbit"
+      type: "camunda8saas"
+      workerExecutionThreads: 200
+      # -1 means : align the jobsActive to the workerExecutionThreads
+      workerMaxJobsActive: -1
+
+      region: "lhr-1"
+      clusterId": "3a20587e-9917-4be0-9fe6-87f90224c9ea"
+      zeebeClientId: "J9~Z4yiSgUeNj72~kx4SXBKE-zitPtIH"
+      zeebeClientSecret: "TbcvEkiC.n~T74c86oDqEIEncpVZ~iOsD3mFTQX_.CuEiIAwcu2400rKAHyRZCwB"
+
+      authenticationUrl: "https://login.cloud.camunda.io/oauth/token"
+      zeebeAudience: "zeebe.camunda.io"
+
+      operateUrl: https://lhr-1.operate.camunda.io/3a20587e-9917-4be0-9fe6-87f90224c9ea
+      taskListUrl: https://lhr-1.tasklist.camunda.io/3a20587e-9917-4be0-9fe6-87f90224c9ea
+
+
+
 
 
   # This definition is very simple to use in the K8 definition, because one variable can be overide

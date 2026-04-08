@@ -485,6 +485,23 @@ automator.servers:
     secret: "HereTheSecret"
 ````
 
+# UI
+
+Process execution application open a UI on port 8381.
+
+Port forward the port if needed
+
+```yaml
+ kubectl port-forward -n camunda pod/<PEA pod> 8381:8381
+```
+
+Access test resuLt
+![Test Result](doc/images/PEA_TestResult.png)
+
+Check scenario
+![img.png](doc/images/PEA_Scenario.png)
+
+
 # Build
 
 (Do not forget to update banner.txt with the current version number)
