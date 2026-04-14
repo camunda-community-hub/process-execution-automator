@@ -1,6 +1,8 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
 
+import io.camunda.client.CamundaClient;
+import io.camunda.client.CredentialsProvider;
 import io.camunda.tasklist.dto.Variable;
 import io.camunda.zeebe.client.ZeebeClient;
 import io.camunda.zeebe.client.ZeebeClientBuilder;
@@ -31,7 +33,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
     private final BpmnEngineList.BpmnServerDefinition serverDefinition;
     private final TaskListClient taskListClient;
-    private final OperateClient operateClient;
+    private OperateClientInt operateClient;
+
     boolean hightFlowMode = false;
     /**
      * It is not possible to search user task for a specific processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -40,12 +43,13 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
     Random random = new Random(System.currentTimeMillis());
     private ZeebeClient zeebeClient;
+    private CamundaClient camundaClient;
 
 
     private BpmnEngineCamunda8(BpmnEngineList.BpmnServerDefinition serverDefinition, BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy) {
         this.serverDefinition = serverDefinition;
         this.taskListClient = new TaskListClient(this);
-        this.operateClient = new OperateClient(this);
+        // Wait the connection to decide for Operate
     }
 
     /**
@@ -153,18 +157,23 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         StringBuilder analysis = new StringBuilder();
         try {
             connectZeebe(analysis);
+            // Even in < 8.8, we need to connect to CamundaClient for TaskList 8.8
+            connectCamundaClient(analysis);
+
+            operateClient = isUpper88() ? new OperateClientV2(this) : new OperateClientV1(this);
             operateClient.connectOperate(analysis);
             taskListClient.connectTaskList(analysis);
             logger.info("Zeebe: OK, Operate: OK, TaskList:OK {}", analysis);
 
         } catch (AutomatorException e) {
             zeebeClient = null;
+            camundaClient = null;
             throw e;
         }
     }
 
     public void disconnection() {
-        // nothing to do here
+        zeebeClient = null;
     }
 
     /**
@@ -392,7 +401,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
     /**
      * searchTaskByProcessInstanceId
-     * OperateClient does not support very well the multithreading, so let's synchronized the call
+     * OperateClientV1 does not support very well the multithreading, so let's synchronized the call
      *
      * @param processInstanceId filter on the processInstanceId. may be null
      * @param filterTaskId      filter on the taskId
@@ -432,23 +441,16 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             throws AutomatorException {
         return operateClient.countNumberOfProcessInstancesEnded(processId, startDate, endDate);
     }
-    /* ******************************************************************** */
-    /*                                                                      */
-    /*  Deployment                                                          */
-    /*                                                                      */
-    /* ******************************************************************** */
 
     public long countNumberOfTasks(String processId, String taskId) throws AutomatorException {
         return operateClient.countNumberOfTasks(processId, taskId);
     }
 
-
     /* ******************************************************************** */
     /*                                                                      */
-    /*  get server definition                                               */
+    /*  Deployment                                                          */
     /*                                                                      */
     /* ******************************************************************** */
-
     @Override
     public String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException {
         try {
@@ -463,6 +465,13 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             throw new AutomatorException("Can't deploy " + e.getMessage());
         }
     }
+
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  get server definition                                               */
+    /*                                                                      */
+    /* ******************************************************************** */
 
     @Override
     public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
@@ -492,9 +501,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         return processId + "-" + random.nextInt(1000000);
     }
 
-    public ZeebeClient getZeebeClient() {
-        return zeebeClient;
-    }
 
     protected Long getProcessInstanceIdFromMarker(List<Variable> listVariables) {
         Optional<Variable> markerOptional = listVariables.stream()
@@ -507,7 +513,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     }
     /* ******************************************************************** */
     /*                                                                      */
-    /*  Connection to each component                                               */
+    /*  Connection to each component                                        */
     /*                                                                      */
     /* ******************************************************************** */
 
@@ -609,14 +615,15 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                 try {
                     analysis.append("NoAuthentication;");
                     // connect to local deployment; assumes that authentication is disabled
-                    clientBuilder = ZeebeClient.newClientBuilder()
-                            .grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
+                    clientBuilder = ZeebeClient.newClientBuilder();
+
                     if (serverDefinition.zeebeGrpcAddress != null && !serverDefinition.zeebeGrpcAddress.trim().isEmpty()) {
                         clientBuilder = clientBuilder.grpcAddress(new URI(serverDefinition.zeebeGrpcAddress));
                     }
                     if (serverDefinition.zeebeRestAddress != null && !serverDefinition.zeebeRestAddress.trim().isEmpty()) {
                         clientBuilder = clientBuilder.restAddress(new URI(serverDefinition.zeebeRestAddress));
                     }
+                    clientBuilder.preferRestOverGrpc(false);
                     clientBuilder = clientBuilder.usePlaintext();
                 } catch (Exception e) {
                     zeebeClient = null;
@@ -676,6 +683,151 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         }
     }
 
+    public ZeebeClient getZeebeClient() {
+        return zeebeClient;
+    }
+    public CamundaClient getCamundaClient() {
+        return camundaClient;
+    }
+    /**
+     * @return
+     */
+    private void connectCamundaClient(StringBuilder analysis) throws AutomatorException {
+        camundaClient = null;
+        // The connection to Zeebe must already be done to call this method
+        if (!isUpper88())
+            return;
+
+        boolean isOk = true;
+// ---------------------------- Camunda Saas
+        if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
+
+            try {
+                isOk = stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
+                isOk = stillOk(serverDefinition.zeebeClientSecret, "zeebeClientSecret", analysis, true, false, isOk);
+                isOk = stillOk(serverDefinition.operateUrl, "operateUrl", analysis, true, false, isOk);
+
+                if (!isOk) {
+                    logger.error("Can't connect to SaaS environment[{}] Operate[{}] Analysis:{}",
+                            serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
+                }
+
+                // OAuth2 client-credentials for Camunda SaaS
+                CredentialsProvider credentialsProvider =
+                        CredentialsProvider.newCredentialsProviderBuilder()
+                                .clientId(serverDefinition.zeebeClientId)
+                                .clientSecret(serverDefinition.zeebeClientSecret)
+                                // adjust audience if you have something more specific
+                                .audience("operate.camunda.io")
+                                .authorizationServerUrl("https://login.cloud.camunda.io/oauth/token")
+                                .build();
+
+                camundaClient =
+                        CamundaClient.newClientBuilder()
+                                // restAddress must be the orchestration REST endpoint
+                                .restAddress(URI.create(serverDefinition.operateUrl))
+                                .preferRestOverGrpc(true)
+                                .credentialsProvider(credentialsProvider)
+                                .build();
+
+            } catch (Exception e) {
+                logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}",
+                        serverDefinition.name, analysis, e.getMessage(), e);
+                throw new AutomatorException(
+                        "Can't connect to SaaS environment[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
+                                + e.getMessage());
+            }
+
+            //---------------------------- Camunda 8 Self Managed
+        } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
+
+            if (serverDefinition.isAuthenticationUrl()) {
+                // OIDC / OAuth2
+                isOk = stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
+                isOk = stillOk(serverDefinition.operateClientId, "operateClientId", analysis, true, true, isOk);
+                isOk = stillOk(serverDefinition.operateClientSecret, "operateClientSecret", analysis, true, false, isOk);
+
+                if (!isOk) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{}",
+                            serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
+                }
+
+                try {
+                    CredentialsProvider credentialsProvider =
+                            CredentialsProvider.newCredentialsProviderBuilder()
+                                    .clientId(serverDefinition.operateClientId)
+                                    .clientSecret(serverDefinition.operateClientSecret)
+                                    .audience("operate-api") // from your old JwtCredential audience
+                                    .authorizationServerUrl(serverDefinition.authenticationUrl)
+                                    .build();
+
+                    camundaClient =
+                            CamundaClient.newClientBuilder()
+                                    // again: this must be the orchestration REST base, not the old Operate UI login URL
+                                    .restAddress(URI.create(serverDefinition.operateUrl))
+                                    .preferRestOverGrpc(true)
+                                    .credentialsProvider(credentialsProvider)
+                                    .build();
+
+                } catch (Exception e) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}",
+                            serverDefinition.name, serverDefinition.operateUrl, analysis, e);
+                    throw new AutomatorException(
+                            "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
+                }
+
+            } else {
+                // Simple Basic Auth
+                isOk = stillOk(serverDefinition.operateUserName, "operateUserName", analysis, true, true, isOk);
+                isOk = stillOk(serverDefinition.operateUserPassword, "operateUserPassword", analysis, true, false, isOk);
+                if (!isOk) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{}",
+                            serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    throw new AutomatorException(
+                            "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
+                }
+
+                try {
+                    CredentialsProvider credentialsProvider =
+                            CredentialsProvider.newBasicAuthCredentialsProviderBuilder()
+                                    .username(serverDefinition.operateUserName)
+                                    .password(serverDefinition.operateUserPassword)
+                                    .build();
+
+                    camundaClient =
+                            CamundaClient.newClientBuilder()
+                                    .restAddress(URI.create(serverDefinition.operateUrl))
+                                    .preferRestOverGrpc(true)
+                                    .credentialsProvider(credentialsProvider)
+                                    .build();
+
+                } catch (Exception e) {
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}",
+                            serverDefinition.name, serverDefinition.operateUrl, analysis, e.getMessage(), e);
+                    throw new AutomatorException(
+                            "Can't connect to Server[" + serverDefinition.name + "] Analysis:" + analysis + " fail : "
+                                    + e.getMessage());
+                }
+            }
+
+        } else {
+            throw new AutomatorException("Invalid configuration");
+        }
+
+        if (!isOk) {
+            throw new AutomatorException("Invalid configuration " + analysis);
+        }
+    }
+
+
+    public String getZeebeVersion() {
+        Topology topology = zeebeClient.newTopologyRequest().send().join();
+        return topology.getGatewayVersion();      // e.g. "8.7.5"
+    }
 
     public BpmnEngineList.BpmnServerDefinition getServerDefinition() {
         return serverDefinition;
@@ -725,5 +877,29 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         if (value.toString().length() <= 3)
             return "***";
         return value.toString().substring(0, 3) + "***";
+    }
+
+    /**
+     * Login URL change in 8.8 and after, so ask Zeebe the version and calculate the login URL
+     *
+     * @return the loginUrl
+     */
+    private boolean isUpper88() {
+
+        boolean isUpper88 = false;
+        try {
+            String zeebeVersion = getZeebeVersion();
+            String[] parts = zeebeVersion.split("\\.");
+
+            int minor = parts.length > 2 ? Integer.parseInt(parts[1]) : 0;
+
+            if (minor >= 8) {
+                isUpper88 = true;
+            }
+        } catch (Exception e) {
+            logger.error("BpmnEngineCamunda8.isUpper88: can't decide if version > 8.8 : " + e.getMessage());
+        }
+        logger.info("OperateClientV1.isUpper88: zeebe>8.8? {}", isUpper88);
+        return isUpper88;
     }
 }

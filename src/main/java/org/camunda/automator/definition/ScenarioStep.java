@@ -46,10 +46,18 @@ public class ScenarioStep {
      * Name is optional in the step, help to find it in case of error
      */
     private String name;
+
     /**
      * to execute a service task in C8, topic is mandatory
      */
+    /**
+     * Keep topic - old value
+     */
     private String topic;
+    /**
+     * JobType is the C8 name
+     */
+    private String jobType;
     private Map<String, Object> variables = Collections.emptyMap();
     private String userId;
     /**
@@ -101,7 +109,7 @@ public class ScenarioStep {
         return "step_" + stepNumber + " " // cartouche
                 + (name == null ? "" : ("[" + name + "]:")) // name
                 + getType().toString() // type
-                + ",taskId:[" + getTaskId() + "]" + (getTopic() == null ? "" : " topic:[" + getTopic() + "]");
+                + ",taskId:[" + getTaskId() + "]" + (getJobType() == null ? "" : " jobType:[" + getJobType() + "]");
     }
 
     public Step getType() {
@@ -131,8 +139,11 @@ public class ScenarioStep {
         return this;
     }
 
-    public String getTopic() {
-        return topic;
+    public String getJobType() {
+        if (jobType==null && topic!=null)
+            return topic;
+
+        return jobType;
     }
 
     public boolean isStreamEnabled() {
@@ -237,8 +248,8 @@ public class ScenarioStep {
             throw new AutomatorException("Step taskId is mandatory");
         switch (type) {
             case SERVICETASK -> {
-                if (getTopic() == null || getTopic().trim().isEmpty())
-                    throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " topic is mandatory");
+                if (getJobType() == null || getJobType().trim().isEmpty())
+                    throw new AutomatorException("Step.SERVICETASK: " + getTaskId() + " jobType is mandatory");
             }
             default -> {
             }
@@ -261,7 +272,7 @@ public class ScenarioStep {
     public String getId() {
         return getType() + " " + switch (getType()) {
             case STARTEVENT -> getProcessId() + "(" + getTaskId() + ")";
-            case SERVICETASK -> getTopic();
+            case SERVICETASK -> getJobType();
 
             default -> "";
         };
@@ -280,12 +291,12 @@ public class ScenarioStep {
         return
                 switch (getType()) {
                     case SERVICETASK ->
-                            "Service task JobType[" + getTopic() + "] ModeExecution[" + getModeExecution().toString() + "]";
+                            "Service task JobType[" + getJobType() + "] ModeExecution[" + getModeExecution().toString() + "]";
                     case USERTASK -> "User Task";
                     case STARTEVENT ->
                             "Start Event processId[" + getProcessId() + "] Id[" + getTaskId() + "]" + traceVariables;
                     case ENDEVENT -> "End Event id [" + getTaskId() + "]";
-                    case SCRIPTTASK -> "Script Task JobType[" + getTopic() + "]";
+                    case SCRIPTTASK -> "Script Task JobType[" + getJobType() + "]";
                     case TASK -> "Task";
                     case MESSAGE -> "Message";
                     case PARALLELGATEWAY -> "ParallelGateway";

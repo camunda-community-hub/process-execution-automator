@@ -3,6 +3,7 @@ package automatorapi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.CamundaOperateClientConfiguration;
+import io.camunda.operate.CamundaOperateClientV1;
 import io.camunda.operate.auth.JwtAuthentication;
 import io.camunda.operate.auth.JwtCredential;
 import io.camunda.operate.model.FlowNodeInstance;
@@ -44,7 +45,7 @@ public class TestConnectionOperate {
             CamundaOperateClientConfiguration configuration =
                     new CamundaOperateClientConfiguration(
                             authentication, operateUrl, objectMapper, HttpClients.createDefault());
-            CamundaOperateClient operateClient = new CamundaOperateClient(configuration);
+            CamundaOperateClient operateClient = new CamundaOperateClientV1(configuration);
 
 
             // Ok, fine, now search

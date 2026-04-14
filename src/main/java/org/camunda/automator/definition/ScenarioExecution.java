@@ -174,7 +174,7 @@ public class ScenarioExecution {
 
         HashMap jsonMap = new HashMap();
         jsonMap.put("name", name);
-        jsonMap.put("policy", policy.toString());
+        jsonMap.put("policy", getPolicy().toString());
         jsonMap.put("description", description);
         jsonMap.put("numberProcessInstances", numberProcessInstances);
         jsonMap.put("numberOfThreads", numberOfThreads);
@@ -186,7 +186,7 @@ public class ScenarioExecution {
                     return Map.of("type", getSecureValue(t.getType()),
                             "processId", getSecureValue(t.getProcessId()),
                             "taskId", getSecureValue(t.getTaskId()),
-                            "topic", getSecureValue(t.getTopic()),
+                            "jobType", getSecureValue(t.getJobType()),
                             "numberOfExecutions", t.getNumberOfExecutions(),
                             "nbThreads", t.getNbThreads(),
                             "synthesis", t.getSynthesis());

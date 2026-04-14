@@ -100,15 +100,15 @@ public class RunScenarioFlows {
                 }
 
                 case SERVICETASK -> {
-                    Optional<RunScenarioFlowBasic> runServiceTaskOp = getFromList(listWarmingTask, scenarioStep.getTopic());
+                    Optional<RunScenarioFlowBasic> runServiceTaskOp = getFromList(listWarmingTask, scenarioStep.getJobType());
 
                     if (!runScenario.getRunParameters().isServiceTask()) {
-                        logger.info("According configuration, SERVICETASK[{}] is fully disabled", scenarioStep.getTopic());
+                        logger.info("According configuration, SERVICETASK (jobType[{}]) is fully disabled", scenarioStep.getJobType());
                         if (runServiceTaskOp.isPresent())
                             runServiceTaskOp.get().pleaseStop();
-                    } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getTopic())) {
-                        logger.info("According configuration, SERVICETASK[{}] is disabled (only acceptable {})",
-                                scenarioStep.getTopic(), runScenario.getRunParameters().getFilterServiceTask());
+                    } else if (runScenario.getRunParameters().blockExecutionServiceTask(scenarioStep.getJobType())) {
+                        logger.info("According configuration, SERVICETASK (jobType[{}]) is disabled (only acceptable {})",
+                                scenarioStep.getJobType(), runScenario.getRunParameters().getFilterServiceTask());
                         if (runServiceTaskOp.isPresent())
                             runServiceTaskOp.get().pleaseStop();
                     } else {
@@ -151,7 +151,7 @@ public class RunScenarioFlows {
     }
 
     private Optional<RunScenarioFlowBasic> getFromList(List<RunScenarioFlowBasic> listTasks, String topic) {
-        return listTasks.stream().filter(t -> t.getTopic().equals(topic)).findFirst();
+        return listTasks.stream().filter(t -> t.getJobType().equals(topic)).findFirst();
     }
 
     /**

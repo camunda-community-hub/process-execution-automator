@@ -1,8 +1,9 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
-import io.camunda.zeebe.client.api.worker.BackoffSupplier;
-import io.camunda.zeebe.spring.client.jobhandling.CommandWrapper;
-import io.camunda.zeebe.spring.client.jobhandling.DefaultCommandExceptionHandlingStrategy;
+import io.camunda.client.api.worker.BackoffSupplier;
+import io.camunda.client.jobhandling.DefaultCommandExceptionHandlingStrategy;
+import io.camunda.client.jobhandling.CommandWrapper;
+
 import io.grpc.StatusRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;

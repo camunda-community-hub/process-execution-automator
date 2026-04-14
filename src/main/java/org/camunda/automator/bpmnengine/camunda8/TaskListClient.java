@@ -1,8 +1,10 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
 
+import io.camunda.client.CamundaClient;
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.CamundaTaskListClientBuilder;
+import io.camunda.tasklist.CamundaTasklistClientConfiguration;
 import io.camunda.tasklist.auth.Authentication;
 import io.camunda.tasklist.auth.SimpleAuthentication;
 import io.camunda.tasklist.auth.SimpleCredential;
@@ -126,8 +128,11 @@ public class TaskListClient {
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
                 try {
+                    String loginUrl =getLoginUrl();
                     SimpleCredential credentials = new SimpleCredential(serverDefinition.taskListUserName,
-                            serverDefinition.taskListUserPassword, new URL(serverDefinition.taskListUrl), Duration.ofHours(1000));
+                            serverDefinition.taskListUserPassword,
+                            new URL(loginUrl),
+                            Duration.ofHours(1000));
                     Authentication authentication = new SimpleAuthentication(credentials);
                     taskListBuilder.taskListUrl(serverDefinition.taskListUrl).authentication(authentication);
                 } catch (MalformedURLException e) {
@@ -144,11 +149,15 @@ public class TaskListClient {
 
         // ---------------- connection
         try {
-            taskListBuilder.zeebeClient(engineCamunda8.getZeebeClient());
-            taskListBuilder.useZeebeUserTasks();
+            taskListBuilder.camundaClient(engineCamunda8.getCamundaClient());
+            // taskListBuilder.useZeebeUserTasks();
             taskClient = taskListBuilder.build();
 
-            // Check the connection
+
+          //    public CamundaTasklistClientConfiguration(CamundaTasklistClientConfiguration.ApiVersion apiVersion, Authentication authentication, URL baseUrl, CamundaClient camundaClient, CamundaTasklistClientConfiguration.DefaultProperties defaultProperties) {
+
+
+                // Check the connection
             // TaskList taskList= taskClient.getTasks(false,TaskState.CREATED, false, new Pagination().setPageSize(1));
 
             analysis.append("successfully, ");
@@ -280,5 +289,37 @@ public class TaskListClient {
         if (lastCallToTaskList < System.currentTimeMillis() - 4 * 60 * 1000)
             reconnect(analysis);
         lastCallToTaskList = System.currentTimeMillis();
+    }
+
+    /**
+     * Login URL change in 8.8 and after, so ask Zeebe the version and calculate the login URL
+     *
+     * @return the loginUrl
+     */
+    private String getLoginUrl() {
+
+        boolean isUpper88 = false;
+        try {
+            String zeebeVersion = engineCamunda8.getZeebeVersion();
+            String[] parts = zeebeVersion.split("\\.");
+
+            int minor = parts.length > 2 ? Integer.parseInt(parts[1]) : 0;
+
+            if (minor >= 8) {
+                isUpper88 = true;
+            }
+        } catch (Exception e) {
+            logger.error("TaskListClient.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
+        }
+        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+
+        String loginUrl = serverDefinition.taskListUrl;
+        if (isUpper88) {
+            // remove /operate in the url
+            loginUrl = loginUrl.replace("/tasklist", "");
+        }
+        logger.info("TaskListClient.getLoginUrl: url[{}] zeebe>8.8? {}", loginUrl, isUpper88);
+        return loginUrl;
+
     }
 }

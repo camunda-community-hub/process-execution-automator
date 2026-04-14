@@ -48,6 +48,8 @@ public class Scenario {
      */
     private String serverName;
     private String serverType;
+    private String description;
+    private String versionTest;
     /**
      * This value is fulfill only if the scenario was read from a file
      */
@@ -218,6 +220,10 @@ public class Scenario {
         jsonMap.putAll(Map.of("name", name == null ? "" : name,//
                 "server", serverName == null ? "" : serverName, //
                 "serverType", serverType == null ? "" : serverType, //
+                "description", description==null? "" : description,
+                "versionTest", versionTest==null?"":versionTest,
+                "processName", processName==null ? "" : processName,
+                "version", version==null? "":version,
                 "processId", processId == null ? "" : processId, //
                 "typeScenario", typeScenario == null ? "" : typeScenario.toString()));
         if (!details)

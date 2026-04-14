@@ -38,14 +38,14 @@
 					"mode": "formdata",
 					"formdata": [
 						{
-							"key": "FileToUpload",
+							"key": "scenarioFiles",
 							"type": "file",
 							"src": "/C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources/ScoreAcceptanceScn.json"
 						}
 					]
 				},
 				"url": {
-					"raw": "http://localhost:8381/api/content/add",
+					"raw": "http://localhost:8381/pea/api/content/add",
 					"protocol": "http",
 					"host": [
 						"localhost"

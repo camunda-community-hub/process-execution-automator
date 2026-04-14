@@ -47,8 +47,8 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
     }
 
     @Override
-    public String getTopic() {
-        return getScenarioStep().getTopic();
+    public String getJobType() {
+        return getScenarioStep().getJobType();
     }
 
     @Override
@@ -107,13 +107,13 @@ public class RunScenarioFlowServiceTask extends RunScenarioFlowBasic {
         durationSleep = durationSleep.plusSeconds(10);
 
         if (getRunScenario().getRunParameters().showLevelMonitoring()) {
-            logger.info("Start service TaskId[{}] Topic[{}] StreamEnabled:{} DurationSleep[{} ms]",
-                    getScenarioStep().getTaskId(), getScenarioStep().getTopic(), getScenarioStep().isStreamEnabled(),
+            logger.info("Start service TaskId[{}] JobType[{}] StreamEnabled:{} DurationSleep[{} ms]",
+                    getScenarioStep().getTaskId(), getScenarioStep().getJobType(), getScenarioStep().isStreamEnabled(),
                     durationSleep.toMillis());
         }
 
         registeredTask = bpmnEngine.registerServiceTask(getId(), // workerId
-                getScenarioStep().getTopic(), // topic
+                getScenarioStep().getJobType(), // topic
                 getScenarioStep().isStreamEnabled(), // stream
                 durationSleep, // lock time
                 new SimpleDelayHandler(this), new FixedBackoffSupplier(getScenarioStep().getFixedBackOffDelay()));

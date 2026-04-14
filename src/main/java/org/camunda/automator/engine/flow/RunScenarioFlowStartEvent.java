@@ -38,7 +38,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
     }
 
     @Override
-    public String getTopic() {
+    public String getJobType() {
         return getScenarioStep().getTaskId();
     }
 
@@ -193,7 +193,7 @@ public class RunScenarioFlowStartEvent extends RunScenarioFlowBasic {
                         createProcessInstanceThread.getTotalFailed(), (end - begin), durationToWait.getSeconds());
             }
             if (runScenario.getRunParameters().showLevelInfo()) {
-                logger.info(" listPI(first20): " + listProcessInstances.stream().collect(Collectors.joining(",")));
+                logger.info(" listPI(first20): " + String.join(",", listProcessInstances));
 
             }
 

@@ -26,7 +26,7 @@ public class ContentRestController {
     ContentManager contentManager;
 
     /**
-     * curl -X POST "http://localhost:8381/api/content/add" -H "Content-Type: multipart/form-data" -F "File=@C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources/ScoreAcceptanceScn.json"
+     * curl -X POST "http://localhost:8381/pea/api/content/add" -H "Content-Type: multipart/form-data" -F "scenarioFiles=@C:/dev/intellij/community/process-execution-automator/doc/unittestscenario/resources/ScoreAcceptanceScn.json"
      **/
     @PostMapping(value = "/api/content/add", consumes = {
             MediaType.MULTIPART_FORM_DATA_VALUE}, produces = MediaType.APPLICATION_JSON_VALUE)

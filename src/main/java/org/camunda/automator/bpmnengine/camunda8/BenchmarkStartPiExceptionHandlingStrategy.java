@@ -1,14 +1,17 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
-import io.camunda.zeebe.client.api.worker.BackoffSupplier;
-import io.camunda.zeebe.spring.client.jobhandling.CommandWrapper;
-import io.camunda.zeebe.spring.client.jobhandling.DefaultCommandExceptionHandlingStrategy;
+import io.camunda.client.api.worker.BackoffSupplier;
+import io.camunda.client.jobhandling.CommandWrapper;
+import io.camunda.client.jobhandling.DefaultCommandExceptionHandlingStrategy;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
 
 @Component
 public class BenchmarkStartPiExceptionHandlingStrategy extends DefaultCommandExceptionHandlingStrategy {
@@ -16,8 +19,10 @@ public class BenchmarkStartPiExceptionHandlingStrategy extends DefaultCommandExc
     @Autowired
     private StatisticsCollector stats;
 
-    public BenchmarkStartPiExceptionHandlingStrategy(@Autowired BackoffSupplier backoffSupplier) {
-        super(backoffSupplier, Executors.newScheduledThreadPool(1));
+
+    public BenchmarkStartPiExceptionHandlingStrategy(@Autowired BackoffSupplier backoffSupplier,
+                                                     ScheduledExecutorService benchmarkScheduledExecutorService2) {
+        super(backoffSupplier, benchmarkScheduledExecutorService2);
     }
 
     @Override
@@ -35,4 +40,5 @@ public class BenchmarkStartPiExceptionHandlingStrategy extends DefaultCommandExc
         // use normal behavior
         super.handleCommandError(command, throwable);
     }
+
 }

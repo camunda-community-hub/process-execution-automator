@@ -16,7 +16,7 @@ public class ScenarioVerification {
      * List of activities to check
      * Maybe null due the Gson deserializer if there is no definition
      */
-    private List<ScenarioVerificationTask> activities = new ArrayList<>();
+    private List<ScenarioVerificationActivity> activities = new ArrayList<>();
     /**
      * List of Variables to check
      * Maybe null due the Gson deserializer if there is no definition
@@ -32,11 +32,11 @@ public class ScenarioVerification {
         this.scenarioExecution = scenarioExecution;
     }
 
-    public List<ScenarioVerificationTask> getActivities() {
+    public List<ScenarioVerificationActivity> getActivities() {
         return activities == null ? Collections.emptyList() : activities;
     }
 
-    public void setActivities(List<ScenarioVerificationTask> activities) {
+    public void setActivities(List<ScenarioVerificationActivity> activities) {
         this.activities = activities;
     }
 

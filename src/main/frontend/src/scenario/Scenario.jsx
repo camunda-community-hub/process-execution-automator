@@ -5,14 +5,14 @@
 // List of all runners available
 //
 // -----------------------------------------------------------
-
-import React from 'react';
+import React, {createRef} from 'react';
 import {Button, Card} from "react-bootstrap";
 
 import RestCallService from "../services/RestCallService";
-import {InlineNotification} from "carbon-components-react";
+import {FileUploader, InlineNotification} from "carbon-components-react";
 import {ArrowRepeat} from "react-bootstrap-icons";
 import {ChevronDown, ChevronRight, DataCheck, IbmKnowledgeCatalogStandard, Timer, TrashCan} from '@carbon/icons-react';
+import StepDisplay from "../component/StepDisplay";
 
 
 class Scenario extends React.Component {
@@ -20,10 +20,13 @@ class Scenario extends React.Component {
 
     constructor(_props) {
         super();
+        this.fileUploaderRef = createRef();
 
         this.state = {
             scenario: [],
             openIds: new Set(),
+            scenarioFiles: [],
+            statusRun: "",
             display: {
                 loading: false
             },
@@ -68,8 +71,10 @@ class Scenario extends React.Component {
                                     <thead>
                                     <tr>
                                         <th>Scenario Name</th>
+                                        <th>Description</th>
                                         <th>Server</th>
                                         <th>Type Scenario</th>
+                                        <th>Version</th>
                                         <th></th>
                                     </tr>
                                     </thead>
@@ -78,8 +83,10 @@ class Scenario extends React.Component {
                                         <React.Fragment key={_index}>
                                             <tr>
                                                 <td>{item.name}</td>
+                                                <td>{item.description}</td>
                                                 <td>{item.server}</td>
                                                 <td>{item.typeScenario}</td>
+                                                <td>{item.versionTest}</td>
                                                 <td>
 
                                                     <button onClick={() => this.toggleDetail(item.id)}>
@@ -92,7 +99,7 @@ class Scenario extends React.Component {
                                                 (Array.isArray(item.executions) ? item.executions : []).map((execution, idx) => (
                                                     <React.Fragment key={idx}>
                                                         <tr>
-                                                            <td colSpan="3">
+                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
                                                                 <table style={{width: '100%'}}>
                                                                     <tr>
                                                                         <td>
@@ -105,7 +112,8 @@ class Scenario extends React.Component {
                                                                             Policy: {execution.policy}
                                                                         </td>
                                                                         <td>
-                                                                            Process Instances: {execution.numberProcessInstances}
+                                                                            Process
+                                                                            Instances: {execution.numberProcessInstances}
                                                                         </td>
                                                                         <td>
                                                                             Threads: {execution.numberOfThreads}
@@ -115,58 +123,66 @@ class Scenario extends React.Component {
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td colSpan="3">
+                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
                                                                 <div style={{
                                                                     border: "2px solid #3498db",
                                                                     borderRadius: "8px",
                                                                     padding: "16px",
                                                                     width: '100%'
                                                                 }}>
-                                                                    <h6>Steps</h6>
-                                                                    <table style={{width: '100%'}}
-                                                                           className="table is-hoverable is-fullwidth">
+                                                                    <h6>Simulation Steps</h6>
+                                                                    <table
+                                                                        className="table table-striped table-hover w-100">
+                                                                        <thead>
                                                                         <tr>
                                                                             <th>Type</th>
                                                                             <th>TaskId</th>
                                                                             <th>Explanation</th>
                                                                         </tr>
+                                                                        </thead>
+                                                                        <tbody>
                                                                         {(Array.isArray(execution.steps) ? execution.steps : []).map((step, idx) => (
                                                                             <tr>
-                                                                                <td>{step.type}</td>
+                                                                                <td className="text-center align-middle">
+                                                                                    <StepDisplay type={step.type}/>
+
+                                                                                </td>
                                                                                 <td>{step.taskId}</td>
                                                                                 <td>{step.synthesis}</td>
                                                                             </tr>
                                                                         ))}
+                                                                        </tbody>
                                                                     </table>
                                                                 </div>
                                                             </td>
                                                         </tr>
 
                                                         <tr>
-                                                            <td colSpan="3">
+                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
                                                                 <div style={{
                                                                     border: "2px solid #3498db",
                                                                     borderRadius: "8px",
                                                                     padding: "16px",
                                                                     width: '100%'
                                                                 }}>
-                                                                    <h6>Verification</h6>
+                                                                    <h6>Verifications</h6>
                                                                     <table
-                                                                        className="table is-hoverable is-fullwidth">
+                                                                        className="table table-striped table-hover w-100">
+                                                                        <thead>
                                                                         <tr>
                                                                             <th></th>
                                                                             <th>Type</th>
                                                                             <th>Verifications</th>
                                                                         </tr>
-
-
+                                                                        </thead>
+                                                                        <tbody>
                                                                         {/* Loop through verifications activity */}
                                                                         {Array.isArray(execution.verifications?.activities) && execution.verifications?.activities.map((activity, activityIdx) => (
                                                                             <tr key={{activityIdx}}>
                                                                                 <td style={{paddingRight: "20px"}}>
                                                                                     <IbmKnowledgeCatalogStandard/>
                                                                                 </td>
-                                                                                <td>Activity
+                                                                                <td>{activity.type}
                                                                                 </td>
                                                                                 <td>{activity.synthesis}</td>
                                                                             </tr>
@@ -177,7 +193,7 @@ class Scenario extends React.Component {
                                                                             <tr key={{variableIdx}}>
                                                                                 <td style={{paddingRight: "20px"}}>
                                                                                     <DataCheck/></td>
-                                                                                <td>Variable</td>
+                                                                                <td>VARIABLE</td>
                                                                                 <td>{variable.synthesis}</td>
                                                                             </tr>
                                                                         ))}
@@ -189,7 +205,9 @@ class Scenario extends React.Component {
                                                                                 <td>Performance</td>
                                                                                 <td>{performance.synthesis}</td>
                                                                             </tr>
-                                                                        ))}</table>
+                                                                        ))}
+                                                                        </tbody>
+                                                                    </table>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -209,22 +227,61 @@ class Scenario extends React.Component {
                 <div className="row" style={{width: "100%", marginTop: "10px"}}>
                     <div className="col-md-10">
                         <Button className="btn btn-info btn-sm"
-                                disabled
                                 onClick={() => {
-                                    this.startAll()
+                                    this.runAll()
                                 }}
-                                disabled={true}>
+                                disabled={this.state.display.loading || this.state.scenarioFiles.size === 0}>
                             Start All tests
                         </Button>
+                        <br/>
+                        {this.state.statusRun && <div>Status: {this.state.statusRun}</div>}
                     </div>
                     <div className="col-md-2">
                         <Button className="btn btn-danger btn-sm"
                                 onClick={() => {
                                     this.clearAll()
                                 }}
-                                >
-                            <TrashCan /> Clear all scenario
+                        >
+                            <TrashCan/> Clear all scenario
                         </Button>
+                    </div>
+                </div>
+
+                <div className="row" style={{width: "100%", marginTop: "10px"}}>
+                    <div className="col-md-6">
+                        <Card>
+                            <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Upload</Card.Header>
+                            <Card.Body>
+                                <FileUploader
+                                    ref={this.fileUploaderRef}
+                                    labelTitle="Upload Scenario files"
+                                    labelDescription="Only .json file"
+                                    buttonLabel="Add files to upload"
+                                    filenameStatus="edit"
+                                    accept={['.json']}
+                                    onChange={(event) => this.handleFileChange(event)}
+                                    multiple
+                                    iconDescription="Clear file"
+                                    disabled={this.state.display.loading || this.state.scenarioFiles.size === 0}
+                                />
+                                <Button onClick={() => this.loadScenario()}
+                                        disabled={this.state.display.loading}>Upload</Button>
+                                <br/>
+                                {this.state.statusUploadFailed && <div className="alert alert-danger" style={{
+                                    margin: "10px 10px 10px" +
+                                        " 10px"
+                                }}>
+                                    {this.state.statusUploadFailed}
+                                </div>
+                                }
+                                {this.state.statusUploadSuccess && <div className="alert alert-success" style={{
+                                    margin: "10px 10px 10px" +
+                                        " 10px"
+                                }}>
+                                    {this.state.statusUploadSuccess}
+                                </div>}
+                            </Card.Body>
+                        </Card>
                     </div>
                 </div>
             </div>
@@ -234,28 +291,41 @@ class Scenario extends React.Component {
 
     refreshList() {
         console.log("Definition.refreshList http[pea/api/content/list]");
-        this.setState({runners: [], status: ""});
+        this.setState({runners: [], status: "", statusUploadSuccess: '', statusUploadFailed: ""});
         var restCallService = RestCallService.getInstance();
         restCallService.getJson('pea/api/content/list?details=true', this, this.refreshListCallback);
     }
 
     refreshListCallback(httpPayload) {
+        this.setDisplayProperty("loading", false);
+
         if (httpPayload.isError()) {
             this.setState({status: "Error"});
         } else {
             this.setState({scenario: httpPayload.getData()});
-
         }
     }
 
-    startAll() {
-        console.log("Definition.refreshList http[/pea/api/unittest/runall]");
+    runAll() {
+        console.log("Scenario.runAll http[/pea/api/unittest/runall]");
         this.setState({runners: [], status: ""});
+        this.setDisplayProperty("loading", true);
+
         var restCallService = RestCallService.getInstance();
-        restCallService.getJson('/pea/api/unittest/runall?wait=false&server=Camunda8Ruby', this, this.refreshListCallback);
+        var param = {};
+        restCallService.postJson('/pea/api/unittest/runall?wait=false', param, this, this.runAllCallback);
     }
 
-    clearAll () {
+    runAllCallback(httpPayload) {
+        this.setDisplayProperty("loading", false);
+        if (httpPayload.isError()) {
+            this.setState({statusRun: "Error; test didn't start"});
+        } else {
+            this.setState({statusRun: "Started"});
+        }
+    }
+
+    clearAll() {
         let uri = 'pea/api/content/clearall?';
         console.log("TestResult.clearAll http[" + uri + "]");
 
@@ -265,7 +335,7 @@ class Scenario extends React.Component {
         restCallService.putJson(uri, {}, this, this.clearAllCallback);
     }
 
-    clearAllCallback (httpPayload) {
+    clearAllCallback(httpPayload) {
         console.log("DashBoard.refreshTestResultCallback");
 
         this.setDisplayProperty("loading", false);
@@ -277,6 +347,50 @@ class Scenario extends React.Component {
 
         }
     }
+
+    handleFileChange(event) {
+        const fileList = event.target.files;
+        this.setState({scenarioFiles: fileList}); // Use spread operator to create a new array
+    };
+
+
+    loadScenario(event) {
+        console.log("Load Scenario ", this.state.files);
+        var restCallService = RestCallService.getInstance();
+
+        const formData = new FormData();
+        Array.from(this.state.scenarioFiles).forEach((file, index) => {
+            formData.append(`scenarioFiles`, file);
+        });
+        /* formData.append("File", this.state.files[0]); */
+        this.setDisplayProperty("loading", true);
+
+        restCallService.postUpload('pea/api/content/add?', formData, this, this.operationUploadScenarioCallback);
+
+
+        // dispatch(connectorService.uploadJar(event.target.files[0]));
+    }
+
+    operationUploadScenarioCallback(httpResponse) {
+        this.setDisplayProperty("loading", false);
+
+        if (httpResponse.isError()) {
+            console.log("operationUploadScenarioCallback.operationUploadScenarioCallback: error " + httpResponse.getError());
+            this.setState({statusUploadSuccess: "", statusUploadFailed: httpResponse.getError()});
+        } else {
+            // Clear the file input field using JavaScript
+            if (this.fileUploaderRef.current) {
+                this.fileUploaderRef.current.clearFiles();
+            }
+            this.setState({
+                'scenarioFiles': [],
+                statusUploadSuccess: 'Scenario uploaded with success',
+                statusUploadFailed: ""
+            });
+        }
+        this.refreshList();
+    }
+
     toggleDetail(id) {
         const openIds = new Set(this.state.openIds);
 

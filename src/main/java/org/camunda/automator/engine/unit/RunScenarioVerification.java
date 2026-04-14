@@ -26,7 +26,7 @@ public class RunScenarioVerification {
 
         // we get a processInstanceId now
         ScenarioVerification verifications = scnExecution.getVerifications();
-        for (ScenarioVerificationTask activity : verifications.getActivities()) {
+        for (ScenarioVerificationActivity activity : verifications.getActivities()) {
             checkTask(runScenario, processInstanceId, activity, runResult);
         }
         for (ScenarioVerificationVariable variable : verifications.getVariables()) {
@@ -49,7 +49,7 @@ public class RunScenarioVerification {
      */
     private void checkTask(RunScenario runScenario,
                            String processInstanceId,
-                           ScenarioVerificationTask verificationActivity,
+                           ScenarioVerificationActivity verificationActivity,
                            RunResult result) {
         try {
             StringBuilder message = new StringBuilder();
@@ -58,7 +58,7 @@ public class RunScenarioVerification {
                     .searchTasksByProcessInstanceId(processInstanceId, verificationActivity.taskId, 100);
             message.append("CheckTask: PID[");
             message.append(processInstanceId);
-            message.append("] VerifTaskName[");
+            message.append("] Name[");
             message.append(verificationActivity.taskId);
 
             // Does a type is expected?
@@ -75,9 +75,9 @@ public class RunScenarioVerification {
                 message.append("] State[");
                 message.append(verificationActivity.state);
                 listTaskDescriptions = listTaskDescriptions.stream()
-                        .filter(t -> ((t.isCompleted && ScenarioVerificationTask.StepState.COMPLETED.toString()
+                        .filter(t -> ((t.isCompleted && ScenarioVerificationActivity.StepState.COMPLETED.toString()
                                 .equals(verificationActivity.state.toString())) || (!t.isCompleted
-                                && ScenarioVerificationTask.StepState.ACTIVE.toString().equals(verificationActivity.state.toString()))))
+                                && ScenarioVerificationActivity.StepState.ACTIVE.toString().equals(verificationActivity.state.toString()))))
                         .toList();
             }
 
@@ -85,12 +85,12 @@ public class RunScenarioVerification {
 
             boolean isSuccess = listTaskDescriptions.size() == verificationActivity.getNumberOfTasks();
 
-            message.append("] NumberExpectedTask: ");
+            message.append("] Expected/Found: ");
             message.append(verificationActivity.getNumberOfTasks());
-            message.append(" Found: ");
+            message.append("/");
             message.append(listTaskDescriptions.size());
-            message.append(" status: ");
-            message.append(isSuccess);
+            message.append(" Status: ");
+            message.append(isSuccess? "Correct": "Fail");
             result.addVerification(verificationActivity, isSuccess, message.toString());
 
             if (runScenario.getRunParameters().showLevelMonitoring())
@@ -132,7 +132,7 @@ public class RunScenarioVerification {
             message.append("] ExpectedValue[");
             message.append(verificationActivity.value);
 
-            boolean isSuccess = false;
+            boolean isSuccess;
             if (variables.containsKey(verificationActivity.name)) {
                 Object value = variables.get(verificationActivity.name);
                 message.append("] value[");

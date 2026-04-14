@@ -30,7 +30,7 @@ public class RunScenarioFlowUserTask extends RunScenarioFlowBasic {
     }
 
     @Override
-    public String getTopic() {
+    public String getJobType() {
         return getScenarioStep().getTaskId();
     }
 

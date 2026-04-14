@@ -38,7 +38,7 @@ public abstract class RunScenarioFlowBasic {
      * - topic for a service task
      * - taskId for a user task
      */
-    public abstract String getTopic();
+    public abstract String getJobType();
 
     public RunScenario getRunScenario() {
         return runScenario;

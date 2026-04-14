@@ -4,6 +4,7 @@ package org.camunda.automator.bpmnengine.camunda8;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.CamundaOperateClientConfiguration;
+import io.camunda.operate.CamundaOperateClientV1;
 import io.camunda.operate.auth.JwtAuthentication;
 import io.camunda.operate.auth.JwtCredential;
 import io.camunda.operate.auth.SimpleAuthentication;
@@ -28,14 +29,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-public class OperateClient {
+public class OperateClientV1 implements OperateClientInt {
 
     public static final int SEARCH_MAX_SIZE = 100;
-    private final Logger logger = LoggerFactory.getLogger(OperateClient.class);
+    private final Logger logger = LoggerFactory.getLogger(OperateClientV1.class);
     BpmnEngineCamunda8 engineCamunda8;
     private CamundaOperateClient operateClient;
 
-    protected OperateClient(BpmnEngineCamunda8 engineCamunda8) {
+    protected OperateClientV1(BpmnEngineCamunda8 engineCamunda8) {
         this.engineCamunda8 = engineCamunda8;
     }
 
@@ -70,7 +71,7 @@ public class OperateClient {
      * @param analysis to cpmplete the analysis
      * @throws AutomatorException in case of error
      */
-    protected void connectOperate(StringBuilder analysis) throws AutomatorException {
+    public void connectOperate(StringBuilder analysis) throws AutomatorException {
         BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         if (!serverDefinition.isOperate()) {
@@ -157,12 +158,18 @@ public class OperateClient {
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
                 try {
-                    URL operateURL = URI.create(serverDefinition.operateUrl).toURL();
+                    String loginUrl = getLoginUrl();
+                    SimpleCredential credentials = new SimpleCredential(serverDefinition.operateUserName,
+                            serverDefinition.operateUserPassword,
+                            URI.create(loginUrl).toURL(),
+                            Duration.ofMinutes(10));
 
-                    SimpleCredential credentials = new SimpleCredential(serverDefinition.operateUserName, serverDefinition.operateUserPassword, operateURL, Duration.ofMinutes(10));
                     SimpleAuthentication authentication = new SimpleAuthentication(credentials);
                     ObjectMapper objectMapper = new ObjectMapper();
-                    configuration = new CamundaOperateClientConfiguration(authentication, operateURL, objectMapper, HttpClients.createDefault());
+                    configuration = new CamundaOperateClientConfiguration(authentication,
+                            URI.create(serverDefinition.operateUrl).toURL(),
+                            objectMapper,
+                            HttpClients.createDefault());
 
                 } catch (Exception e) {
                     logger.error("Can't connect to SaaS environment[{}] Analysis:{} : {}", serverDefinition.name, analysis, e.getMessage(), e);
@@ -181,7 +188,7 @@ public class OperateClient {
         // ---------------- connection
         try {
 
-            operateClient = new CamundaOperateClient(configuration);
+            operateClient = new CamundaOperateClientV1(configuration);
 
             analysis.append("successfully, ");
 
@@ -501,7 +508,38 @@ public class OperateClient {
             case "SCRIPT_TASK" -> ScenarioStep.Step.SCRIPTTASK;
             default -> null;
         };
+    }
 
+
+    /**
+     * Login URL change in 8.8 and after, so ask Zeebe the version and calculate the login URL
+     *
+     * @return the loginUrl
+     */
+    private String getLoginUrl() {
+
+        boolean isUpper88 = false;
+        try {
+            String zeebeVersion = engineCamunda8.getZeebeVersion();
+            String[] parts = zeebeVersion.split("\\.");
+
+            int minor = parts.length > 2 ? Integer.parseInt(parts[1]) : 0;
+
+            if (minor >= 8) {
+                isUpper88 = true;
+            }
+        } catch (Exception e) {
+            logger.error("OperateClientV1.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
+        }
+        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+
+        String loginUrl = serverDefinition.operateUrl;
+        if (isUpper88) {
+            // remove /operate in the url
+            loginUrl = loginUrl.replace("/operate", "");
+        }
+        logger.info("OperateClientV1.getLoginUrl: url[{}] zeebe>8.8? {}", loginUrl, isUpper88);
+        return loginUrl;
     }
 
 }

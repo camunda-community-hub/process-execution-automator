@@ -1,13 +1,16 @@
 package org.camunda.automator.definition;
 
-public class ScenarioVerificationTask implements ScenarioVerificationBasic {
+/**
+ * The activity may be a task, or a message event
+ */
+public class ScenarioVerificationActivity implements ScenarioVerificationBasic {
     private final ScenarioVerification scenarioVerification;
     public ScenarioStep.Step type;
     public String taskId;
     public Integer numberOfTasks;
     public StepState state;
 
-    public ScenarioVerificationTask(ScenarioVerification scenarioVerification) {
+    public ScenarioVerificationActivity(ScenarioVerification scenarioVerification) {
         this.scenarioVerification = scenarioVerification;
     }
 
@@ -40,11 +43,12 @@ public class ScenarioVerificationTask implements ScenarioVerificationBasic {
     }
 
     public String getSynthesis() {
-        return "ActivityCheck [" + taskId + "] state[" + (state == null ? "" : state.toString()) + "]";
+        return "TaskCheck[" + taskId + "]"
+                + (state == null ? "" : (" State["+state.toString() + "]"));
     }
 
     public String getTypeVerification() {
-        return "GOBYTASK";
+        return "TASK";
     }
 
     public enum StepState {COMPLETED, ACTIVE}

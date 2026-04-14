@@ -97,7 +97,7 @@ public class RunScenarioWarmingUp {
                     startEventWarmingUpRunnable.start();
                 }
                 case SERVICETASK -> {
-                    logger.info("WarmingUp: Start Service Task topic[{}]", scenarioStep.getTopic());
+                    logger.info("WarmingUp: Start Service Task JobType[{}]", scenarioStep.getJobType());
                     RunScenarioFlowServiceTask task = new RunScenarioFlowServiceTask(serviceAccess.getTaskScheduler("serviceTask"),
                             scenarioStep, runScenario, new RunResult(runScenario, null));
                     task.execute();
@@ -306,7 +306,7 @@ public class RunScenarioWarmingUp {
                             "Task[" + taskId + "] value [" + value + "] / threshold[" + threshold + "]");
                 } else if ("EndEventThreshold".equalsIgnoreCase(functionName)) {
                     String endId = st.hasMoreTokens() ? st.nextToken() : "";
-                    Integer threshold = st.hasMoreTokens() ? Integer.valueOf(st.nextToken()) : 0;
+                    Integer threshold = st.hasMoreTokens() ? Integer.parseInt(st.nextToken()) : 0;
 
                     long value = runScenario.getBpmnEngine()
                             .countNumberOfProcessInstancesEnded(runScenario.getScenario().getProcessId(),

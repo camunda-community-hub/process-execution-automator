@@ -24,6 +24,7 @@ class TestResult extends React.Component {
         super();
         this.state = {
             testresults: [],
+            statusRun: "",
             openIds: new Set(),
             display: {
                 loading: false
@@ -109,7 +110,7 @@ class TestResult extends React.Component {
                                                     {item.status !== "INPROGRESS" &&
                                                         <button disabled={item.status === "INPROGRESS"}
                                                                 onClick={() => this.toggleDetail(item.id)}>
-                                                                    {this.state.openIds.has(item.id) ? <ChevronDown/> :
+                                                            {this.state.openIds.has(item.id) ? <ChevronDown/> :
                                                                 <ChevronRight/>}
                                                         </button>
                                                     }
@@ -121,10 +122,43 @@ class TestResult extends React.Component {
                                                     {this.dateDisplay(item.endDate)}
                                                 </td>
                                             </tr>
+
+                                            {this.state.openIds.has(item.id) &&
+                                                Array.isArray(item.errors) && item.errors.length > 0 && (
+                                                    <tr>
+                                                        <td></td>
+                                                        <td colSpan="4">
+                                                            <h5>Errors</h5>
+                                                            <div className="table-responsive mt-3" style={{maxHeight: "300px"}}>
+                                                            <table border="1" width="100%"  className="table table-sm align-middle">
+                                                                <thead className="table-light sticky-top">
+                                                                <tr>
+                                                                    <th>Step</th>
+                                                                    <th>Id</th>
+                                                                    <th>Error</th>
+                                                                </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                {item.errors.map((error, i) => (
+                                                                    <tr key={i} className="border-top small">
+                                                                        <td>{error.stepType}</td>
+                                                                        <td>{error.stepId}</td>
+                                                                        <td>{error.explanation}</td>
+                                                                    </tr>
+                                                                ))}
+                                                                </tbody>
+                                                            </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+
                                             {this.state.openIds.has(item.id) &&
                                                 (Array.isArray(item.tests) ? item.tests : []).map((test, idx) => (
                                                     <tr key={idx}>
-                                                        <td colSpan="5">
+                                                        <td></td>
+
+                                                        <td colSpan="4">
                                                             <table style={{width: '100%'}}>
                                                                 <tr>
                                                                     <td>
@@ -135,6 +169,7 @@ class TestResult extends React.Component {
                                                                     </td>
                                                                     <td>
                                                                         ProcessInstance: {test.processInstancesId}
+                                                                        <br/>
                                                                         Server: {this.state.testresults.serverName}
                                                                     </td>
                                                                     <td style={{textAlign: 'right'}}>
@@ -146,12 +181,11 @@ class TestResult extends React.Component {
                                                                         }
                                                                     </td>
                                                                 </tr>
-
                                                             </table>
 
 
-                                                            <table border="1" width="100%">
-                                                                <thead>
+                                                            <table border="1" width="100%" className="table table-sm align-middle">
+                                                                <thead className="table-light sticky-top">
                                                                 <tr>
                                                                     <th></th>
                                                                     <th>Info</th>
@@ -161,7 +195,7 @@ class TestResult extends React.Component {
                                                                 </thead>
                                                                 <tbody>
                                                                 {(Array.isArray(test.detail) ? test.detail : []).map((d, i) => (
-                                                                    <tr key={i}>
+                                                                    <tr key={i}  className="border-top small">
                                                                         <td style={{paddingRight: "20px"}}>
                                                                             {d.typeVerification === "GOBYTASK" &&
                                                                                 <IbmKnowledgeCatalogStandard/>}
@@ -173,7 +207,7 @@ class TestResult extends React.Component {
                                                                             }
                                                                         </td>
                                                                         <td>{d.info}</td>
-                                                                        <td>{d.message}</td>
+                                                                        <td class="small">{d.message}</td>
                                                                         <td>
                                                                             {d.result === "SUCCESS" &&
                                                                                 <Tag type="green">Success</Tag>
@@ -204,11 +238,10 @@ class TestResult extends React.Component {
                 <div className="row" style={{width: "100%", marginTop: "10px"}}>
                     <div className="col-md-10">
                         <Button className="btn btn-info btn-sm"
-                                disabled
                                 onClick={() => {
-                                    this.startAll()
+                                    this.runAll()
                                 }}
-                                disabled={true}>
+                                disabled={this.state.display.loading}>
                             Start All tests
                         </Button>
                     </div>
@@ -252,11 +285,24 @@ class TestResult extends React.Component {
         }
     }
 
-    startAll() {
-        console.log("Definition.refreshList http[/pea/api/unittest/runall]");
+    runAll() {
+        console.log("Scenario.runAll http[/pea/api/unittest/runall]");
         this.setState({runners: [], status: ""});
+        this.setDisplayProperty("loading", true);
+
         var restCallService = RestCallService.getInstance();
-        restCallService.getJson('/pea/api/unittest/runall?wait=false&server=Camunda8Ruby', this, this.refreshListCallback);
+        var param = {};
+        restCallService.postJson('/pea/api/unittest/runall?wait=false', param, this, this.runAllCallback);
+    }
+
+    runAllCallback(httpPayload) {
+        this.setDisplayProperty("loading", false);
+        if (httpPayload.isError()) {
+            this.setState({statusRun: "Error; test didn't start"});
+        } else {
+            this.setState({statusRun: "Started"});
+        }
+        this.refreshTestResult();
     }
 
     clearAll() {
