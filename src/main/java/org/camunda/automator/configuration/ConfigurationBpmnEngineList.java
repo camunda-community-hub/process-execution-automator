@@ -17,7 +17,7 @@ import java.util.*;
 
 @Component
 
-public class BpmnEngineList {
+public class ConfigurationBpmnEngineList {
     public static final int DEFAULT_VALUE_EXECUTION_THREADS = 100;
     public static final int DEFAULT_VALUE_MAX_JOBS_ACTIVE = -1;
     public static final String CONF_WORKER_MAX_JOBS_ACTIVE = "workerMaxJobsActive";
@@ -59,7 +59,7 @@ public class BpmnEngineList {
     public static final String CONF_ZEEBE_PLAINTEXT = "zeebePlainText";
     public static final String ZEEBE_DEFAULT_AUDIENCE = "zeebe.camunda.io";
 
-    static Logger logger = LoggerFactory.getLogger(BpmnEngineList.class);
+    static Logger logger = LoggerFactory.getLogger(ConfigurationBpmnEngineList.class);
 
     @Autowired
     ConfigurationServersEngine configurationServersEngine;
@@ -122,9 +122,8 @@ public class BpmnEngineList {
      *
      * @param serverName serverName
      * @return the server, or null
-     * @throws AutomatorException on any error
      */
-    public BpmnEngineList.BpmnServerDefinition getByServerName(String serverName) throws AutomatorException {
+    public ConfigurationBpmnEngineList.BpmnServerDefinition getByServerName(String serverName) {
         Optional<BpmnServerDefinition> first = allServers.stream().filter(t -> t.name.equals(serverName)).findFirst();
         return first.isPresent() ? first.get() : null;
     }
@@ -134,9 +133,8 @@ public class BpmnEngineList {
      *
      * @param serverType type of server CAMUNDA 8 ? 7 ?
      * @return a server
-     * @throws AutomatorException on any error
      */
-    public BpmnEngineList.BpmnServerDefinition getByServerType(CamundaEngine serverType) {
+    public ConfigurationBpmnEngineList.BpmnServerDefinition getByServerType(CamundaEngine serverType) {
         Optional<BpmnServerDefinition> first = allServers.stream()
                 .filter(t -> sameType(t.serverType, serverType))
                 .findFirst();
@@ -368,7 +366,7 @@ public class BpmnEngineList {
         // is automator.servers.camunda8 has a value?
         if (hasValue(configurationServersEngine.zeebeName)) {
             BpmnServerDefinition camunda8 = BpmnServerDefinition.getInstanceC8(configurationServersEngine.zeebeName, configurationServersEngine.zeebeDescription);
-            camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress==null ? configurationServersEngine.zeebeGatewayAddress : configurationServersEngine.zeebeGrpcAddress;
+            camunda8.zeebeGrpcAddress = configurationServersEngine.zeebeGrpcAddress == null ? configurationServersEngine.zeebeGatewayAddress : configurationServersEngine.zeebeGrpcAddress;
             camunda8.zeebeRestAddress = configurationServersEngine.zeebeRestAddress;
             camunda8.zeebeClientId = configurationServersEngine.zeebeClientId;
             camunda8.zeebeClientSecret = configurationServersEngine.zeebeClientSecret;
@@ -423,7 +421,7 @@ public class BpmnEngineList {
 
     /* ******************************************************************** */
     /*                                                                      */
-    /*  ToolboxRest                                                             */
+    /*  getter                                                              */
     /*                                                                      */
     /* ******************************************************************** */
 
@@ -529,7 +527,7 @@ public class BpmnEngineList {
         public String name;
         public String description;
 
-        public CamundaEngine serverType = BpmnEngineList.CamundaEngine.CAMUNDA_8;
+        public CamundaEngine serverType = ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8;
 
 
         /**
@@ -580,8 +578,8 @@ public class BpmnEngineList {
         /**
          * Common Camunda 7 and Camunda8
          */
-        public Integer workerExecutionThreads = Integer.valueOf(DEFAULT_VALUE_EXECUTION_THREADS);
-        public Integer workerMaxJobsActive = Integer.valueOf(DEFAULT_VALUE_MAX_JOBS_ACTIVE);
+        public Integer workerExecutionThreads = DEFAULT_VALUE_EXECUTION_THREADS;
+        public Integer workerMaxJobsActive = DEFAULT_VALUE_MAX_JOBS_ACTIVE;
 
         private BpmnServerDefinition() {
 

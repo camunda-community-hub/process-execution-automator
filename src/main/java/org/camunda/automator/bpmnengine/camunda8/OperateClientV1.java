@@ -16,7 +16,7 @@ import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class OperateClientV1 implements OperateClientInt {
      */
     public BpmnEngine.ConnectionStatus testAdminConnection() {
         BpmnEngine.ConnectionStatus connectionStatus = new BpmnEngine.ConnectionStatus();
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
         if (!serverDefinition.isOperate()) {
             connectionStatus.status = BpmnEngine.CONNECTION_STATUS.NOT_NEEDED;
             return connectionStatus;
@@ -72,7 +72,7 @@ public class OperateClientV1 implements OperateClientInt {
      * @throws AutomatorException in case of error
      */
     public void connectOperate(StringBuilder analysis) throws AutomatorException {
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         if (!serverDefinition.isOperate()) {
             analysis.append("No operate connection required, ");
@@ -84,9 +84,9 @@ public class OperateClientV1 implements OperateClientInt {
         isOk = engineCamunda8.stillOk(serverDefinition.operateUrl, "operateUrl", analysis, true, true, isOk);
 
         // CamundaOperateClientBuilder camundaOperateClientBuilder = new CamundaOperateClientBuilder();
-        CamundaOperateClientConfiguration configuration = null;
+        CamundaOperateClientConfiguration configuration;
         // ---------------------------- Camunda Saas
-        if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
+        if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
 
             try {
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
@@ -114,7 +114,7 @@ public class OperateClientV1 implements OperateClientInt {
             }
 
             //---------------------------- Camunda 8 Self Manage
-        } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
+        } else if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
 
             if (serverDefinition.isAuthenticationUrl()) {
                 isOk = engineCamunda8.stillOk(serverDefinition.authenticationUrl, "authenticationUrl", analysis, true, true, isOk);
@@ -123,7 +123,9 @@ public class OperateClientV1 implements OperateClientInt {
 
                 String scope = "";
                 if (!isOk) {
-                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{}", serverDefinition.name,
+                            serverDefinition.operateUrl,
+                            analysis);
                     throw new AutomatorException(
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
@@ -144,7 +146,11 @@ public class OperateClientV1 implements OperateClientInt {
                     configuration = new CamundaOperateClientConfiguration(
                             authentication, operateURL, objectMapper, HttpClients.createDefault());
                 } catch (Exception e) {
-                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.taskListUrl, analysis, e);
+                    logger.error("Can't connect to Server[{}] TaskList[{}] Analysis:{} : ",
+                            serverDefinition.name,
+                            serverDefinition.taskListUrl,
+                            analysis,
+                            e);
                     throw new AutomatorException(
                             "BadCredential[" + serverDefinition.name + "] Analysis:" + analysis + " : " + e.getMessage());
                 }
@@ -153,7 +159,10 @@ public class OperateClientV1 implements OperateClientInt {
                 isOk = engineCamunda8.stillOk(serverDefinition.operateUserName, "operateUserName", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.operateUserPassword, "operateUserPassword", analysis, true, false, isOk);
                 if (!isOk) {
-                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} : {}", serverDefinition.name, serverDefinition.operateUrl, analysis);
+                    logger.error("Can't connect to Server[{}] Operate[{}] Analysis:{} ",
+                            serverDefinition.name,
+                            serverDefinition.operateUrl,
+                            analysis);
                     throw new AutomatorException(
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
@@ -400,7 +409,7 @@ public class OperateClientV1 implements OperateClientInt {
 
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<ProcessInstance> searchResult = null;
             queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId).build());
             queryBuilder.sort(new Sort("key", SortOrder.ASC));
@@ -433,7 +442,7 @@ public class OperateClientV1 implements OperateClientInt {
 
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<ProcessInstance> searchResult = null;
 
             queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId)
@@ -470,7 +479,7 @@ public class OperateClientV1 implements OperateClientInt {
         }
 
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<FlowNodeInstance> searchResult = null;
             int maxLoop = 0;
             do {
@@ -488,7 +497,7 @@ public class OperateClientV1 implements OperateClientInt {
                 synchronized (this) {
                     searchResult = operateClient.searchFlowNodeInstanceResults(searchQuery);
                 }
-                cumul += (long) searchResult.getItems().size();
+                cumul += searchResult.getItems().size();
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
         } catch (Exception e) {
@@ -531,7 +540,7 @@ public class OperateClientV1 implements OperateClientInt {
         } catch (Exception e) {
             logger.error("OperateClientV1.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
         }
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         String loginUrl = serverDefinition.operateUrl;
         if (isUpper88) {

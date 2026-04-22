@@ -1,11 +1,15 @@
-/* ******************************************************************** */
-/*                                                                      */
-/*  ScenarioExecutionResult                                                    */
-/*                                                                      */
-/*  Collect the result of an execution                                  */
-/* ******************************************************************** */
+/**
+ * ScenarioExecutionResult
+ * <p>
+ * Collect the result of an execution
+ * There is a 1<->1 relation betweeb a RunScenario and a RunResult.
+ * The RunResult collect the result of the execution. The RunScenario if focus to execute the scenario
+ * The RunResult exist BEFORE the RunScenario
+ **/
+
 package org.camunda.automator.engine;
 
+import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.definition.ScenarioVerificationBasic;
@@ -38,14 +42,8 @@ public class RunResult {
     public static final String JSON_START_DATE = "startDate";
     public static final String JSON_END_DATE = "endDate";
     public static final String JSON_TYPEVERIFICATION = "typeVerification";
-    public static final String JSON_ADVANCEMENT ="advancement";
-    /**
-     * Scenario attached to this execution
-     */
-    private final RunScenario runScenario;
-
-    private final ScenarioExecution scnExecution;
-
+    public static final String JSON_ADVANCEMENT = "advancement";
+    public static final String JSON_SCENARIO_FILE_NAME = "fileName";
     /**
      * List of error. If empty, the scenario was executed with success
      */
@@ -64,6 +62,12 @@ public class RunResult {
     private final List<RunResult> listRunResults = new ArrayList<>();
     private final String executionId;
     Logger logger = LoggerFactory.getLogger(RunResult.class);
+    private String scenarioName;
+    /**
+     * Scenario attached to this execution
+     */
+    private RunScenario runScenario;
+    private ScenarioExecution scnExecution;
     private int numberOfSteps = 0;
     private int numberOfErrorSteps = 0;
     /**
@@ -74,7 +78,20 @@ public class RunResult {
     private Date endDate;
 
     // A percentage
-    private int advancement=0;
+    private int advancement = 0;
+
+    private RunResult.StatusTest statusTest = StatusTest.INPROGRESS;
+
+    /**
+     * Construct a RunResult. At the begining the runResult contains only the scenarioName and the executionId
+     * @param scenarioName name of scenario to run
+     * @param executionId uniq ID
+     */
+    public RunResult(String scenarioName, String executionId) {
+        this.scenarioName = scenarioName;
+        this.executionId = executionId;
+    }
+
 
     public RunResult(RunScenario runScenario, String executionId) {
         this.runScenario = runScenario;
@@ -87,6 +104,11 @@ public class RunResult {
         this.runScenario = runScenario;
         this.scnExecution = scnExecution;
         this.executionId = executionId;
+    }
+
+
+    public Scenario getScenario() {
+        return runScenario != null ? runScenario.getScenario() : null;
     }
 
     public Date getStartDate() {
@@ -117,8 +139,36 @@ public class RunResult {
         return endDate != null;
     }
 
+    public RunResult.StatusTest getStatus() {
+        return statusTest;
+    }
+
+    public void setStatus(RunResult.StatusTest statusTest) {
+        this.statusTest = statusTest;
+    }
+
     public String getExecutionId() {
         return executionId;
+    }
+
+    public StatusTest getStatusTest() {
+        return statusTest;
+    }
+
+    public void setStatusTest(StatusTest statusTest) {
+        this.statusTest = statusTest;
+    }
+
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  RunScenario method                                                  */
+    /*                                                                      */
+    /* ******************************************************************** */
+
+
+    public void executeTheScenario(RunResult runResult) {
+        runScenario.executeTheScenario(this);
     }
 
     /**
@@ -196,6 +246,11 @@ public class RunResult {
         this.listErrors.add(new ErrorDescription(step, e.getMessage()));
     }
 
+    public void addError(String explanation) {
+        this.listErrors.add(new ErrorDescription(explanation));
+        logger.error(explanation);
+    }
+
     public void addVerification(ScenarioVerificationBasic verification, boolean isSuccess, String message) {
         VerificationStatus verificationStatus = new VerificationStatus();
         verificationStatus.verification = verification;
@@ -251,6 +306,8 @@ public class RunResult {
             endDate = runResult.getEndDate();
         if (advancement < runResult.getAdvancement())
             advancement = runResult.getAdvancement();
+        if (statusTest == null)
+            statusTest = runResult.getStatusTest();
     }
 
     /**
@@ -347,6 +404,14 @@ public class RunResult {
         return runScenario;
     }
 
+    /**
+     * Attach the runScenario for information
+     * @param runScenario runScenario
+     */
+    public void setRunScenario(RunScenario runScenario) {
+        this.runScenario = runScenario;
+    }
+
     public ScenarioExecution getScnExecution() {
         return scnExecution;
     }
@@ -408,14 +473,16 @@ public class RunResult {
     public Map<String, Object> getJson(boolean shortDescription) {
         Map<String, Object> resultMap = new HashMap<>();
 
-        if (!isFinished())
-            resultMap.put(JSON_RESULT, "");
-        else
-            resultMap.put(JSON_RESULT, isSuccess() ? RunResult.StatusTest.SUCCESS.toString() : RunResult.StatusTest.FAIL.toString());
+        resultMap.put(JSON_RESULT, getStatus().toString());
+
+        if (getScenario() != null) {
+            resultMap.put(JSON_SCENARIO_FILE_NAME, getScenario().getScenarioFile().getName());
+            resultMap.put(JSON_SCENARIO_NAME, getScenario().getName());
+            resultMap.put(JSON_SERVER_NAME, getScenario().getServerName());
+        }
 
         resultMap.put(JSON_ID, getExecutionId());
-        resultMap.put(JSON_SCENARIO_NAME, getRunScenario().getScenario().getName());
-        resultMap.put(JSON_STATUS, isFinished() ? JSON_STATUS_V_EXECUTED : JSON_STATUS_V_INPROGRESS);
+
         resultMap.put(JSON_START_DATE, getStartDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getStartDate().toInstant()) : "");
         resultMap.put(JSON_END_DATE, getEndDate() != null ? DateTimeFormatter.ISO_INSTANT.format(getEndDate().toInstant()) : "");
         resultMap.put(JSON_ADVANCEMENT, advancement);
@@ -469,7 +536,7 @@ public class RunResult {
         return info == null ? "" : info;
     }
 
-    public enum StatusTest {SCENARIO_NOT_EXIST, ENGINE_NOT_EXIST, SUCCESS, FAIL}
+    public enum StatusTest {SCENARIO_NOT_EXIST, ENGINE_NOT_EXIST, SUCCESS, FAIL, INPROGRESS, CANCEL}
 
     public static class StepExecution {
         public final List<ErrorDescription> listErrors = new ArrayList<>();
@@ -497,6 +564,10 @@ public class RunResult {
         public ScenarioVerificationBasic verificationBasic;
         public String explanation;
 
+        public ErrorDescription(String explanation) {
+            this.explanation = explanation;
+        }
+
         public ErrorDescription(ScenarioStep step, String explanation) {
             this.step = step;
             this.explanation = explanation;
@@ -506,17 +577,18 @@ public class RunResult {
             this.verificationBasic = verificationBasic;
             this.explanation = explanation;
         }
-        public Map<String,Object> getMap() {
+
+        public Map<String, Object> getMap() {
             Map<String, Object> result = new HashMap<>();
-            if (step!=null) {
+            if (step != null) {
                 result.put("stepId", step.getId());
                 result.put("stepType", step.getType());
             }
-            if (verificationBasic!=null) {
+            if (verificationBasic != null) {
                 result.put("verificationType", verificationBasic.getTypeVerification());
             }
             result.put("explanation", explanation);
-                return result;
+            return result;
         }
     }
 

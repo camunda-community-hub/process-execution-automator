@@ -1,12 +1,10 @@
 package org.camunda.automator.api;
 
 import org.camunda.automator.AutomatorAPI;
-import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.configuration.ConfigurationServersEngine;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
-import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
 import org.camunda.automator.engine.RunResult;
 import org.camunda.automator.engine.RunScenarioService;
@@ -16,7 +14,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.*;
 
 @RestController
@@ -50,18 +47,15 @@ public class UnitTestController {
     private final AutomatorAPI automatorAPI;
     private final RunScenarioService runScenarioService;
     private final ConfigurationServersEngine configurationServersEngine;
-    private final ToolboxRest toolboxRest;
 
     public UnitTestController(ConfigurationStartup configurationStartup,
                               ContentManager contentManager,
                               AutomatorAPI automatorAPI,
-                              ToolboxRest toolboxRest,
                               RunScenarioService runScenarioService,
                               ConfigurationServersEngine configurationServersEngine) {
         this.configurationStartup = configurationStartup;
         this.contentManager = contentManager;
         this.automatorAPI = automatorAPI;
-        this.toolboxRest = toolboxRest;
         this.runScenarioService = runScenarioService;
         this.configurationServersEngine = configurationServersEngine;
     }
@@ -69,7 +63,7 @@ public class UnitTestController {
     @PostMapping(value = "/api/unittest/run", produces = "application/json")
     public Map<String, Object> runUnitTest(@RequestParam(name = "name") String scenarioName, @RequestParam(name = "server", required = false) String serverName, @RequestParam(name = "wait", required = false) Boolean wait) {
         logger.info("ServerController: runUnitTest scenario[{}] Wait? {}", scenarioName, wait != null && wait);
-        return startTest(scenarioName, serverName, Boolean.TRUE.equals(wait));
+        return startTest(scenarioName, null, serverName, Boolean.TRUE.equals(wait));
     }
 
     @PostMapping(value = "/api/unittest/runall", produces = "application/json")
@@ -83,7 +77,7 @@ public class UnitTestController {
         resultMap.put("scenario", resultScenario);
 
 
-        List<Path> listScenario = contentManager.getContentFiles();
+        List<Scenario> listScenario = contentManager.getContentScenario();
         logger.info("UnitTestController: runAllUnitTest Wait? {} nbOfScenario:[{}] serverName[{}]",
                 wait != null && wait,
                 listScenario.size(),
@@ -91,8 +85,8 @@ public class UnitTestController {
 
         boolean allScenarioAreOk = true;
         boolean synchronous = wait == null || Boolean.TRUE.equals(wait);
-        for (Path fileScenario : listScenario) {
-            Map<String, Object> resultOneScenario = startTest(fileScenario.getFileName().toString(), serverName, !synchronous);
+        for (Scenario scenario : listScenario) {
+            Map<String, Object> resultOneScenario = startTest(scenario.getName(), scenario, serverName, !synchronous);
             resultScenario.add(resultOneScenario);
 
             String status = (String) resultOneScenario.get(JSON_RESULT);
@@ -143,37 +137,65 @@ public class UnitTestController {
         runScenarioService.clearAll();
     }
 
+    /**
+     * Start a test
+     *
+     * @param scenario     scenario name
+     * @param serverName   server name
+     * @param asynchronous asynchonous or not
+     * @return the resultMap
+     */
     private Map<String, Object> startTest(String scenarioName,
+                                          Scenario scenario,
                                           String serverName,
                                           boolean asynchronous) {
         Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put(JSON_SCENARIO_FILE_NAME, scenarioName);
+
+
+        RunParameters runParameters = new RunParameters();
+        String runServerName = serverName == null ? configurationStartup.getServerName() : serverName;
+        runParameters.setExecution(true)
+                .setServerName(runServerName)
+                .setLogLevel(configurationStartup.getLogLevelEnum());
+
+        RunResult runResult = runScenarioService.startScenario(scenarioName, scenario, runParameters, asynchronous);
+
+        resultMap = runResult.getJson(false);
+        return resultMap;
+        /*
+        RunResult runResult = runScenarioService.startRunScenario(scenarioName );
 
         Scenario scenario = null;
         try {
-            Path scenarioFile = contentManager.getFromFileName(scenarioName);
-            resultMap.put(JSON_SCENARIO_FILE_NAME, scenarioFile.getFileName().toString());
-            scenario = automatorAPI.loadFromFile(scenarioFile);
+            scenario = contentManager.getFromName(scenarioName);
+            resultMap.put(JSON_SCENARIO_FILE_NAME, scenario.getScenarioFile().getName());
         } catch (AutomatorException ae) {
             logger.error("Error during accessing InputStream from scenarioName [{}]: {}", scenarioName,
                     ae.getMessage(), ae);
             resultMap.put(JSON_RESULT, JSON_STATUS_V_NOTEXIST);
+            runResult.addError("Can't access scenario [" + scenarioName+"]");
             return resultMap;
         }
 
 
         RunParameters runParameters = new RunParameters();
         String runServerName = serverName == null ? configurationStartup.getServerName() : serverName;
-        resultMap.put(JSON_SERVER_NAME, runServerName);
         runParameters.setExecution(true)
                 .setServerName(runServerName)
                 .setLogLevel(configurationStartup.getLogLevelEnum());
+        resultMap.put(JSON_SERVER_NAME, runServerName);
+        runResult.getRunScenario().setRunParameters(runParameters);
+
+        /** get the BpmbnEngine now *
         BpmnEngine bpmnEngine = toolboxRest.connectToEngine(scenario, runParameters, resultMap);
+        runResult.getRunScenario().setBpmnEngine( bpmnEngine );
+
         if (bpmnEngine == null) {
             logger.error("Scenario [{}] Server [{}] No BPM ENGINE running.", scenario.getName(),
                     runParameters.getServerName());
             resultMap.put(JSON_MESSAGE, "No BPM ENGINE running from [" + runServerName + "]");
             resultMap.put(JSON_RESULT, JSON_STATUS_V_NOBPMNSERVER);
+            runResult.addError("Can't access BpmnEgnine[" + runServerName+"]");
             return resultMap;
         }
         bpmnEngine.turnHighFlowMode(false);
@@ -181,15 +203,15 @@ public class UnitTestController {
                 scenario.getName(),
                 runParameters.getServerName(),
                 bpmnEngine.getSignature());
-        RunResult runResult = runScenarioService.executeScenario(bpmnEngine, runParameters, scenario, asynchronous);
+        runScenarioService.executeScenario(runResult, asynchronous);
         resultMap.put(JSON_ID, runResult.getExecutionId());
         resultMap.put(JSON_STATUS, runResult.isFinished() ? JSON_STATUS_V_EXECUTED : JSON_STATUS_V_INPROGRESS);
 
         logger.info("ServerController: end scenario [{}] in {} ms", scenario.getName(),
                 runResult.getTimeExecution());
         resultMap.putAll(runResult.getJson(false));
+*/
 
-        return resultMap;
     }
 
 

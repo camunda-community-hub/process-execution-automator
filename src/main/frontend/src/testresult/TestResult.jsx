@@ -76,8 +76,8 @@ class TestResult extends React.Component {
                         <Card>
                             <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Test result</Card.Header>
                             <Card.Body>
-                                <table id="runnersTable" className="table is-hoverable is-fullwidth">
-                                    <thead>
+                                <table id="runnersTable" className="table is-hoverable is-fullwidth table-striped">
+                                    <thead className="table-light sticky-top">
                                     <tr>
                                         <th>Scenario Name</th>
                                         <th>ID</th>
@@ -91,9 +91,9 @@ class TestResult extends React.Component {
                                         <React.Fragment key={_index}>
                                             <tr>
                                                 <td>{item.scenarioName}</td>
-                                                <td>{item.id}</td>
+                                                <td className="small">{item.id}</td>
                                                 <td>
-                                                    {item.status === "INPROGRESS" &&
+                                                    {item.result === "INPROGRESS" &&
                                                         <div>
                                                             <Tag type="blue">In progress</Tag>
                                                             &nbsp;{item.advancement}&nbsp;%
@@ -106,6 +106,16 @@ class TestResult extends React.Component {
                                                     {item.result === "SUCCESS" &&
                                                         <Tag type="green">Success</Tag>
                                                     }
+                                                    {item.result === "SCENARIO_NOT_EXIST" &&
+                                                        <Tag type="red">Scenario not Exist</Tag>
+                                                    }
+                                                    {item.result === "ENGINE_NOT_EXIST" &&
+                                                        <Tag type="red">Can't connect to Engine</Tag>
+                                                    }
+                                                    {item.result === "CANCEL" &&
+                                                        <Tag type="red">Cancelled</Tag>
+                                                    }
+
 
                                                     {item.status !== "INPROGRESS" &&
                                                         <button disabled={item.status === "INPROGRESS"}
@@ -159,7 +169,7 @@ class TestResult extends React.Component {
                                                         <td></td>
 
                                                         <td colSpan="4">
-                                                            <table style={{width: '100%'}}>
+                                                            <table style={{width: '100%'}} >
                                                                 <tr>
                                                                     <td>
                                                                         <h5>Test: {test.name}</h5>
@@ -184,8 +194,8 @@ class TestResult extends React.Component {
                                                             </table>
 
 
-                                                            <table border="1" width="100%" className="table table-sm align-middle">
-                                                                <thead className="table-light sticky-top">
+                                                            <table border="1" width="100%" className="table table-sm align-middle table-striped">
+                                                                <thead className="table-light sticky-top ">
                                                                 <tr>
                                                                     <th></th>
                                                                     <th>Info</th>
@@ -197,7 +207,7 @@ class TestResult extends React.Component {
                                                                 {(Array.isArray(test.detail) ? test.detail : []).map((d, i) => (
                                                                     <tr key={i}  className="border-top small">
                                                                         <td style={{paddingRight: "20px"}}>
-                                                                            {d.typeVerification === "GOBYTASK" &&
+                                                                            {d.typeVerification === "TASK" &&
                                                                                 <IbmKnowledgeCatalogStandard/>}
                                                                             {d.typeVerification === "VARIABLE" &&
                                                                                 <DataCheck/>

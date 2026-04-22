@@ -10,17 +10,8 @@ import React from 'react';
 import {Button, Card} from "react-bootstrap";
 
 import RestCallService from "../services/RestCallService";
-import {
-    InlineNotification,
-    Table,
-    TableBody,
-    TableHead,
-    TableHeader,
-    TableRow, Tag,
-    TextInput
-} from "carbon-components-react";
-import { ArrowRepeat } from "react-bootstrap-icons";
-import { BookmarkPlusFill } from "react-bootstrap-icons";
+import {InlineNotification, TableRow, Tag, TextInput} from "carbon-components-react";
+import {ArrowRepeat, BookmarkPlusFill,BookmarkPlus} from "react-bootstrap-icons";
 
 
 import {ChevronDown, ChevronRight} from '@carbon/icons-react';
@@ -35,6 +26,7 @@ class Server extends React.Component {
         this.state = {
             servers: [],
             preferateServer: "",
+            changeServerNameStatus: "",
             openIds: new Set(),
             testconnection: {
                 engine: {status: "", AnalyseHuman: []},
@@ -87,7 +79,7 @@ class Server extends React.Component {
                                     labelText="Preferred Server"
                                     value={this.state.preferateServer}
                                     readOnly={true}
-                                    style={{ backgroundColor: '#f4f4f4' }}
+                                    style={{backgroundColor: '#f4f4f4'}}
                                 />
 
                                 <Button className="btn btn-info btn-sm" style={{marginTop: "10px"}}
@@ -113,7 +105,7 @@ class Server extends React.Component {
                                             {this.state.testconnection?.engine?.AnalyseHuman?.map((name, index) => (
                                                 <p key={index}>{name}</p>
                                             ))}
-                                            </td>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <td>Admin (Operate, Cockpit)</td>
@@ -165,184 +157,190 @@ class Server extends React.Component {
                         <Card>
                             <Card.Header style={{backgroundColor: "rgba(0,0,0,.03)"}}>Server</Card.Header>
                             <Card.Body>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeader></TableHeader>
-                                            <TableHeader>Server Name</TableHeader>
-                                            <TableHeader>Type</TableHeader>
-                                            <TableHeader>Address</TableHeader>
-                                            <TableHeader>Description</TableHeader>
-                                            <TableHeader></TableHeader>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {this.state.servers ? this.state.servers.map((item, index) =>
-                                                <React.Fragment key={index}>
-                                                    <TableRow style={{
+                                {this.state.changeServerNameStatus}
+                                <table className="table table-striped table-hover w-100">
+                                    <thead className="table-light sticky-top">
+                                    <tr>
+                                        <th></th>
+                                        <th>Server Name</th>
+                                        <th>Type</th>
+                                        <th>Address</th>
+                                        <th>Description</th>
+                                        <th></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {this.state.servers ? this.state.servers.map((item, index) =>
+                                            <React.Fragment key={index}>
+                                                <TableRow style={{
+                                                    backgroundColor: index % 2 === 1 ? '#f4f4f4' : 'white'
+                                                }}>
+                                                    <td>{item.name === this.state.preferateServer ?
+                                                        <BookmarkPlusFill style={{color: '#24a148'}} size={24}/> : null}
+                                                        {item.name !== this.state.preferateServer ?
+                                                            <BookmarkPlus style={{color: 'gray'}} size={24}
+                                                                          title="Set this server as default"
+                                                                          onClick={() => this.setPreferredServer(item.name)}/> : null}
+                                                    </td>
+                                                    <td>{item.name}</td>
+                                                    <td>{item.type}</td>
+                                                    <td>{item.zeebeGrpcAddress}
+                                                        {item.camunda7ServerUrl}
+                                                    </td>
+                                                    <td>{item.description}</td>
+                                                    <td>
+
+                                                        <button onClick={() => this.toggleDetail(item.name)}>
+                                                            {this.state.openIds.has(item.name) ? <ChevronDown/> :
+                                                                <ChevronRight/>}
+                                                        </button>
+                                                    </td>
+                                                </TableRow>
+                                                {this.state.openIds.has(item.name) &&
+                                                    <tr style={{
                                                         backgroundColor: index % 2 === 1 ? '#f4f4f4' : 'white'
                                                     }}>
-                                                        <td>{ item.name === this.state.preferateServer ? <BookmarkPlusFill style={{ color: '#24a148' }} size={24}/>:<div/>}
-                                                        </td>
-                                                        <td>{item.name}</td>
-                                                        <td>{item.type}</td>
-                                                        <td>{item.zeebeGrpcAddress}
-                                                            {item.camunda7ServerUrl}
-                                                        </td>
-                                                        <td>{item.description}</td>
-                                                        <td>
-
-                                                            <button onClick={() => this.toggleDetail(item.name)}>
-                                                                {this.state.openIds.has(item.name) ? <ChevronDown/> :
-                                                                    <ChevronRight/>}
-                                                            </button>
-                                                        </td>
-                                                    </TableRow>
-                                                    {this.state.openIds.has(item.name) &&
-                                                        <TableRow style={{
-                                                            backgroundColor: index % 2 === 1 ? '#f4f4f4' : 'white'
-                                                        }}>
-                                                            <td colSpan="4">
-                                                                <div style={{
-                                                                    border: "2px solid #3498db",
-                                                                    borderRadius: "8px",
-                                                                    padding: "16px",
-                                                                    width: '100%'
-                                                                }}>
-                                                                    <h6>Configuration</h6>
-                                                                    <table style={{width: '100%'}}
-                                                                           className="table is-hoverable is-fullwidth">
+                                                        <td colSpan="4">
+                                                            <div style={{
+                                                                border: "2px solid #3498db",
+                                                                borderRadius: "8px",
+                                                                padding: "16px",
+                                                                width: '100%'
+                                                            }}>
+                                                                <h6>Configuration</h6>
+                                                                <table style={{width: '100%'}}
+                                                                       className="table is-hoverable is-fullwidth">
+                                                                    <tr>
+                                                                        <th>Attribut</th>
+                                                                        <th>Value</th>
+                                                                    </tr>
+                                                                    {item.type === "CAMUNDA_7" && (
                                                                         <tr>
-                                                                            <th>Attribut</th>
-                                                                            <th>Value</th>
+                                                                            <td>Camunda 7 UserName</td>
+                                                                            <td>{item.userName}</td>
                                                                         </tr>
-                                                                        {item.type === "CAMUNDA_7" && (
-                                                                            <tr>
-                                                                                <td>Camunda 7 UserName</td>
-                                                                                <td>{item.userName}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {item.type === "CAMUNDA_8" && (
-                                                                            <tr>
-                                                                                <td>zeebeGrpcAddress</td>
-                                                                                <td>{item.zeebeGrpcAddress}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {item.type === "CAMUNDA_8" && (
-                                                                            <tr>
-                                                                                <td>zeebeRestAddress</td>
-                                                                                <td>{item.zeebeRestAddress}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td> zeebeClientId< /td>
-                                                                                <td>{item.zeebeClientId}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td> zeebeClientSecret< /td>
-                                                                                <td>{item.zeebeClientSecret}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>Identity URL</td>
-                                                                                <td>{item.identityUrl}</td>
-                                                                            </tr>)}
-                                                                        {item.type === "CAMUNDA_8_SAAS" && (<tr>
-                                                                                <td>Cluster ID</td>
-                                                                                <td>{item.clusterId}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {item.type === "CAMUNDA_8_SAAS" && (<tr>
-                                                                                <td>SaaS Region</td>
-                                                                                <td>{item.zeebeSaasRegion}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>Authentication URL</td>
-                                                                                <td>{item.authenticationUrl}</td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>Operate URL</td>
-                                                                                <td>{item.operateUrl}</td>
-                                                                            </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>OperteClientId< /td>
-                                                                                <td>{item.operateClientId}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>OperateClientSecret< /td>
-                                                                                <td>{item.operateClientSecret}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}{(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>Operate user name</td>
-                                                                                <td>{item.operateUserName}</td>
-                                                                            </tr>)}
-
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>TaskList URL</td>
-                                                                                <td>{item.taskListUrl}</td>
-                                                                            </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>TaskList ClientId< /td>
-                                                                                <td>{item.taskListClientId}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>TaskList ClientSecret< /td>
-                                                                                <td>{item.taskListClientSecret}
-                                                                                </td>
-                                                                            </tr>
-                                                                        )}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>TaskList UserName</td>
-                                                                                <td>{item.taskListUserName}</td>
-                                                                            </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>TaskList Keycloack URL</td>
-                                                                                <td>{item.taskListKeycloakUrl}</td>
-                                                                            </tr>)}
-                                                                        {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
-                                                                            <tr>
-                                                                                <td>Worker Execution Thread</td>
-                                                                                <td>{item.workerExecutionThreads}</td>
-                                                                            </tr>)}
+                                                                    )}
+                                                                    {item.type === "CAMUNDA_8" && (
                                                                         <tr>
-                                                                            <td>Worker Max Jobs</td>
-                                                                            <td>{item.workerMaxJobsActive}</td>
+                                                                            <td>zeebeGrpcAddress</td>
+                                                                            <td>{item.zeebeGrpcAddress}</td>
                                                                         </tr>
+                                                                    )}
+                                                                    {item.type === "CAMUNDA_8" && (
+                                                                        <tr>
+                                                                            <td>zeebeRestAddress</td>
+                                                                            <td>{item.zeebeRestAddress}</td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td> zeebeClientId< /td>
+                                                                            <td>{item.zeebeClientId}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td> zeebeClientSecret< /td>
+                                                                            <td>{item.zeebeClientSecret}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>Identity URL</td>
+                                                                            <td>{item.identityUrl}</td>
+                                                                        </tr>)}
+                                                                    {item.type === "CAMUNDA_8_SAAS" && (<tr>
+                                                                            <td>Cluster ID</td>
+                                                                            <td>{item.clusterId}</td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {item.type === "CAMUNDA_8_SAAS" && (<tr>
+                                                                            <td>SaaS Region</td>
+                                                                            <td>{item.zeebeSaasRegion}</td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>Authentication URL</td>
+                                                                            <td>{item.authenticationUrl}</td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>Operate URL</td>
+                                                                            <td>{item.operateUrl}</td>
+                                                                        </tr>)}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>OperteClientId< /td>
+                                                                            <td>{item.operateClientId}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>OperateClientSecret< /td>
+                                                                            <td>{item.operateClientSecret}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}{(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                    <tr>
+                                                                        <td>Operate user name</td>
+                                                                        <td>{item.operateUserName}</td>
+                                                                    </tr>)}
 
-                                                                    </table>
-                                                                </div>
-                                                            </td>
-                                                        </TableRow>
-                                                    }
-                                                </React.Fragment>
-                                            ) :
-                                            <div/>
-                                        }
-                                    </TableBody>
-                                </Table>
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>TaskList URL</td>
+                                                                            <td>{item.taskListUrl}</td>
+                                                                        </tr>)}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>TaskList ClientId< /td>
+                                                                            <td>{item.taskListClientId}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>TaskList ClientSecret< /td>
+                                                                            <td>{item.taskListClientSecret}
+                                                                            </td>
+                                                                        </tr>
+                                                                    )}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>TaskList UserName</td>
+                                                                            <td>{item.taskListUserName}</td>
+                                                                        </tr>)}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>TaskList Keycloack URL</td>
+                                                                            <td>{item.taskListKeycloakUrl}</td>
+                                                                        </tr>)}
+                                                                    {(item.type === "CAMUNDA_8" || item.type === "CAMUNDA_8_SAAS") && (
+                                                                        <tr>
+                                                                            <td>Worker Execution Thread</td>
+                                                                            <td>{item.workerExecutionThreads}</td>
+                                                                        </tr>)}
+                                                                    <tr>
+                                                                        <td>Worker Max Jobs</td>
+                                                                        <td>{item.workerMaxJobsActive}</td>
+                                                                    </tr>
+
+                                                                </table>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </React.Fragment>
+                                        ) :
+                                        <div/>
+                                    }
+                                    </tbody>
+                                </table>
 
 
                             </Card.Body>
@@ -358,7 +356,7 @@ class Server extends React.Component {
 
     refreshList() {
         console.log("Definition.refreshList http[pea/api/server/list]");
-        this.setState({servers: [], preferateServer: "",testconnection: {}, status: ""});
+        this.setState({servers: [], preferateServer: "", testconnection: {}, status: ""});
         var restCallService = RestCallService.getInstance();
         restCallService.getJson('pea/api/server/list?details=true', this, this.refreshListCallback);
     }
@@ -393,6 +391,22 @@ class Server extends React.Component {
         }
     }
 
+
+    setPreferredServer(serverName) {
+        console.log("Server.testConnection http[pea/api/server/setpreferate?serverName=" + serverName + "]");
+        this.setState({changeServerNameStatus: {}});
+        var restCallService = RestCallService.getInstance();
+        restCallService.postJson('pea/api/server/setpreferate?serverName=' + serverName, {}, this, this.setPreferredServerCallback);
+    }
+
+    setPreferredServerCallback(httpPayload) {
+        if (httpPayload.isError()) {
+            this.setState({changeServerNameStatus: "Error"});
+        } else {
+            this.setState({changeServerNameStatus: "Server changed"});
+            this.refreshList();
+        }
+    }
     toggleDetail(id) {
         const openIds = new Set(this.state.openIds);
 

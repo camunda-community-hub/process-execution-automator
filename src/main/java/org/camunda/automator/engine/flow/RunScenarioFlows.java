@@ -187,7 +187,7 @@ public class RunScenarioFlows {
             }
             int advancement = (int) (100.0 * (currentTime - startTestDate.getTime()) / (endTimeExpected
                     - startTestDate.getTime()));
-            runResult.setAdvancement( advancement);
+            runResult.setAdvancement(advancement);
             runObjectives.heartBeat();
             logRealTime(listFlows, endTimeExpected - System.currentTimeMillis(), advancement);
         }

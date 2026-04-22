@@ -44,7 +44,7 @@ public class ScenarioVerificationActivity implements ScenarioVerificationBasic {
 
     public String getSynthesis() {
         return "TaskCheck[" + taskId + "]"
-                + (state == null ? "" : (" State["+state.toString() + "]"));
+                + (state == null ? "" : (" State[" + state + "]"));
     }
 
     public String getTypeVerification() {

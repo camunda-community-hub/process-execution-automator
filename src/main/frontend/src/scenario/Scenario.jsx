@@ -26,6 +26,7 @@ class Scenario extends React.Component {
             scenario: [],
             openIds: new Set(),
             scenarioFiles: [],
+            preferateServer: "",
             statusRun: "",
             display: {
                 loading: false
@@ -68,10 +69,11 @@ class Scenario extends React.Component {
                             <Card.Body>
 
                                 <table id="runnersTable" className="table is-hoverable is-fullwidth">
-                                    <thead>
+                                    <thead className="table-light sticky-top">
                                     <tr>
                                         <th>Scenario Name</th>
                                         <th>Description</th>
+                                        <th>Process</th>
                                         <th>Server</th>
                                         <th>Type Scenario</th>
                                         <th>Version</th>
@@ -84,6 +86,9 @@ class Scenario extends React.Component {
                                             <tr>
                                                 <td>{item.name}</td>
                                                 <td>{item.description}</td>
+                                                <td> {item.processId && item.processId.trim() !== "" ?
+                                                    `ID: ${item.processId}`
+                                                    : `Name: ${item.processName} / Version: ${item.version}`}</td>
                                                 <td>{item.server}</td>
                                                 <td>{item.typeScenario}</td>
                                                 <td>{item.versionTest}</td>
@@ -133,7 +138,7 @@ class Scenario extends React.Component {
                                                                     <h6>Simulation Steps</h6>
                                                                     <table
                                                                         className="table table-striped table-hover w-100">
-                                                                        <thead>
+                                                                        <thead className="table-light sticky-top">
                                                                         <tr>
                                                                             <th>Type</th>
                                                                             <th>TaskId</th>
@@ -166,9 +171,8 @@ class Scenario extends React.Component {
                                                                     width: '100%'
                                                                 }}>
                                                                     <h6>Verifications</h6>
-                                                                    <table
-                                                                        className="table table-striped table-hover w-100">
-                                                                        <thead>
+                                                                    <table className="table table-striped table-hover w-100">
+                                                                        <thead className="table-light sticky-top">
                                                                         <tr>
                                                                             <th></th>
                                                                             <th>Type</th>
@@ -231,7 +235,7 @@ class Scenario extends React.Component {
                                     this.runAll()
                                 }}
                                 disabled={this.state.display.loading || this.state.scenarioFiles.size === 0}>
-                            Start All tests
+                            Start All tests on {this.state.preferateServer}
                         </Button>
                         <br/>
                         {this.state.statusRun && <div>Status: {this.state.statusRun}</div>}
@@ -291,9 +295,12 @@ class Scenario extends React.Component {
 
     refreshList() {
         console.log("Definition.refreshList http[pea/api/content/list]");
-        this.setState({runners: [], status: "", statusUploadSuccess: '', statusUploadFailed: ""});
+        this.setState({runners: [], status: "", statusUploadSuccess: '', statusUploadFailed: "", preferateServer: ""});
         var restCallService = RestCallService.getInstance();
         restCallService.getJson('pea/api/content/list?details=true', this, this.refreshListCallback);
+
+        console.log("Definition.refreshList http[pea/api/server/list?details=false]");
+        restCallService.getJson('pea/api/server/list?details=false', this, this.refreshPreferateCallback);
     }
 
     refreshListCallback(httpPayload) {
@@ -306,6 +313,15 @@ class Scenario extends React.Component {
         }
     }
 
+
+    refreshPreferateCallback(httpPayload) {
+
+        if (httpPayload.isError()) {
+            this.setState({status: "Error"});
+        } else {
+            this.setState({preferateServer: httpPayload.getData().preferateServer});
+        }
+    }
     runAll() {
         console.log("Scenario.runAll http[/pea/api/unittest/runall]");
         this.setState({runners: [], status: ""});

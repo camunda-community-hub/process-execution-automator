@@ -1,14 +1,14 @@
 /* ******************************************************************** */
 /*                                                                      */
-/*  AutomatorAPI                                                    */
+/*  AutomatorAPI                                                        */
 /*                                                                      */
-/*  To use the Automator as an API                                      */
+/*  To use the Automator as an API. This is mainly an entry door for API    */
 /* ******************************************************************** */
 package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineFactory;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunParameters;
@@ -17,7 +17,6 @@ import org.camunda.automator.engine.RunScenarioService;
 import org.camunda.automator.services.ServiceAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -27,10 +26,20 @@ import java.nio.file.Path;
 public class AutomatorAPI {
     static Logger logger = LoggerFactory.getLogger(AutomatorAPI.class);
 
-    @Autowired
-    ServiceAccess serviceAccess;
-    @Autowired
-    private RunScenarioService runScenarioService;
+
+    private final ServiceAccess serviceAccess;
+    private final RunScenarioService runScenarioService;
+    private final BpmnEngineFactory bpmnEngineFactory;
+
+
+    public AutomatorAPI(ServiceAccess serviceAccess,
+                        RunScenarioService runScenarioService,
+                        BpmnEngineFactory bpmnEngineFactory) {
+        this.serviceAccess = serviceAccess;
+        this.runScenarioService = runScenarioService;
+        this.bpmnEngineFactory = bpmnEngineFactory;
+
+    }
 
     /**
      * Create an empty scenario.
@@ -69,16 +78,16 @@ public class AutomatorAPI {
     /**
      * Search the engine from the scenario
      *
-     * @param scenario       scenario
-     * @param bpmnEngineList different engine configuration
+     * @param scenario                    scenario
+     * @param configurationBpmnEngineList different engine configuration
      * @return the engine, null if no engine exist, an exception if the connection is not possible
      */
-    public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, BpmnEngineList bpmnEngineList)
+    public BpmnEngine getBpmnEngineFromScenario(Scenario scenario, ConfigurationBpmnEngineList configurationBpmnEngineList)
             throws AutomatorException {
         try {
 
             if (scenario.getServerName() != null) {
-                return getBpmnEngine(bpmnEngineList.getByServerName(scenario.getServerName()), true);
+                return getBpmnEngine(configurationBpmnEngineList.getByServerName(scenario.getServerName()), true);
             }
 
             return null;
@@ -93,12 +102,12 @@ public class AutomatorAPI {
     /**
      * Execute a scenario
      *
-     * @param bpmnEngine    Access the Camunda engine. if null, then the value in the scenario are used
-     * @param runParameters parameters use to run the scenario
      * @param scenario      the scenario to execute
+     * @param runParameters parameters use to run the scenario
+     * @param bpmnEngine    Access the Camunda engine. if null, then the value in the scenario are used
      */
-    public RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-        return runScenarioService.executeScenario(bpmnEngine, runParameters, scenario, false);
+    public RunResult executeScenario(Scenario scenario, RunParameters runParameters, BpmnEngine bpmnEngine) {
+        return runScenarioService.startScenario(scenario, runParameters, bpmnEngine);
     }
 
 
@@ -110,9 +119,17 @@ public class AutomatorAPI {
     /*  Deploy a process in the server                                      */
     /* ******************************************************************** */
 
-    public BpmnEngine getBpmnEngine(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug)
+    /**
+     * Get a BPMN Enginegine
+     *
+     * @param serverDefinition server definition for the engine
+     * @param logDebug         true debug log
+     * @return BpmnEngine
+     * @throws AutomatorException
+     */
+    public BpmnEngine getBpmnEngine(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug)
             throws AutomatorException {
-        return BpmnEngineFactory.getInstance().getEngineFromConfiguration(serverDefinition, logDebug);
+        return bpmnEngineFactory.getEngineFromConfiguration(serverDefinition, logDebug);
     }
 
     /**
@@ -124,6 +141,6 @@ public class AutomatorAPI {
      * @return the result object
      */
     public RunResult deployProcess(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-        return runScenarioService.executeDeployment(bpmnEngine, runParameters, scenario);
+        return runScenarioService.deployProcess(scenario, runParameters);
     }
 }

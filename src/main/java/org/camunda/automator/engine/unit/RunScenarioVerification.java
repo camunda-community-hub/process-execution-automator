@@ -90,7 +90,7 @@ public class RunScenarioVerification {
             message.append("/");
             message.append(listTaskDescriptions.size());
             message.append(" Status: ");
-            message.append(isSuccess? "Correct": "Fail");
+            message.append(isSuccess ? "Correct" : "Fail");
             result.addVerification(verificationActivity, isSuccess, message.toString());
 
             if (runScenario.getRunParameters().showLevelMonitoring())

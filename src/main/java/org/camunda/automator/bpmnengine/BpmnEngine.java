@@ -3,7 +3,7 @@ package org.camunda.automator.bpmnengine;
 // import io.camunda.operate.search.DateFilter;
 
 import io.camunda.zeebe.client.api.worker.JobWorker;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
@@ -209,7 +209,7 @@ public interface BpmnEngine {
      */
     String deployBpmn(File processFile, ScenarioDeployment.Policy policy) throws AutomatorException;
 
-    BpmnEngineList.CamundaEngine getTypeCamundaEngine();
+    ConfigurationBpmnEngineList.CamundaEngine getTypeCamundaEngine();
 
     /**
      * return the signature of the engine, to log it for example

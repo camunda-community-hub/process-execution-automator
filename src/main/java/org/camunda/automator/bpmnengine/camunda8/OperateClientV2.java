@@ -2,7 +2,6 @@ package org.camunda.automator.bpmnengine.camunda8;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.camunda.client.CamundaClient;
 import io.camunda.operate.CamundaOperateClient;
 import io.camunda.operate.CamundaOperateClientV2;
 import io.camunda.operate.exception.OperateException;
@@ -11,7 +10,7 @@ import io.camunda.operate.search.*;
 import io.camunda.zeebe.client.api.response.ActivateJobsResponse;
 import io.camunda.zeebe.client.api.response.ActivatedJob;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ public class OperateClientV2 implements OperateClientInt {
     BpmnEngineCamunda8 engineCamunda8;
     private CamundaOperateClient operateClient;
 
-    private CamundaClient camundaClient;
 
     protected OperateClientV2(BpmnEngineCamunda8 engineCamunda8) {
         this.engineCamunda8 = engineCamunda8;
@@ -41,7 +39,7 @@ public class OperateClientV2 implements OperateClientInt {
      */
     public BpmnEngine.ConnectionStatus testAdminConnection() {
         BpmnEngine.ConnectionStatus connectionStatus = new BpmnEngine.ConnectionStatus();
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
         if (!serverDefinition.isOperate()) {
             connectionStatus.status = BpmnEngine.CONNECTION_STATUS.NOT_NEEDED;
             return connectionStatus;
@@ -67,7 +65,7 @@ public class OperateClientV2 implements OperateClientInt {
      */
     public void connectOperate(StringBuilder analysis) throws AutomatorException {
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         if (!serverDefinition.isOperate()) {
             analysis.append("No operate connection required, ");
@@ -317,7 +315,7 @@ public class OperateClientV2 implements OperateClientInt {
 
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<ProcessInstance> searchResult = null;
             queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId).build());
             queryBuilder.sort(new Sort("key", SortOrder.ASC));
@@ -350,7 +348,7 @@ public class OperateClientV2 implements OperateClientInt {
 
         SearchQuery.Builder queryBuilder = new SearchQuery.Builder();
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<ProcessInstance> searchResult = null;
 
             queryBuilder = queryBuilder.filter(ProcessInstanceFilter.builder().bpmnProcessId(processId)
@@ -388,7 +386,7 @@ public class OperateClientV2 implements OperateClientInt {
         }
 
         try {
-            int cumul = 0;
+            long cumul = 0;
             SearchResult<FlowNodeInstance> searchResult = null;
             int maxLoop = 0;
             do {
@@ -407,7 +405,7 @@ public class OperateClientV2 implements OperateClientInt {
                 synchronized (this) {
                     searchResult = operateClient.searchFlowNodeInstanceResults(searchQuery);
                 }
-                cumul += (long) searchResult.getItems().size();
+                cumul += searchResult.getItems().size();
             } while (searchResult.getItems().size() >= SEARCH_MAX_SIZE && maxLoop < 1000);
             return cumul;
         } catch (Exception e) {
@@ -450,7 +448,7 @@ public class OperateClientV2 implements OperateClientInt {
         } catch (Exception e) {
             logger.error("OperateClientV1.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
         }
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         String loginUrl = serverDefinition.operateUrl;
         if (isUpper88) {

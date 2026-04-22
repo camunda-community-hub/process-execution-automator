@@ -56,8 +56,22 @@ public class ContentManager {
     /*  Repository management                                               */
     /*                                                                      */
     /* ******************************************************************** */
-    public Path getFromFileName(String fileName) {
-        return repositoryManager.getFromFile(fileName);
+    public Scenario getFromFileName(String fileName) throws AutomatorException {
+        Path scenarioFile = repositoryManager.getFromFile(fileName);
+        if (scenarioFile == null) {
+            return null;
+        }
+        return Scenario.createFromFile(scenarioFile);
+    }
+
+    public Scenario getFromName(String name) throws AutomatorException {
+        for (Scenario scenario : getContentScenario()) {
+            if (scenario.getName().equals(name)) {
+                return scenario;
+            }
+        }
+        throw new AutomatorException("Unknown scenario name[" + name + "] ");
+
     }
 
     public List<Path> getContent() {
@@ -109,6 +123,7 @@ public class ContentManager {
         Path path = repositoryManager.addFromInputStream(file.getInputStream(), fileName);
         try {
             Scenario scenario = Scenario.createFromFile(path);
+            logger.info("Add scenario[{}] with name[{}]", scenario.getName(), fileName);
         } catch (Exception e) {
             repositoryManager.deleteFile(fileName);
             throw e;

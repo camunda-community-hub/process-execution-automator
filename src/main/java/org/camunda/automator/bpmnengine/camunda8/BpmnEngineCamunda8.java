@@ -14,7 +14,7 @@ import io.camunda.zeebe.client.api.worker.JobWorkerBuilderStep1;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProvider;
 import io.camunda.zeebe.client.impl.oauth.OAuthCredentialsProviderBuilder;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.flow.FixedBackoffSupplier;
@@ -31,10 +31,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     public static final String THIS_IS_A_COMPLETE_IMPOSSIBLE_VARIABLE_NAME = "ThisIsACompleteImpossibleVariableName";
     public static final String SAAS_AUTHENTICATE_URL = "https://login.cloud.camunda.io/oauth/token";
     private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
-    private final BpmnEngineList.BpmnServerDefinition serverDefinition;
+    private final ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition;
     private final TaskListClient taskListClient;
-    private OperateClientInt operateClient;
-
     boolean hightFlowMode = false;
     /**
      * It is not possible to search user task for a specific processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -42,11 +40,12 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
      */
     Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
     Random random = new Random(System.currentTimeMillis());
+    private OperateClientInt operateClient;
     private ZeebeClient zeebeClient;
     private CamundaClient camundaClient;
 
 
-    private BpmnEngineCamunda8(BpmnEngineList.BpmnServerDefinition serverDefinition, BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy) {
+    private BpmnEngineCamunda8(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition, BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy) {
         this.serverDefinition = serverDefinition;
         this.taskListClient = new TaskListClient(this);
         // Wait the connection to decide for Operate
@@ -58,7 +57,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
      * @param serverDefinition server definition
      * @param logDebug         if true, operation will be logged as debug level
      */
-    public static BpmnEngineCamunda8 getFromServerDefinition(BpmnEngineList.BpmnServerDefinition serverDefinition,
+    public static BpmnEngineCamunda8 getFromServerDefinition(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition,
                                                              BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy,
                                                              boolean logDebug) {
         return new BpmnEngineCamunda8(serverDefinition, benchmarkStartPiExceptionHandlingStrategy);
@@ -85,7 +84,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                      String operateUserPassword,
                                                      String tasklistUrl,
                                                      BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8);
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = ConfigurationBpmnEngineList.BpmnServerDefinition.getInstance(name, description, ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8);
         serverDefinition.zeebeGrpcAddress = zeebeGrpcAddress;
         serverDefinition.zeebeRestAddress = zeebeRestAddress;
         serverDefinition.zeebePlainText = zeebePlainText;
@@ -126,7 +125,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
                                                          String tasklistUrl,
                                                          BenchmarkStartPiExceptionHandlingStrategy benchmarkStartPiExceptionHandlingStrategy) {
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = BpmnEngineList.BpmnServerDefinition.getInstance(name, description, BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = ConfigurationBpmnEngineList.BpmnServerDefinition.getInstance(name, description, ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
 
         /*
          * SaaS Zeebe
@@ -474,14 +473,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     /* ******************************************************************** */
 
     @Override
-    public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
+    public ConfigurationBpmnEngineList.CamundaEngine getTypeCamundaEngine() {
         return serverDefinition.serverType;
     }
 
     @Override
     public String getSignature() {
         String signature = serverDefinition.serverType.toString() + " ";
-        if (serverDefinition.serverType.equals(BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS))
+        if (serverDefinition.serverType.equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS))
             signature +=
                     "Cloud ClientId[" + serverDefinition.zeebeClientId + "] ClusterId[" + serverDefinition.zeebeSaasClusterId
                             + "]";
@@ -528,7 +527,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         ZeebeClientBuilder clientBuilder;
 
         // ---------------------------- Camunda Saas
-        if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
+        if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
             analysis.append("SaaS;");
 
             String gatewayAddressCloud =
@@ -566,7 +565,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         }
 
         //---------------------------- Camunda 8 Self Manage
-        else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
+        else if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
             analysis.append("SelfManage;");
             isOk = stillOk(serverDefinition.zeebeGrpcAddress, "GatewayAddress", analysis, true, true, isOk);
             if (serverDefinition.isAuthenticationUrl()) {
@@ -579,7 +578,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
                 if (!isOk) {
                     zeebeClient = null;
-                    logger.error("Can't connect to Server[{}] Analysis:{} : {}", serverDefinition.name, analysis);
+                    logger.error("Can't connect to Server[{}] Analysis:{}", serverDefinition.name, analysis);
                     throw new AutomatorException(
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
@@ -686,11 +685,13 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     public ZeebeClient getZeebeClient() {
         return zeebeClient;
     }
+
     public CamundaClient getCamundaClient() {
         return camundaClient;
     }
+
     /**
-     * @return
+     *
      */
     private void connectCamundaClient(StringBuilder analysis) throws AutomatorException {
         camundaClient = null;
@@ -700,7 +701,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
         boolean isOk = true;
 // ---------------------------- Camunda Saas
-        if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
+        if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
 
             try {
                 isOk = stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
@@ -741,7 +742,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             }
 
             //---------------------------- Camunda 8 Self Managed
-        } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
+        } else if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
 
             if (serverDefinition.isAuthenticationUrl()) {
                 // OIDC / OAuth2
@@ -829,7 +830,7 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
         return topology.getGatewayVersion();      // e.g. "8.7.5"
     }
 
-    public BpmnEngineList.BpmnServerDefinition getServerDefinition() {
+    public ConfigurationBpmnEngineList.BpmnServerDefinition getServerDefinition() {
         return serverDefinition;
     }
 

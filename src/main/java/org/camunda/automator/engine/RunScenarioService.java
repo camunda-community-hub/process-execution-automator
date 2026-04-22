@@ -2,13 +2,29 @@ package org.camunda.automator.engine;
 
 /**
  * This class saved and manage all running scenario.
- * Then, it will be possible to come to that class and ask all running scenario.
+ * <p>
+ * Running a scenario consist in two main steps
+ * - environment: load the scenario, connect the correct BPMNEngine
+ * - execute
+ * <p>
+ * When a scenario need to be start, the service
+ * - search and load the scenario
+ * - find the correct BPMNEngine, using the configurationBpmnEngineList
+ * - deploy processing, according to the scenario
+ * - create a runScenario, providing scenario and BpmnEngine
+ * - return a RunResult
+ * <p>
+ * The interface for this class is the RunResult. RunResult reference the RunScenario, but is larger: it contains information about searching/loading scenario, connected BpmnEngine
  */
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
+import org.camunda.automator.bpmnengine.BpmnEngineFactory;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
+import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.services.ServiceAccess;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -18,90 +34,265 @@ import java.util.Map;
 
 @Component
 public class RunScenarioService {
+    private static final Logger logger = LoggerFactory.getLogger(RunScenarioService.class.getName());
+    private final ServiceAccess serviceAccess;
+    private final ContentManager contentManager;
+    private final BpmnEngineFactory bpmnEngineFactory;
+    private final ConfigurationBpmnEngineList configurationBpmnEngineList;
     Map<String, RunResult> cacheRunScenario = new HashMap<>();
-    @Autowired
-    ServiceAccess serviceAccess;
 
-
-    public String createExecutionId(Scenario scenario) {
-        return System.currentTimeMillis() + "." + scenario.getName();
+    public RunScenarioService(ServiceAccess serviceAccess,
+                              ContentManager contentManager,
+                              BpmnEngineFactory bpmnEngineFactory,
+                              ConfigurationBpmnEngineList configurationBpmnEngineList) {
+        this.serviceAccess = serviceAccess;
+        this.contentManager = contentManager;
+        this.bpmnEngineFactory = bpmnEngineFactory;
+        this.configurationBpmnEngineList = configurationBpmnEngineList;
     }
 
 
-    public RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario, boolean asynchronous) {
-        RunResult runResult = null;
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Start execution                                                     */
+    /*                                                                      */
+    /*  All workers extends this class. It gives tool to access parameters, */
+    /*  and the contract implementation on parameters                       */
+    /* ******************************************************************** */
 
-        String executionId = createExecutionId(scenario);
+    /**
+     * A new execution is started
+     *
+     * @return RunScenario
+     */
+    public RunResult startScenario(String scenarioName, Scenario scenario, RunParameters runParameters, boolean asynchronous) {
+        String executionId = createExecutionId(scenario.getName());
+
+        RunResult runResult = new RunResult(scenario.getName(), executionId);
+        cacheRunScenario.put(executionId, runResult);
+
+        //---------------- Load the scenario
+        if (scenario == null) {
+            try {
+                scenario = contentManager.getFromName(scenarioName);
+            } catch (AutomatorException ae) {
+                logger.error("Error during accessing InputStream from scenarioName [{}]: {}", scenarioName,
+                        ae.getMessage(), ae);
+                runResult.addError("Can't access scenario [" + scenarioName + "]");
+                runResult.setStatus(RunResult.StatusTest.SCENARIO_NOT_EXIST);
+                return runResult;
+            }
+        }
+
+        //---------------- get the BpmnEngine
+        BpmnEngine bpmnEngine;
+        try {
+            bpmnEngine = connectToEngine(scenario, runParameters);
+            if (bpmnEngine == null) {
+                logger.error("Scenario [{}] Server [{}] No BPM ENGINE running.", scenario.getName(),
+                        runParameters.getServerName());
+                runResult.addError("Can't access BpmnEgnine[" + runParameters.getServerName() + "]");
+                runResult.setStatusTest(RunResult.StatusTest.ENGINE_NOT_EXIST);
+                return runResult;
+            }
+            bpmnEngine.turnHighFlowMode(false);
+        } catch (AutomatorException e) {
+            runResult.setStatusTest(RunResult.StatusTest.ENGINE_NOT_EXIST);
+            runResult.addError(e.getMessage());
+            return runResult;
+        }
+
+        // -------------- create the runScenario
+        RunScenario runScenario = new RunScenario(scenario, serviceAccess, bpmnEngine, runParameters);
+        runResult.setRunScenario(runScenario);
+
+        // ---- execute the scenario now
+        logger.info("StartTest: Scenario [{}] use BpmnEngine [{}] : {}",
+                scenario.getName(),
+                runParameters.getServerName(),
+                runResult.getRunScenario().getBpmnEngine().getSignature());
 
         if (asynchronous) {
-            // Create now he executionId
-            RunScenario runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-            runResult = new RunResult(runScenario, executionId);
-            runResult.setStartDate(new Date());
-            cacheRunScenario.put(executionId, runResult);
-
             // so the tread use the executionId to fulfill the result
-            Thread thread = new Thread(() -> executeScenarioInternal(bpmnEngine, runParameters, scenario, executionId));
+            Thread thread = new Thread(() -> executeScenarioInternal(runScenario, runResult));
             thread.start();
-            // Create an arbiratry runResult here. What is important is to return the executionId
         } else {
-            runResult = executeScenarioInternal(bpmnEngine, runParameters, scenario, executionId);
+            executeScenarioInternal(runScenario, runResult);
         }
         return runResult;
     }
 
     /**
+     * @param scenario
+     * @param runParameters
+     * @param bpmnEngine
+     * @return RunScenario todo
+     */
+    public RunResult startScenario(Scenario scenario, RunParameters runParameters, BpmnEngine bpmnEngine) {
+        String executionId = createExecutionId(scenario.getName());
+
+        RunResult runResult = new RunResult(scenario.getName(), executionId);
+
+        // Now, we create a RunScenario.
+        cacheRunScenario.put(executionId, runResult);
+
+        // -------------- create the runScenario
+        RunScenario runScenario = new RunScenario(scenario, serviceAccess, bpmnEngine, runParameters);
+        runResult.setRunScenario(runScenario);
+
+        executeScenarioInternal(runScenario, runResult);
+        return runResult;
+
+    }
+
+    private String createExecutionId(String scenarioName) {
+        return System.currentTimeMillis() + "." + scenarioName;
+    }
+
+/*
+    private void executeScenario(final RunResult runResult,  boolean asynchronous) {
+        if (asynchronous) {
+            // Create now he executionId
+            runResult.setStartDate(new Date());
+
+            // so the tread use the executionId to fulfill the result
+            Thread thread = new Thread(() -> executeScenarioInternal(runResult.getRunScenario().getBpmnEngine(),
+                    runResult.getRunScenario().getRunParameters(),
+                    runResult.getRunScenario().getScenario(),
+                    runResult.getExecutionId()));
+            thread.start();
+            // Create an arbiratry runResult here. What is important is to return the executionId
+        } else {
+            executeScenarioInternal(runResult.getRunScenario().getBpmnEngine(),
+                    runResult.getRunScenario().getRunParameters(),
+                    runResult.getRunScenario().getScenario(),
+                    runResult.getExecutionId());
+        }
+    }
+*/
+
+
+    /**
      * Execute a test
      *
-     * @param bpmnEngine engine to execute scenario
-     * @param runParameters parameters
-     * @param scenario scenario to execute
      * @return the result
      */
-    private RunResult executeScenario(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
-        String executionId = createExecutionId(scenario);
-
-        return executeScenarioInternal(bpmnEngine, runParameters, scenario, executionId);
+    private void executeScenarioInternal(final RunScenario runScenario, final RunResult runResult) {
+        runResult.setStartDate(new Date());
+        runScenario.executeTheScenario(runResult);
     }
 
-    private RunResult executeScenarioInternal(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario, String executionId) {
-        RunScenario runScenario = null;
-        try {
-            runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-        } catch (Exception e) {
-            RunResult runResult = new RunResult(runScenario, executionId);
-            runResult.addError(null, "Initialization error");
-            cacheRunScenario.put(executionId, runResult);
 
+    public RunResult deployProcess(Scenario scenario, RunParameters runParameters) {
+
+        String executionId = createExecutionId(scenario.getName());
+        RunResult runResult = new RunResult(scenario.getName(), executionId);
+        cacheRunScenario.put(executionId, runResult);
+        BpmnEngine bpmnEngine;
+        try {
+            bpmnEngine = getBpmnEngineFromScenario(scenario);
+        } catch (AutomatorException e) {
+            runResult.setStatusTest(RunResult.StatusTest.ENGINE_NOT_EXIST);
+            runResult.addError(e.getMessage());
             return runResult;
         }
+        RunScenario runScenario = new RunScenario(scenario, serviceAccess, bpmnEngine, runParameters);
+        runResult.setRunScenario(runScenario);
 
-        // Now run the scenario
-        RunResult runResult = new RunResult(runScenario, executionId);
-        runResult.setStartDate(new Date());
-        cacheRunScenario.put(executionId, runResult);
-
-        runScenario.executeTheScenario(executionId,runResult);
-
-        cacheRunScenario.put(executionId, runResult);
+        runScenario.executeDeployment(runResult);
 
         return runResult;
     }
 
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Access BPMNEngine                                                   */
+    /*                                                                      */
+    /*  All workers extends this class. It gives tool to access parameters, */
+    /*  and the contract implementation on parameters                       */
+    /* ******************************************************************** */
 
-    public RunResult executeDeployment(BpmnEngine bpmnEngine, RunParameters runParameters, Scenario scenario) {
+    public BpmnEngine getBpmnEngineFromScenario(Scenario scenario)
+            throws AutomatorException {
+        try {
+            if (scenario.getServerName() != null) {
+                return bpmnEngineFactory.getEngineFromConfiguration(configurationBpmnEngineList.getByServerName(scenario.getServerName()), false);
+            }
 
-        String executionId = createExecutionId(scenario);
-
-        RunScenario runScenario = new RunScenario(scenario, bpmnEngine, runParameters, serviceAccess);
-        // so now the runResult is available, and can be query
-        RunResult runResult = new RunResult(runScenario, executionId);
-        cacheRunScenario.put(executionId, runResult);
-
-        runResult.merge(runScenario.executeDeployment(executionId));
-        return runResult;
+            return null;
+        } catch (AutomatorException e) {
+            logger.error("Can't connect the engine for the scenario [{}] serverName[{}]: {}", scenario.getName(),
+                    scenario.getServerName(), e.getMessage(), e);
+            throw e;
+        }
     }
 
+    /**
+     * Connect to the BPM Engine
+     *
+     * @param scenario      scenario to use to connect
+     * @param runParameters running parameters
+     * @return BPMN Engine
+     */
+    public BpmnEngine connectToEngine(Scenario scenario, RunParameters runParameters) throws AutomatorException {
+        BpmnEngine bpmnEngine = null;
+        boolean pleaseTryAgain;
+        int countEngineIsNotReady = 0;
+        String message = "";
+
+        do {
+            pleaseTryAgain = false;
+            countEngineIsNotReady++;
+            if (scenario.getServerName() != null && !scenario.getServerName().isEmpty()) {
+                message += "ScenarioServerName[" + scenario.getServerName() + "];";
+                bpmnEngine = getBpmnEngineFromScenario(scenario);
+            } else {
+                if (runParameters.getServerName() == null) {
+                    throw new AutomatorException(RunResult.StatusTest.ENGINE_NOT_EXIST.toString(), "Engine [" + runParameters.getServerName() + "] does not exist in the list");
+                }
+
+
+                message += "ConfigurationServerName[" + runParameters.getServerName() + "];";
+                ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = configurationBpmnEngineList.getByServerName(
+                        runParameters.getServerName());
+                if (serverDefinition == null) {
+                    throw new AutomatorException(RunResult.StatusTest.ENGINE_NOT_EXIST.toString(), "Engine [" + runParameters.getServerName() + "] does not exist in the list");
+                }
+
+
+                try {
+                    if (runParameters.showLevelMonitoring()) {
+                        logger.info("Run scenario with Server {}", serverDefinition.getSynthesis());
+                    }
+                    bpmnEngine = bpmnEngineFactory.getEngineFromConfiguration(serverDefinition, true);
+                    if (runParameters.showLevelDashboard()) {
+                        logger.info("Scenario [{}] Connect to BpmnEngine {}", scenario.getName(), message);
+                    }
+
+                    if (!bpmnEngine.isReady()) {
+                        bpmnEngine.connection();
+                    }
+                } catch (AutomatorException e) {
+                    pleaseTryAgain = true;
+                    message += "EXCEPT " + e.getMessage();
+                }
+                if (pleaseTryAgain && countEngineIsNotReady < 5) {
+                    logger.info(
+                            "Scenario [{}] file[{}] No BPM ENGINE running [{}] tentative:{}/10. Sleep 30s. Scenario reference serverName[{}]",
+                            message, countEngineIsNotReady, scenario.getName(), scenario.getName(), scenario.getServerName());
+                    try {
+                        logger.info("Sleep 10 s - wait the engine start");
+                        Thread.sleep(((long) 1000) * 10);
+                        logger.info("Wake up");
+                    } catch (InterruptedException e) {
+                        // nothing to do
+                    }
+                }
+            }
+        }
+        while (pleaseTryAgain && countEngineIsNotReady < 10);
+        return bpmnEngine;
+    }
 
     public RunResult getFromExecutionId(String executionId) {
         return cacheRunScenario.get(executionId);

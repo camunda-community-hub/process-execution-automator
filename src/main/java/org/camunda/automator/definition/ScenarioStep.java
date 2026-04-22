@@ -140,7 +140,7 @@ public class ScenarioStep {
     }
 
     public String getJobType() {
-        if (jobType==null && topic!=null)
+        if (jobType == null && topic != null)
             return topic;
 
         return jobType;

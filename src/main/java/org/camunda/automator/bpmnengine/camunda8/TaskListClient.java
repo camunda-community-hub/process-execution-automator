@@ -1,17 +1,15 @@
 package org.camunda.automator.bpmnengine.camunda8;
 
 
-import io.camunda.client.CamundaClient;
 import io.camunda.tasklist.CamundaTaskListClient;
 import io.camunda.tasklist.CamundaTaskListClientBuilder;
-import io.camunda.tasklist.CamundaTasklistClientConfiguration;
 import io.camunda.tasklist.auth.Authentication;
 import io.camunda.tasklist.auth.SimpleAuthentication;
 import io.camunda.tasklist.auth.SimpleCredential;
 import io.camunda.tasklist.dto.*;
 import io.camunda.tasklist.exception.TaskListException;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.engine.AutomatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,7 @@ public class TaskListClient {
      */
     public BpmnEngine.ConnectionStatus testAdminConnection() {
         BpmnEngine.ConnectionStatus connectionStatus = new BpmnEngine.ConnectionStatus();
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
         if (!serverDefinition.isOperate()) {
             connectionStatus.status = BpmnEngine.CONNECTION_STATUS.NOT_NEEDED;
             return connectionStatus;
@@ -67,7 +65,7 @@ public class TaskListClient {
      */
     public void connectTaskList(StringBuilder analysis) throws AutomatorException {
 
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
         if (!serverDefinition.isTaskList()) {
             analysis.append("No TaskList connection required, ");
             return;
@@ -79,7 +77,7 @@ public class TaskListClient {
 
         CamundaTaskListClientBuilder taskListBuilder = CamundaTaskListClient.builder();
         // ---------------------------- Camunda Saas
-        if (BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
+        if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS.equals(serverDefinition.serverType)) {
             try {
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListUrl, "taskListUrl", analysis, true, true, isOk);
                 isOk = engineCamunda8.stillOk(serverDefinition.zeebeClientId, "zeebeClientId", analysis, true, true, isOk);
@@ -97,7 +95,7 @@ public class TaskListClient {
             }
 
             //---------------------------- Camunda 8 Self Manage
-        } else if (BpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
+        } else if (ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8.equals(serverDefinition.serverType)) {
 
             if (serverDefinition.isAuthenticationUrl()) {
                 isOk = engineCamunda8.stillOk(serverDefinition.taskListClientId, "taskListClientId", analysis, true, true, isOk);
@@ -128,7 +126,7 @@ public class TaskListClient {
                             "Invalid configuration[" + serverDefinition.name + "] Analysis:" + analysis);
                 }
                 try {
-                    String loginUrl =getLoginUrl();
+                    String loginUrl = getLoginUrl();
                     SimpleCredential credentials = new SimpleCredential(serverDefinition.taskListUserName,
                             serverDefinition.taskListUserPassword,
                             new URL(loginUrl),
@@ -154,10 +152,10 @@ public class TaskListClient {
             taskClient = taskListBuilder.build();
 
 
-          //    public CamundaTasklistClientConfiguration(CamundaTasklistClientConfiguration.ApiVersion apiVersion, Authentication authentication, URL baseUrl, CamundaClient camundaClient, CamundaTasklistClientConfiguration.DefaultProperties defaultProperties) {
+            //    public CamundaTasklistClientConfiguration(CamundaTasklistClientConfiguration.ApiVersion apiVersion, Authentication authentication, URL baseUrl, CamundaClient camundaClient, CamundaTasklistClientConfiguration.DefaultProperties defaultProperties) {
 
 
-                // Check the connection
+            // Check the connection
             // TaskList taskList= taskClient.getTasks(false,TaskState.CREATED, false, new Pagination().setPageSize(1));
 
             analysis.append("successfully, ");
@@ -311,7 +309,7 @@ public class TaskListClient {
         } catch (Exception e) {
             logger.error("TaskListClient.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
         }
-        BpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
         String loginUrl = serverDefinition.taskListUrl;
         if (isUpper88) {

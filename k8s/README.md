@@ -4,7 +4,7 @@
 
 at root, use 
 ````yaml
-docker build -t pierre-yves-monnet/process-execution-automator:2.0.2 .
+docker build -t pierre-yves-monnet/process-execution-automator:2.1.0 .
 ````
 
 The docker image is built using the Dockerfile present on the root level.
@@ -14,22 +14,13 @@ The docker image is built using the Dockerfile present on the root level.
 Push the image to the Camunda hub (you must be login first to the docker registry)
 
 ````
-docker tag pierre-yves-monnet/process-execution-automator:2.0.2 ghcr.io/camunda-community-hub/process-execution-automator:latest
-docker tag pierre-yves-monnet/process-execution-automator:2.0.2 ghcr.io/camunda-community-hub/process-execution-automator:2.0.2
-docker push ghcr.io/camunda-community-hub/process-execution-automator:2.0.2
+docker tag pierre-yves-monnet/process-execution-automator:2.1.0 ghcr.io/camunda-community-hub/process-execution-automator:latest
+docker tag pierre-yves-monnet/process-execution-automator:2.1.0 ghcr.io/camunda-community-hub/process-execution-automator:2.1.0
+docker push ghcr.io/camunda-community-hub/process-execution-automator:2.1.0
 docker push ghcr.io/camunda-community-hub/process-execution-automator:latest
 ````
 
 
-Tag as the latest:
-````
-docker tag pierre-yves-monnet/blueberry:1.0.0 ghcr.io/camunda-community-hub/blueberry:latest
-docker push ghcr.io/camunda-community-hub/blueberry:latest
-````
-
-
-
-Or use the image generated on camunda-hub
 
 # Start it
 

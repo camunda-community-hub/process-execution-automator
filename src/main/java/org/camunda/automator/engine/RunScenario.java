@@ -1,7 +1,18 @@
+/**
+ * This object executes a scenario, in a context. Context is
+ * - the scenario to execute
+ * - the BPMN Engine to access
+ * - the RunParameters
+ * <p>
+ * RunScenario is one component one a main request. For example, executing a scenario include to load it, connect to BPMNEngine and then execute it.
+ * <p>
+ * Difference between RunScenario and RunResult
+ * Each execution is track by a runResult. An execution result in a RunResult, but a RunResult may not contains a RunExecution.
+ */
 package org.camunda.automator.engine;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioExecution;
@@ -19,34 +30,38 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
-/**
- * This object executes a scenario, in a context. Context is
- * - the scenario to execute
- * - the BPMN Engine to access
- * - the RunParameters
- */
 public class RunScenario {
+    private final ServiceAccess serviceAccess;
+    Logger logger = LoggerFactory.getLogger(RunScenario.class);
     private final Scenario scenario;
     private final BpmnEngine bpmnEngine;
     private final RunParameters runParameters;
-    private final ServiceAccess serviceAccess;
-    Logger logger = LoggerFactory.getLogger(RunScenario.class);
 
     /**
-     * @param scenario      scenario to be executed
-     * @param bpmnEngine    engine to connect
-     * @param runParameters different parameters to run the scenario
+     * @param scenario     scenario to be executed
      * @param serviceAccess service access to access all services, this object is created per execution
      */
     public RunScenario(Scenario scenario,
+                       ServiceAccess serviceAccess,
                        BpmnEngine bpmnEngine,
-                       RunParameters runParameters,
-                       ServiceAccess serviceAccess) {
+                       RunParameters runParameters) {
         this.scenario = scenario;
+        this.serviceAccess = serviceAccess;
         this.bpmnEngine = bpmnEngine;
         this.runParameters = runParameters;
-        this.serviceAccess = serviceAccess;
     }
+
+    /*
+    public void setBpmnEngine(BpmnEngine bpmnEngine) {
+        this.bpmnEngine  = bpmnEngine;
+    }
+    public void setScenario(Scenario scenario) {
+        this.scenario = scenario;
+    }
+    public void setRunParameters(RunParameters runParameters) {
+        this.runParameters = runParameters;
+    }
+*/
 
     /**
      * Execute the scenario.
@@ -56,14 +71,10 @@ public class RunScenario {
      * <p>
      * these steps are controlled by the runParameters
      *
-     * @param executionId executionId provided by the caller
-     * @param runResult if null, then a new one is created. Else this one is fulfill
+     * @param runResult if null, then a new one is created. Else this one is fulfilled
      * @return the result object
      */
-    public RunResult executeTheScenario(String executionId, RunResult runResult) {
-        if (runResult==null)
-            runResult = new RunResult(this, executionId);
-
+    public RunResult executeTheScenario(RunResult runResult) {
         // control
         if (scenario.typeScenario == null) {
             runResult.addError(null, "TypeScenario undefined");
@@ -95,11 +106,11 @@ public class RunScenario {
 
         logger.info("RunScenario: ------ Deployment ({})", runParameters.isDeploymentProcess());
         if (runParameters.isDeploymentProcess())
-            runResult.merge(executeDeployment(executionId));
+            executeDeployment(runResult);
         logger.info("RunScenario: ------ End deployment ");
 
         // verification is inside execution
-        runExecutions(executionId, runResult);
+        runExecutions(runResult);
         return runResult;
     }
 
@@ -108,29 +119,28 @@ public class RunScenario {
      *
      * @return result of deployment
      */
-    protected RunResult executeDeployment(String executionId) {
-        RunResult result = new RunResult(this, executionId);
+    protected RunResult executeDeployment(RunResult runResult) {
 
         // first, do we have to deploy something?
         if (scenario.getDeployments() != null) {
             for (ScenarioDeployment deployment : scenario.getDeployments()) {
 
                 boolean sameTypeServer = false;
-                if (deployment.serverType.equals(BpmnEngineList.CamundaEngine.CAMUNDA_7)) {
-                    sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_7);
-                } else if (deployment.serverType.equals(BpmnEngineList.CamundaEngine.CAMUNDA_8)) {
-                    sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_8)
-                            || bpmnEngine.getTypeCamundaEngine().equals(BpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
+                if (deployment.serverType.equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_7)) {
+                    sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_7);
+                } else if (deployment.serverType.equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8)) {
+                    sameTypeServer = bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8)
+                            || bpmnEngine.getTypeCamundaEngine().equals(ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_8_SAAS);
                 }
                 if (sameTypeServer) {
                     try {
                         long begin = System.currentTimeMillis();
                         File processFile = ScenarioTool.loadFile(deployment.processFile, this);
                         logger.info("Deploy process[{}] on {}", processFile.getName(), bpmnEngine.getSignature());
-                        result.addDeploymentProcessId(bpmnEngine.deployBpmn(processFile, deployment.policy));
-                        result.addTimeExecution(System.currentTimeMillis() - begin);
+                        runResult.addDeploymentProcessId(bpmnEngine.deployBpmn(processFile, deployment.policy));
+                        runResult.addTimeExecution(System.currentTimeMillis() - begin);
                     } catch (AutomatorException e) {
-                        result.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
+                        runResult.addError(null, "Can't deploy process [" + deployment.processFile + "] " + e.getMessage());
                     }
                 } else {
                     logger.info("RunScenario: can't Deploy ({}), not the same server", deployment.processFile);
@@ -138,7 +148,7 @@ public class RunScenario {
                 }
             }
         }
-        return result;
+        return runResult;
     }
 
     /**
@@ -149,7 +159,8 @@ public class RunScenario {
      * @param runResult give the runTesult to be completed
      * @return the execution
      */
-    public RunResult runExecutions(String executionId,RunResult runResult) {
+    public RunResult runExecutions(RunResult runResult) {
+
 
         runResult.setStartDate(new Date());
 
@@ -187,7 +198,7 @@ public class RunScenario {
             }
             logger.info("RunScenario: ------ End execution");
             runResult.setEndDate(new Date());
-
+            runResult.setStatus(runResult.isSuccess() ? RunResult.StatusTest.SUCCESS : RunResult.StatusTest.FAIL);
         }
         if (scenario.typeScenario.equals(Scenario.TYPESCENARIO.FLOW)) {
             logger.info("RunScenario: ------ execution FLOW scenario [{}]", scenario.getName());
@@ -195,6 +206,7 @@ public class RunScenario {
             scenarioFlows.execute(runResult);
             logger.info("RunScenario: ------ End execution");
             runResult.setEndDate(new Date());
+            runResult.setStatus(runResult.isSuccess() ? RunResult.StatusTest.SUCCESS : RunResult.StatusTest.FAIL);
         }
 
         return runResult;
@@ -206,8 +218,8 @@ public class RunScenario {
      * @param scnExecution execution to check
      * @return result of execution
      */
-    public RunResult runVerifications(ScenarioExecution scnExecution, String executionId) {
-        RunResult result = new RunResult(this, executionId);
+    private RunResult runVerifications(ScenarioExecution scnExecution, String executionId) {
+        RunResult result = new RunResult(scenario.getName(), executionId);
 
         RunScenarioVerification verifications = new RunScenarioVerification(scnExecution);
         result.merge(verifications.runVerifications(this, result.getFirstProcessInstanceId()));
@@ -230,6 +242,7 @@ public class RunScenario {
     public ServiceAccess getServiceAccess() {
         return serviceAccess;
     }
+
 
 
 

@@ -2,7 +2,7 @@ package org.camunda.automator.api;
 
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationServersEngine;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.content.ContentManager;
@@ -10,10 +10,7 @@ import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.RunScenarioService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -49,49 +46,53 @@ public class ServersController {
     private final AutomatorAPI automatorAPI;
     private final RunScenarioService runScenarioService;
     private final ConfigurationServersEngine configurationServersEngine;
-    private final ToolboxRest toolboxRest;
-    private final BpmnEngineList bpmnEngineList;
+    private final ConfigurationBpmnEngineList configurationBpmnEngineList;
 
     public ServersController(ConfigurationStartup configurationStartup,
                              ContentManager contentManager,
                              AutomatorAPI automatorAPI,
-                             ToolboxRest toolboxRest,
                              RunScenarioService runScenarioService,
                              ConfigurationServersEngine configurationServersEngine,
-                             BpmnEngineList bpmnEngineList) {
+                             ConfigurationBpmnEngineList configurationBpmnEngineList) {
         this.configurationStartup = configurationStartup;
         this.contentManager = contentManager;
         this.automatorAPI = automatorAPI;
-        this.toolboxRest = toolboxRest;
         this.runScenarioService = runScenarioService;
         this.configurationServersEngine = configurationServersEngine;
-        this.bpmnEngineList = bpmnEngineList;
+        this.configurationBpmnEngineList = configurationBpmnEngineList;
     }
 
     @GetMapping(value = "/api/server/list", produces = "application/json")
     public Map<String, Object> getServerList() {
 
-        List<BpmnEngineList.BpmnServerDefinition> listServers = bpmnEngineList.getListServers();
+        List<ConfigurationBpmnEngineList.BpmnServerDefinition> listServers = configurationBpmnEngineList.getListServers();
         logger.info("ServerController: getServerList listServers:[{}] : [{}]", listServers.size(),
-                listServers.stream().map(BpmnEngineList.BpmnServerDefinition::getName)
+                listServers.stream().map(ConfigurationBpmnEngineList.BpmnServerDefinition::getName)
                         .collect(Collectors.joining(";")));
 
         return Map.of("preferateServer", configurationStartup.getServerName(),
                 "servers",
                 listServers.stream()
-                        .sorted(Comparator.comparing(BpmnEngineList.BpmnServerDefinition::getServerType)
-                                .thenComparing(BpmnEngineList.BpmnServerDefinition::getName))
-                        .map(BpmnEngineList.BpmnServerDefinition::getMapSynthesis)
+                        .sorted(Comparator.comparing(ConfigurationBpmnEngineList.BpmnServerDefinition::getServerType)
+                                .thenComparing(ConfigurationBpmnEngineList.BpmnServerDefinition::getName))
+                        .map(ConfigurationBpmnEngineList.BpmnServerDefinition::getMapSynthesis)
                         .toList());
+    }
+
+
+    @PostMapping(value = "/api/server/setpreferate", produces = "application/json")
+    public Map<String, Object> setPreferate(@RequestParam(name = "serverName") String serverName) {
+        configurationStartup.setServerName(serverName);
+        return Map.of("preferateServer", configurationStartup.getServerName());
     }
 
     @GetMapping(value = "/api/server/testconnection", produces = "application/json")
     public Map<String, Object> testConnection(@RequestParam(name = "serverName") String serverName) {
         Map<String, Object> result = new HashMap<>();
-        BpmnEngineList.BpmnServerDefinition serverDefinition = null;
+        ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = null;
         BpmnEngine bpmnEngine = null;
         try {
-            serverDefinition = bpmnEngineList.getByServerName(serverName);
+            serverDefinition = configurationBpmnEngineList.getByServerName(serverName);
 
             if (serverDefinition == null) {
                 result.put(JSON_CONNECTION_ENGINE, Map.of(JSON_STATUS, "NOT_EXIST", JSON_SERVER_NAME, serverName));
@@ -140,7 +141,7 @@ public class ServersController {
 
     @GetMapping(value = "/api/servers/connection", produces = "application/json")
     public List<Map<String, Object>> getListServerWithConnection() {
-        return bpmnEngineList.getListServers().stream().map(
+        return configurationBpmnEngineList.getListServers().stream().map(
                 t -> {
                     Map<String, Object> result = t.getMapSynthesis();
 

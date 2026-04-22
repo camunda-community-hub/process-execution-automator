@@ -22,7 +22,8 @@ public interface OperateClientInt {
     List<BpmnEngine.ProcessDescription> searchProcessInstanceByVariable(String processId,
                                                                         Map<String, Object> filterVariables,
                                                                         int maxResult) throws AutomatorException;
-     Map<String, Object> getVariables(String processInstanceId) throws AutomatorException;
+
+    Map<String, Object> getVariables(String processInstanceId) throws AutomatorException;
 
     long countNumberOfProcessInstancesCreated(String processId, Date startDate, Date endDate)
             throws AutomatorException;

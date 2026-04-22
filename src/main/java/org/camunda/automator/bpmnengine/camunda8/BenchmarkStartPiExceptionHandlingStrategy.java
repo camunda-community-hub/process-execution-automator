@@ -6,11 +6,7 @@ import io.camunda.client.jobhandling.DefaultCommandExceptionHandlingStrategy;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 
 @Component
@@ -21,8 +17,8 @@ public class BenchmarkStartPiExceptionHandlingStrategy extends DefaultCommandExc
 
 
     public BenchmarkStartPiExceptionHandlingStrategy(@Autowired BackoffSupplier backoffSupplier,
-                                                     ScheduledExecutorService benchmarkScheduledExecutorService2) {
-        super(backoffSupplier, benchmarkScheduledExecutorService2);
+                                                     BenchmakScheduledExecutorService benchmarkScheduledExecutorService) {
+        super(backoffSupplier, benchmarkScheduledExecutorService.getScheduledExecutorService());
     }
 
     @Override

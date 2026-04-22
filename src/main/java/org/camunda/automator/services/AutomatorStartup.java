@@ -3,7 +3,7 @@ package org.camunda.automator.services;
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.AutomatorCLI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.content.ContentManager;
 import org.camunda.automator.definition.Scenario;
@@ -40,7 +40,7 @@ public class AutomatorStartup {
     AutomatorCLI automatorCLI;
 
     @Autowired
-    BpmnEngineList engineConfiguration;
+    ConfigurationBpmnEngineList engineConfiguration;
 
     @Autowired
     ServiceAccess serviceAccess;
@@ -143,12 +143,12 @@ public class AutomatorStartup {
 
         AutomatorCLI automatorCLI;
 
-        BpmnEngineList engineConfiguration;
+        ConfigurationBpmnEngineList engineConfiguration;
 
         public AutomatorSetupRunnable(ConfigurationStartup configurationStartup,
                                       AutomatorAPI automatorAPI,
                                       AutomatorCLI automatorCLI,
-                                      BpmnEngineList engineConfiguration) {
+                                      ConfigurationBpmnEngineList engineConfiguration) {
             this.configurationStartup = configurationStartup;
             this.automatorAPI = automatorAPI;
             this.automatorCLI = automatorCLI;
@@ -224,7 +224,7 @@ public class AutomatorStartup {
                             if (runParameters.getServerName() == null)
                                 throw new AutomatorException("No Server define in configuration");
                             message += "ConfigurationServerName[" + runParameters.getServerName() + "];";
-                            BpmnEngineList.BpmnServerDefinition serverDefinition = engineConfiguration.getByServerName(
+                            ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineConfiguration.getByServerName(
                                     runParameters.getServerName());
                             if (serverDefinition == null)
                                 throw new AutomatorException(
@@ -267,7 +267,7 @@ public class AutomatorStartup {
                 bpmnEngine.turnHighFlowMode(true);
                 logger.info("Scenario [{}] file[{}] use BpmnEngine {}", scenario.getName(), scenario.getName(),
                         bpmnEngine.getSignature());
-                RunResult scenarioExecutionResult = automatorAPI.executeScenario(bpmnEngine, runParameters, scenario);
+                RunResult scenarioExecutionResult = automatorAPI.executeScenario(scenario, runParameters, bpmnEngine);
                 logger.info("AutomatorStartup: end scenario [{}] in {} ms", scenario.getName(),
                         scenarioExecutionResult.getTimeExecution());
                 bpmnEngine.turnHighFlowMode(false);

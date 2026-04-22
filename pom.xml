@@ -18,7 +18,7 @@
     <!-- 2.0.0 UI, Ready to integrate in a CD/CI for unit test -->
     <!-- 2.0.3 Fix load file at startup and clean the application.yaml in case of SaaS -->
     <!-- 2.0.4 Fix "inprogress" status on the testResult page and add % of advancement -->
-    <!-- 2.1.0 Add file upload in scenarion C8.8 integration -->
+    <!-- 2.1.0 Add file upload in scenario, C8.8 integration, result even if scenario or BPMN connection failed -->
     <version>2.1.0</version>
 
     <properties>

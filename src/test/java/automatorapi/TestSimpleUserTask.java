@@ -3,7 +3,7 @@ package automatorapi;
 import org.camunda.automator.AutomatorAPI;
 import org.camunda.automator.bpmnengine.BpmnEngine;
 import org.camunda.automator.bpmnengine.BpmnEngineConfigurationInstance;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.definition.ScenarioExecution;
 import org.camunda.automator.definition.ScenarioStep;
@@ -37,10 +37,10 @@ public class TestSimpleUserTask {
     runParameters.setLogLevel( RunParameters.LOGLEVEL.DEBUG);
     try {
 
-      BpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
+      ConfigurationBpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
       BpmnEngine bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration.getListServers().get(0),true);
 
-      RunResult scenarioExecutionResult = automatorApi.executeScenario(bpmnEngine, runParameters, scenario);
+      RunResult scenarioExecutionResult = automatorApi.executeScenario(scenario, runParameters, bpmnEngine);
       assert (scenarioExecutionResult.isSuccess());
     } catch (Exception e) {
 

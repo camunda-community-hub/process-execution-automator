@@ -1,7 +1,7 @@
 package org.camunda.automator;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.configuration.ConfigurationStartup;
 import org.camunda.automator.definition.Scenario;
 import org.camunda.automator.engine.AutomatorException;
@@ -33,7 +33,7 @@ public class AutomatorCLI implements CommandLineRunner {
     @Autowired
     AutomatorAPI automatorAPI;
     @Autowired
-    BpmnEngineList engineConfiguration;
+    ConfigurationBpmnEngineList engineConfiguration;
 
     @Autowired
     ConfigurationStartup configurationStartup;
@@ -98,7 +98,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
     }
 
-    private static BpmnEngineList decodeConfiguration(String propertiesFileName) throws Exception {
+    private static ConfigurationBpmnEngineList decodeConfiguration(String propertiesFileName) throws Exception {
         throw new Exception("Not yet implemented");
     }
 
@@ -217,7 +217,7 @@ public class AutomatorCLI implements CommandLineRunner {
             }
 
             // get the correct server configuration
-            BpmnEngineList.BpmnServerDefinition serverDefinition = null;
+            ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = null;
 
             serverDefinition = engineConfiguration.getByServerName(serverName);
             if (serverDefinition == null) {
@@ -235,7 +235,7 @@ public class AutomatorCLI implements CommandLineRunner {
 
                     // execution
                     RunResult scenarioExecutionResult = automatorAPI.executeScenario(
-                            bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
+                            scenario, runParameters, bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario);
 
                     logger.info(scenarioExecutionResult.getSynthesis(runParameters.isFullDetailsSynthesis()));
                 }
@@ -245,7 +245,7 @@ public class AutomatorCLI implements CommandLineRunner {
                         Scenario scenario = automatorAPI.loadFromFile(scenarioFileIndex);
                         BpmnEngine bpmnEngineScenario = automatorAPI.getBpmnEngine(serverDefinition, true);
                         RunResult scenarioExecutionResult = automatorAPI.executeScenario(
-                                bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario, runParameters, scenario);
+                                scenario, runParameters, bpmnEngineScenario == null ? bpmnEngine : bpmnEngineScenario);
 
                         logger.info(scenarioExecutionResult.getSynthesis(false));
                     }

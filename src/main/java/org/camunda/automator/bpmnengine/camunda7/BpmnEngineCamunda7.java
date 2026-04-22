@@ -2,7 +2,7 @@ package org.camunda.automator.bpmnengine.camunda7;
 
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.definition.ScenarioStep;
 import org.camunda.automator.engine.AutomatorException;
@@ -49,7 +49,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
      * @param serverDefinition definition to connect to the server
      * @param logDebug         if true, operation will be log as debug level
      */
-    public BpmnEngineCamunda7(BpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug) {
+    public BpmnEngineCamunda7(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition, boolean logDebug) {
         this.serverUrl = serverDefinition.camunda7ServerUrl;
         this.userName = serverDefinition.camunda7UserName;
         this.password = serverDefinition.camunda7Password;
@@ -79,7 +79,6 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         if (userName != null && !userName.trim().isEmpty()) {
             apiClient.setUsername(userName);
             apiClient.setPassword(password);
-        } else {
         }
 
         processDefinitionApi = new ProcessDefinitionApi(apiClient);
@@ -107,7 +106,11 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             engineApi.getProcessEngineNames();
             logger.info("Connection successfully to Camunda7 [{}] ", apiClient.getBasePath());
         } catch (ApiException e) {
-            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}", apiClient.getBasePath(), userName, e.getMessage(), e.getMessage(), e);
+            logger.error("Can't connect Camunda7 server[{}] User[{}]: {}",
+                    apiClient.getBasePath(),
+                    userName,
+                    e.getMessage(),
+                    e);
             throw new AutomatorException("Can't connect to Camunda7 [" + apiClient.getBasePath() + "] : " + e);
         }
     }
@@ -387,7 +390,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
 
         }
         taskQueryDto.addTaskDefinitionKeyInItem(taskId);
-        List<TaskDto> taskDtos = null;
+        List<TaskDto> taskDtos;
         try {
             taskDtos = taskApi.queryTasks(0, maxResult, taskQueryDto);
         } catch (ApiException e) {
@@ -441,7 +444,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
             throws AutomatorException {
 
         try {
-            int cumul = 0;
+            long cumul = 0;
             ProcessInstanceQueryDto processInstanceQuery = new ProcessInstanceQueryDto();
             processInstanceQuery = processInstanceQuery.addProcessDefinitionKeyInItem(processName);
             processInstanceQuery.addSortingItem(
@@ -537,13 +540,13 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     /* ******************************************************************** */
 
     @Override
-    public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
-        return BpmnEngineList.CamundaEngine.CAMUNDA_7;
+    public ConfigurationBpmnEngineList.CamundaEngine getTypeCamundaEngine() {
+        return ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_7;
     }
 
     @Override
     public String getSignature() {
-        return BpmnEngineList.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
+        return ConfigurationBpmnEngineList.CamundaEngine.CAMUNDA_7 + " " + "serverUrl[" + serverUrl + "]";
     }
 
     @Override
@@ -584,7 +587,7 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
     private Date stringToDate(String dateSt) {
         if (dateSt == null)
             return null;
-        return new Date(Long.valueOf(dateSt));
+        return new Date(Long.parseLong(dateSt));
     }
 
     /**

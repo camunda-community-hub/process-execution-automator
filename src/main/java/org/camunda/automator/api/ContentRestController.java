@@ -12,7 +12,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -47,7 +50,7 @@ public class ContentRestController {
 
 
     @GetMapping("/api/content/list")
-    List<Map<String, Object>> getContentScenario(@RequestParam(name = "details", required = false) Boolean details) {
+    List<Map<String, Object>> getContentListScenario(@RequestParam(name = "details", required = false) Boolean details) {
         logger.debug("ControlRestController/getContentScenario: start");
         try {
             List<Scenario> listScenario = contentManager.getContentScenario();
@@ -62,7 +65,7 @@ public class ContentRestController {
                     .map(t -> t.getJson(details != null && details))
 
                     .toList();
-            logger.info("ControlRestController/getContentScenario: found {} scenario : {]",
+            logger.info("ControlRestController/getContentScenario: found {} scenario : {}",
                     listScenario.size(),
                     listScenario.stream()
                             .map(Scenario::getName)

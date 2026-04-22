@@ -1,7 +1,7 @@
 package org.camunda.automator.bpmnengine.dummy;
 
 import org.camunda.automator.bpmnengine.BpmnEngine;
-import org.camunda.automator.configuration.BpmnEngineList;
+import org.camunda.automator.configuration.ConfigurationBpmnEngineList;
 import org.camunda.automator.definition.ScenarioDeployment;
 import org.camunda.automator.engine.AutomatorException;
 import org.camunda.automator.engine.flow.FixedBackoffSupplier;
@@ -19,7 +19,7 @@ public class BpmnEngineDummy implements BpmnEngine {
 
     private final Logger logger = LoggerFactory.getLogger(BpmnEngineDummy.class);
 
-    public BpmnEngineDummy(BpmnEngineList.BpmnServerDefinition serverDefinition) {
+    public BpmnEngineDummy(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition) {
     }
 
     @Override
@@ -158,13 +158,13 @@ public class BpmnEngineDummy implements BpmnEngine {
     }
 
     @Override
-    public BpmnEngineList.CamundaEngine getTypeCamundaEngine() {
-        return BpmnEngineList.CamundaEngine.DUMMY;
+    public ConfigurationBpmnEngineList.CamundaEngine getTypeCamundaEngine() {
+        return ConfigurationBpmnEngineList.CamundaEngine.DUMMY;
     }
 
     @Override
     public String getSignature() {
-        return BpmnEngineList.CamundaEngine.DUMMY.toString();
+        return ConfigurationBpmnEngineList.CamundaEngine.DUMMY.toString();
     }
 
     @Override

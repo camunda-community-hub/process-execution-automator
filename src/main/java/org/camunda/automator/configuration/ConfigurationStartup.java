@@ -50,6 +50,11 @@ public class ConfigurationStartup {
         return serverName;
     }
 
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
     public void setLogLevel(String logLevel) {
         this.logLevel = logLevel;
     }
