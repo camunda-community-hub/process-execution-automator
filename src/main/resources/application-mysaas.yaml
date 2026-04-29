@@ -15,7 +15,7 @@ automator:
 
   startup:
     # give the server to run all tests at startup. The name must be registered in the list of server after
-    serverNameOrig : Camunda8MySaas
+    serverNameOrig: Camunda8MySaas
     serverName: zeebe-orbit
 
     scenarioPath:
@@ -259,7 +259,7 @@ automator:
 
 
 
-app.version:  ${project.version}
+app.version: ${project.version}
 
 server.port: 8381
 scheduler.poolSize: 10

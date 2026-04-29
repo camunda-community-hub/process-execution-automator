@@ -32,13 +32,13 @@ import java.util.concurrent.*;
 
 public class RunScenario {
     private final ServiceAccess serviceAccess;
-    Logger logger = LoggerFactory.getLogger(RunScenario.class);
     private final Scenario scenario;
     private final BpmnEngine bpmnEngine;
     private final RunParameters runParameters;
+    Logger logger = LoggerFactory.getLogger(RunScenario.class);
 
     /**
-     * @param scenario     scenario to be executed
+     * @param scenario      scenario to be executed
      * @param serviceAccess service access to access all services, this object is created per execution
      */
     public RunScenario(Scenario scenario,

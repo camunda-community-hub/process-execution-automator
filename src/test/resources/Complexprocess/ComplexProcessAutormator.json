@@ -1,7 +1,7 @@
 {
   "name": "Example of process with user and service task",
   "processId": "ComplexProcess",
-  "numberOfExecutions" : 1000,
+  "numberOfExecutions": 1000,
   "scenarioType": "FLOW",
   "deployments": [
     {
@@ -26,7 +26,9 @@
         {
           "type": "STARTEVENT",
           "taskId": "StartEvent_1",
-          "variables": { "myMarkerMigration" : "ComplexProcess-181"}
+          "variables": {
+            "myMarkerMigration": "ComplexProcess-181"
+          }
         },
         {
           "type": "USERTASK",
@@ -47,11 +49,10 @@
           "taskId": "ActivityNotification",
           "topic": "complex-notification"
         }
-
       ],
       "verifications": {
-        "searchProcessInstanceByVariable" : {
-          "myMarkerMigration" : "ComplexeProcess-181"
+        "searchProcessInstanceByVariable": {
+          "myMarkerMigration": "ComplexeProcess-181"
         },
         "activities": [
           {

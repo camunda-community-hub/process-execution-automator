@@ -1,6 +1,7 @@
 # Complex User Task
 
 ## Definition
+
 This diagram consist with a a list of task in sequence. No process variables.
 
 ## Expectation
@@ -8,11 +9,11 @@ This diagram consist with a a list of task in sequence. No process variables.
 Process instances wait in the correct User task. No process variables is created.
 
 ## Diagram
+
 ![alt text](ComplexProcess.png "Complex User Task")
 
 ## Follow up
 
-
-| Date           | Who                  | Status       |
-|----------------|----------------------|--------------|
-| Jan 29, 2023   | Pierre-Yves Monnet   | Definition   |
+| Date         | Who                | Status     |
+|--------------|--------------------|------------|
+| Jan 29, 2023 | Pierre-Yves Monnet | Definition |

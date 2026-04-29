@@ -21,14 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class TaskListClient {
-    private final Logger logger = LoggerFactory.getLogger(TaskListClient.class);
+public class TaskListClientV1 implements TaskListClientInt {
+    private final Logger logger = LoggerFactory.getLogger(TaskListClientV1.class);
     BpmnEngineCamunda8 engineCamunda8;
     private CamundaTaskListClient taskClient;
 
     private long lastCallToTaskList;
 
-    protected TaskListClient(BpmnEngineCamunda8 engineCamunda8) {
+    protected TaskListClientV1(BpmnEngineCamunda8 engineCamunda8) {
         this.engineCamunda8 = engineCamunda8;
     }
 
@@ -178,10 +178,11 @@ public class TaskListClient {
     }
 
 
-    public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult)
-            throws AutomatorException {
+    @Override
+    public List<String> searchUserTasksByProcessInstance(String processInstanceId, String userTaskId, int maxResult) throws AutomatorException {
         checkConnection();
         try {
+            logger.info("searchUserTasksByProcessInstance");
             // impossible to filter by the task name/ task type, so be ready to get a lot of flowNode and search the correct one
             Long processInstanceIdLong = Long.valueOf(processInstanceId);
 
@@ -192,6 +193,7 @@ public class TaskListClient {
             taskSearch.setPagination(new Pagination().setPageSize(maxResult));
 
             TaskList tasksList = taskClient.getTasks(taskSearch);
+
             boolean getAllTasks = tasksList.size() < maxResult;
             List<String> listTasksResult = new ArrayList<>();
             do {
@@ -219,7 +221,7 @@ public class TaskListClient {
             return listTasksResult;
 
         } catch (TaskListException e) {
-            logger.error("TaskListClient: error during search task: processInstance[{}] : {} ", processInstanceId, e.getMessage(), e);
+            logger.error("TaskListClientV1: error during search task: processInstance[{}] : {} ", processInstanceId, e.getMessage(), e);
             throw new AutomatorException("Can't search users task " + e.getMessage());
         }
     }
@@ -256,24 +258,24 @@ public class TaskListClient {
     /**
      * Execute a user task
      *
-     * @param taskId    taskId to complete
+     * @param taskKey   taskId to complete
      * @param userId    userId who run the task
      * @param variables variables to updates
      * @throws AutomatorException if the user task cannot be executed
      */
-    public void executeUserTask(String taskId, String userId, Map<String, Object> variables)
+    public void executeUserTask(String taskKey, String userId, Map<String, Object> variables)
             throws AutomatorException {
         checkConnection();
         try {
-            taskClient.claim(taskId, userId == null ? "demo" : userId);
-            taskClient.completeTask(taskId, variables);
-            logger.debug("Execute user task: taskId[{}] userId[{}] : variables {}", taskId, userId, variables);
+            taskClient.claim(taskKey, userId == null ? "demo" : userId);
+            taskClient.completeTask(taskKey, variables);
+            logger.debug("Execute user task: taskId[{}] userId[{}] : variables {}", taskKey, userId, variables);
         } catch (TaskListException e) {
-            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", taskId, userId, e.getMessage(), e);
-            throw new AutomatorException("Can't execute task [" + taskId + "]");
+            logger.error("ExecuteUserTask: taskId[{}] userId[{}] : {}", taskKey, userId, e.getMessage(), e);
+            throw new AutomatorException("Can't execute task [" + taskKey + "]");
         } catch (Exception e) {
-            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", taskId, userId, e.getMessage(), e);
-            throw new AutomatorException("Can't execute task [" + taskId + "]");
+            logger.error("ExecuteUserTask: Exception on taskId[{}] userId[{}] : {}", taskKey, userId, e.getMessage(), e);
+            throw new AutomatorException("Can't execute task [" + taskKey + "]");
         }
     }
 
@@ -307,7 +309,7 @@ public class TaskListClient {
                 isUpper88 = true;
             }
         } catch (Exception e) {
-            logger.error("TaskListClient.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
+            logger.error("TaskListClientV1.getLoginUrl: can't decide if version > 8.8 : " + e.getMessage());
         }
         ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition = engineCamunda8.getServerDefinition();
 
@@ -316,7 +318,7 @@ public class TaskListClient {
             // remove /operate in the url
             loginUrl = loginUrl.replace("/tasklist", "");
         }
-        logger.info("TaskListClient.getLoginUrl: url[{}] zeebe>8.8? {}", loginUrl, isUpper88);
+        logger.info("TaskListClientV1.getLoginUrl: url[{}] zeebe>8.8? {}", loginUrl, isUpper88);
         return loginUrl;
 
     }

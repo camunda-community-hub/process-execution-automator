@@ -47,6 +47,8 @@ public class ScenarioStep {
      */
     private String name;
 
+    private Object correlationKey;
+    private String messageName;
     /**
      * to execute a service task in C8, topic is mandatory
      */
@@ -54,6 +56,11 @@ public class ScenarioStep {
      * Keep topic - old value
      */
     private String topic;
+    /**
+     * ISO 8601: PT10S
+     */
+    private String timeToLive;
+
     /**
      * JobType is the C8 name
      */
@@ -192,6 +199,9 @@ public class ScenarioStep {
      * @return Duration, defaultDuration if error
      */
     public Duration getWaitingTimeDuration(Duration defaultDuration) {
+        if (waitingTime == null) {
+            return defaultDuration;
+        }
         try {
             return Duration.parse(waitingTime);
         } catch (Exception e) {
@@ -237,6 +247,34 @@ public class ScenarioStep {
 
     public long getFixedBackOffDelay() {
         return fixedBackOffDelay == null ? 0 : fixedBackOffDelay.longValue();
+    }
+
+
+    public String getMessageName() {
+        return messageName;
+    }
+
+    public void setMessageName(String messageName) {
+        this.messageName = messageName;
+    }
+
+    public Object getCorrelationKey() {
+        return correlationKey;
+    }
+
+    public void setCorrelationKey(Object correlationKey) {
+        this.correlationKey = correlationKey;
+    }
+
+    public Duration getTimeToLive(Duration defaultDuration) {
+        if (timeToLive == null) {
+            return defaultDuration;
+        }
+        try {
+            return Duration.parse(timeToLive);
+        } catch (Exception e) {
+            return defaultDuration;
+        }
     }
 
     protected void afterUnSerialize(ScenarioExecution scnExecution) {
@@ -325,6 +363,6 @@ public class ScenarioStep {
     /*                                                                      */
     /* ******************************************************************** */
 
-    public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY, TASK, SCRIPTTASK}
+    public enum Step {STARTEVENT, USERTASK, SERVICETASK, MESSAGE, ENDEVENT, EXCLUSIVEGATEWAY, PARALLELGATEWAY, TASK, SCRIPTTASK, INTERMEDIATE_CATCH_EVENT}
 
 }

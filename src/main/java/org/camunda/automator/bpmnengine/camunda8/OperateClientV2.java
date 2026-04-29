@@ -23,7 +23,7 @@ public class OperateClientV2 implements OperateClientInt {
 
 
     public static final int SEARCH_MAX_SIZE = 100;
-    private final Logger logger = LoggerFactory.getLogger(OperateClientV1.class);
+    private final Logger logger = LoggerFactory.getLogger(OperateClientV2.class);
     BpmnEngineCamunda8 engineCamunda8;
     private CamundaOperateClient operateClient;
 
@@ -177,7 +177,11 @@ public class OperateClientV2 implements OperateClientInt {
                             taskDescription.taskId = t.getFlowNodeId();
                             taskDescription.processInstanceId = String.valueOf(t.getProcessInstanceKey());
                             taskDescription.startDate = t.getStartDate() == null ? null : t.getStartDate().getDate();
-                            taskDescription.endDate = t.getEndDate() == null ? null : t.getEndDate().getDate();
+                            try {
+                                taskDescription.endDate = t.getEndDate() == null ? null : t.getEndDate().getOffsetDateTime() == null ? null : t.getEndDate().getDate();
+                            } catch (Exception e) {
+                                // the library can throw a nullPointerException even if getEndDate() is not null
+                            }
                             taskDescription.type = getTaskType(t.getType()); // to implement
                             taskDescription.isCompleted = FlowNodeInstanceState.COMPLETED.equals(t.getState()); // to implement
                             return taskDescription;
@@ -423,6 +427,7 @@ public class OperateClientV2 implements OperateClientInt {
             case "PARALLEL_GATEWAY" -> ScenarioStep.Step.PARALLELGATEWAY;
             case "TASK" -> ScenarioStep.Step.TASK;
             case "SCRIPT_TASK" -> ScenarioStep.Step.SCRIPTTASK;
+            case "INTERMEDIATE_CATCH_EVENT" -> ScenarioStep.Step.INTERMEDIATE_CATCH_EVENT;
             default -> null;
         };
     }

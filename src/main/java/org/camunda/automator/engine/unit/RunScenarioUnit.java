@@ -160,6 +160,7 @@ public class RunScenarioUnit {
             RunScenarioUnitServiceTask serviceTask = new RunScenarioUnitServiceTask(runScenario);
             RunScenarioUnitUserTask userTask = new RunScenarioUnitUserTask(runScenario);
             RunScenarioUnitStartEvent startEvent = new RunScenarioUnitStartEvent(runScenario);
+            RunScenarioUnitMessageEvent messageEvent = new RunScenarioUnitMessageEvent(runScenario);
 
             if (scnRunExecution.runScenario.getRunParameters().showLevelMonitoring())
                 logger.info(
@@ -208,6 +209,9 @@ public class RunScenarioUnit {
                     }
 
                     case MESSAGE -> {
+                        if (scnRunExecution.runScenario.getRunParameters().isMessageEvent()) {
+                            scnRunResult = messageEvent.executeMessageEvent(step, scnRunResult);
+                        }
                     }
                 }
                 long timeEnd = System.currentTimeMillis();

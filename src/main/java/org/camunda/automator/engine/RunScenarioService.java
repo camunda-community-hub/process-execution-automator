@@ -61,14 +61,14 @@ public class RunScenarioService {
     /* ******************************************************************** */
 
     /**
-     * A new execution is started
+     * A new execution is started. scenarioName or scenario must be provided
      *
      * @return RunScenario
      */
     public RunResult startScenario(String scenarioName, Scenario scenario, RunParameters runParameters, boolean asynchronous) {
-        String executionId = createExecutionId(scenario.getName());
+        String executionId = createExecutionId(scenarioName != null ? scenarioName : scenario.getName());
 
-        RunResult runResult = new RunResult(scenario.getName(), executionId);
+        RunResult runResult = new RunResult(scenarioName != null ? scenarioName : scenario.getName(), executionId);
         cacheRunScenario.put(executionId, runResult);
 
         //---------------- Load the scenario
@@ -123,10 +123,10 @@ public class RunScenarioService {
     }
 
     /**
-     * @param scenario
-     * @param runParameters
-     * @param bpmnEngine
-     * @return RunScenario todo
+     * @param scenario scenario to start
+     * @param runParameters parameters to run the scenario
+     * @param bpmnEngine engine to run
+     * @return RunResult information
      */
     public RunResult startScenario(Scenario scenario, RunParameters runParameters, BpmnEngine bpmnEngine) {
         String executionId = createExecutionId(scenario.getName());

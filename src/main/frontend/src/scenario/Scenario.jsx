@@ -9,7 +9,8 @@ import React, {createRef} from 'react';
 import {Button, Card} from "react-bootstrap";
 
 import RestCallService from "../services/RestCallService";
-import {FileUploader, InlineNotification} from "carbon-components-react";
+import {FileUploader, InlineNotification, Tag} from "carbon-components-react";
+
 import {ArrowRepeat} from "react-bootstrap-icons";
 import {ChevronDown, ChevronRight, DataCheck, IbmKnowledgeCatalogStandard, Timer, TrashCan} from '@carbon/icons-react';
 import StepDisplay from "../component/StepDisplay";
@@ -27,6 +28,7 @@ class Scenario extends React.Component {
             openIds: new Set(),
             scenarioFiles: [],
             preferateServer: "",
+            statusUpload: [],
             statusRun: "",
             display: {
                 loading: false
@@ -93,18 +95,32 @@ class Scenario extends React.Component {
                                                 <td>{item.typeScenario}</td>
                                                 <td>{item.versionTest}</td>
                                                 <td>
-
-                                                    <button onClick={() => this.toggleDetail(item.id)}>
-                                                        {this.state.openIds.has(item.id) ? <ChevronDown/> :
-                                                            <ChevronRight/>}
-                                                    </button>
+                                                    <div style={{display: "flex", alignItems: "center"}}>
+                                                        <Button className="btn btn-info btn-sm"
+                                                                onClick={() => this.runTest(item.name)}
+                                                                disabled={this.state.display.loading || this.state.scenarioFiles.size === 0}>
+                                                            Start
+                                                        </Button>
+                                                        <button onClick={() => this.toggleDetail(item.name)}
+                                                                style={{
+                                                                    marginLeft: "10px",
+                                                                    background: "none",
+                                                                    border: "none",
+                                                                    cursor: "pointer",
+                                                                    padding: 0
+                                                                }}>
+                                                            {this.state.openIds.has(item.name) ?
+                                                                <ChevronDown className="my-chevron"/> :
+                                                                <ChevronRight className="my-chevron"/>}
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
-                                            {this.state.openIds.has(item.id) &&
+                                            {this.state.openIds.has(item.name) &&
                                                 (Array.isArray(item.executions) ? item.executions : []).map((execution, idx) => (
                                                     <React.Fragment key={idx}>
                                                         <tr>
-                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
+                                                            <td colSpan="7" style={{paddingLeft: "30px"}}>
                                                                 <table style={{width: '100%'}}>
                                                                     <tr>
                                                                         <td>
@@ -128,7 +144,7 @@ class Scenario extends React.Component {
                                                             </td>
                                                         </tr>
                                                         <tr>
-                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
+                                                            <td colSpan="7" style={{paddingLeft: "30px"}}>
                                                                 <div style={{
                                                                     border: "2px solid #3498db",
                                                                     borderRadius: "8px",
@@ -147,7 +163,7 @@ class Scenario extends React.Component {
                                                                         </thead>
                                                                         <tbody>
                                                                         {(Array.isArray(execution.steps) ? execution.steps : []).map((step, idx) => (
-                                                                            <tr>
+                                                                            <tr key={idx}>
                                                                                 <td className="text-center align-middle">
                                                                                     <StepDisplay type={step.type}/>
 
@@ -163,7 +179,7 @@ class Scenario extends React.Component {
                                                         </tr>
 
                                                         <tr>
-                                                            <td colSpan="5" style={{paddingLeft: "30px"}}>
+                                                            <td colSpan="7" style={{paddingLeft: "30px"}}>
                                                                 <div style={{
                                                                     border: "2px solid #3498db",
                                                                     borderRadius: "8px",
@@ -171,7 +187,8 @@ class Scenario extends React.Component {
                                                                     width: '100%'
                                                                 }}>
                                                                     <h6>Verifications</h6>
-                                                                    <table className="table table-striped table-hover w-100">
+                                                                    <table
+                                                                        className="table table-striped table-hover w-100">
                                                                         <thead className="table-light sticky-top">
                                                                         <tr>
                                                                             <th></th>
@@ -182,7 +199,7 @@ class Scenario extends React.Component {
                                                                         <tbody>
                                                                         {/* Loop through verifications activity */}
                                                                         {Array.isArray(execution.verifications?.activities) && execution.verifications?.activities.map((activity, activityIdx) => (
-                                                                            <tr key={{activityIdx}}>
+                                                                            <tr key={activityIdx}>
                                                                                 <td style={{paddingRight: "20px"}}>
                                                                                     <IbmKnowledgeCatalogStandard/>
                                                                                 </td>
@@ -194,7 +211,7 @@ class Scenario extends React.Component {
 
                                                                         {/* Loop through verifications variables */}
                                                                         {Array.isArray(execution.verifications?.variables) && execution.verifications?.variables.map((variable, variableIdx) => (
-                                                                            <tr key={{variableIdx}}>
+                                                                            <tr key={variableIdx}>
                                                                                 <td style={{paddingRight: "20px"}}>
                                                                                     <DataCheck/></td>
                                                                                 <td>VARIABLE</td>
@@ -203,7 +220,7 @@ class Scenario extends React.Component {
                                                                         ))}
                                                                         {/* Loop through verifications performance */}
                                                                         {Array.isArray(execution.verifications?.performances) && execution.verifications?.performances.map((performance, performanceIdx) => (
-                                                                            <tr key={{performanceIdx}}>
+                                                                            <tr key={performanceIdx}>
                                                                                 <td style={{paddingRight: "20px"}}>
                                                                                     <Timer/></td>
                                                                                 <td>Performance</td>
@@ -235,9 +252,10 @@ class Scenario extends React.Component {
                                     this.runAll()
                                 }}
                                 disabled={this.state.display.loading || this.state.scenarioFiles.size === 0}>
-                            Start All tests on {this.state.preferateServer}
+                            Start All tests
                         </Button>
                         <br/>
+                        Default server: {this.state.preferateServer}
                         {this.state.statusRun && <div>Status: {this.state.statusRun}</div>}
                     </div>
                     <div className="col-md-2">
@@ -271,25 +289,38 @@ class Scenario extends React.Component {
                                 <Button onClick={() => this.loadScenario()}
                                         disabled={this.state.display.loading}>Upload</Button>
                                 <br/>
-                                {this.state.statusUploadFailed && <div className="alert alert-danger" style={{
-                                    margin: "10px 10px 10px" +
-                                        " 10px"
-                                }}>
-                                    {this.state.statusUploadFailed}
-                                </div>
-                                }
-                                {this.state.statusUploadSuccess && <div className="alert alert-success" style={{
-                                    margin: "10px 10px 10px" +
-                                        " 10px"
-                                }}>
-                                    {this.state.statusUploadSuccess}
-                                </div>}
+
+
+                                <table id="uploadTable" className="table is-hoverable is-fullwidth"
+                                       style={{marginTop: "10px"}}>
+                                    <thead className="table-light sticky-top">
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Filename</th>
+                                        <th>Error</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {this.state.statusUpload.map((item, index) => (
+                                        <tr key={index}>
+                                            <td>
+                                                <Tag type={item.status === "ERROR" ? "red" : "green"}>
+                                                    {item.status}
+                                                </Tag>
+                                            </td>
+                                            <td className="small">{item.filename}</td>
+                                            <td className="small text-danger">{item.error}</td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
                             </Card.Body>
                         </Card>
                     </div>
                 </div>
             </div>
-        );
+        )
+            ;
     }
 
 
@@ -322,6 +353,7 @@ class Scenario extends React.Component {
             this.setState({preferateServer: httpPayload.getData().preferateServer});
         }
     }
+
     runAll() {
         console.log("Scenario.runAll http[/pea/api/unittest/runall]");
         this.setState({runners: [], status: ""});
@@ -339,6 +371,17 @@ class Scenario extends React.Component {
         } else {
             this.setState({statusRun: "Started"});
         }
+    }
+
+    runTest(scenarioName) {
+        console.log("Scenario.runAll http[/pea/api/unittest/run] scenarioName:" + scenarioName);
+        this.setState({runners: [], status: ""});
+        this.setDisplayProperty("loading", true);
+
+        var restCallService = RestCallService.getInstance();
+        var param = {};
+        restCallService.postJson('/pea/api/unittest/run?name=' + scenarioName + '&wait=false', param, this, this.runAllCallback);
+
     }
 
     clearAll() {
@@ -400,8 +443,7 @@ class Scenario extends React.Component {
             }
             this.setState({
                 'scenarioFiles': [],
-                statusUploadSuccess: 'Scenario uploaded with success',
-                statusUploadFailed: ""
+                statusUpload: httpResponse.getData()
             });
         }
         this.refreshList();
@@ -415,6 +457,8 @@ class Scenario extends React.Component {
         } else {
             openIds.add(id);
         }
+        console.log("AFTER Toggle [" + id + "] openids:", openIds);
+
         this.setState({openIds: openIds});
     };
 

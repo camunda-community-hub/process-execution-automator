@@ -55,7 +55,7 @@ public class TestConnectionOperate {
 
             SearchQuery flowNodeQuery = new SearchQuery.Builder().filter(flownodeFilter).size(100).build();
             // Operate client does not support the multithreading very well (execption in jackson library)
-            List<FlowNodeInstance> flowNodes= operateClient.searchFlowNodeInstances(flowNodeQuery);
+            List<FlowNodeInstance> flowNodes = operateClient.searchFlowNodeInstances(flowNodeQuery);
             logger.info("LocalTest: flowNodes {}", flowNodes);
 
 

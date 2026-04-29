@@ -111,6 +111,10 @@ public class BpmnEngineDummy implements BpmnEngine {
     }
 
     @Override
+    public void sendMessage(String messageName, Object correlationKey, Duration timeToLive, Map<String, Object> variables) throws AutomatorException {
+    }
+
+    @Override
     public List<TaskDescription> searchTasksByProcessInstanceId(String processInstanceId, String taskId, int maxResult)
             throws AutomatorException {
         return Collections.emptyList();

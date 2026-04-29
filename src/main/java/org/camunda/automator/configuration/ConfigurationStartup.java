@@ -22,7 +22,7 @@ public class ConfigurationStartup {
     public String logLevel;
     @Value("${automator.startup.deeptracking:false}")
     public boolean deepTracking;
-    @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}")
+    @Value("${automator.startup.policyExecution:DEPLOYPROCESS|WARMINGUP|CREATION|SERVICETASK|USERTASK}|MESSAGEEVENT")
     public String policyExecution;
 
     @Value("${automator.startEvent.nbThreads:#{null}}")
@@ -85,6 +85,12 @@ public class ConfigurationStartup {
     public boolean isPolicyExecutionUserTask() {
         String policyExtended = "|" + policyExecution + "|";
         return policyExtended.contains("|USERTASK|");
+    }
+
+
+    public boolean isPolicyExecutionMessageEvent() {
+        String policyExtended = "|" + policyExecution + "|";
+        return policyExtended.contains("|MESSAGEEVENT|");
     }
 
     public boolean isPolicyExecutionWarmingUp() {

@@ -22,7 +22,7 @@ class ControllerPage extends React.Component {
 
     componentDidUpdate(prevProps) {
         if (prevProps.error !== this.props.error) {
-            console.log("Controller.componentDidUpdate: Change error["+this.props.error+"]");
+            console.log("Controller.componentDidUpdate: Change error[" + this.props.error + "]");
             this.setState({
                 error: this.props.error
             });
@@ -60,7 +60,7 @@ class ControllerPage extends React.Component {
                         {this.state.errorMessage}
                     </div>}
             </div>
-    )
+        )
     }
 
 }

@@ -93,37 +93,41 @@ class TestResult extends React.Component {
                                                 <td>{item.scenarioName}</td>
                                                 <td className="small">{item.id}</td>
                                                 <td>
-                                                    {item.result === "INPROGRESS" &&
-                                                        <div>
-                                                            <Tag type="blue">In progress</Tag>
-                                                            &nbsp;{item.advancement}&nbsp;%
-                                                        </div>
-                                                    }
+                                                    <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                                                        {item.result === "INPROGRESS" &&
+                                                            <div>
+                                                                <Tag type="blue">In progress</Tag>
+                                                                &nbsp;
+                                                                <span
+                                                                    style={{fontSize: "0.7rem"}}>{item.advancement}&nbsp;%</span>
+                                                            </div>
+                                                        }
 
-                                                    {item.result === "FAIL" &&
-                                                        <Tag type="red">Fail</Tag>
-                                                    }
-                                                    {item.result === "SUCCESS" &&
-                                                        <Tag type="green">Success</Tag>
-                                                    }
-                                                    {item.result === "SCENARIO_NOT_EXIST" &&
-                                                        <Tag type="red">Scenario not Exist</Tag>
-                                                    }
-                                                    {item.result === "ENGINE_NOT_EXIST" &&
-                                                        <Tag type="red">Can't connect to Engine</Tag>
-                                                    }
-                                                    {item.result === "CANCEL" &&
-                                                        <Tag type="red">Cancelled</Tag>
-                                                    }
+                                                        {item.result === "FAIL" && <Tag type="red">Fail</Tag>}
+                                                        {item.result === "SUCCESS" && <Tag type="green">Success</Tag>}
+                                                        {item.result === "SCENARIO_NOT_EXIST" &&
+                                                            <Tag type="red">Scenario not Exist</Tag>}
+                                                        {item.result === "ENGINE_NOT_EXIST" &&
+                                                            <Tag type="red">Can't connect to Engine</Tag>}
+                                                        {item.result === "CANCEL" && <Tag type="red">Cancelled</Tag>}
 
 
-                                                    {item.status !== "INPROGRESS" &&
-                                                        <button disabled={item.status === "INPROGRESS"}
-                                                                onClick={() => this.toggleDetail(item.id)}>
-                                                            {this.state.openIds.has(item.id) ? <ChevronDown/> :
-                                                                <ChevronRight/>}
-                                                        </button>
-                                                    }
+                                                        {item.status !== "INPROGRESS" &&
+                                                            <button disabled={item.status === "INPROGRESS"}
+                                                                    onClick={() => this.toggleDetail(item.id)}
+                                                                    style={{
+                                                                        marginLeft: "10px",
+                                                                        background: "none",
+                                                                        border: "none",
+                                                                        cursor: "pointer",
+                                                                        padding: 0
+                                                                    }}>
+                                                                {this.state.openIds.has(item.id) ?
+                                                                    <ChevronDown className="my-chevron"/> :
+                                                                    <ChevronRight className="my-chevron"/>}
+                                                            </button>
+                                                        }
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     {this.dateDisplay(item.startDate)}
@@ -139,25 +143,27 @@ class TestResult extends React.Component {
                                                         <td></td>
                                                         <td colSpan="4">
                                                             <h5>Errors</h5>
-                                                            <div className="table-responsive mt-3" style={{maxHeight: "300px"}}>
-                                                            <table border="1" width="100%"  className="table table-sm align-middle">
-                                                                <thead className="table-light sticky-top">
-                                                                <tr>
-                                                                    <th>Step</th>
-                                                                    <th>Id</th>
-                                                                    <th>Error</th>
-                                                                </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                {item.errors.map((error, i) => (
-                                                                    <tr key={i} className="border-top small">
-                                                                        <td>{error.stepType}</td>
-                                                                        <td>{error.stepId}</td>
-                                                                        <td>{error.explanation}</td>
+                                                            <div className="table-responsive mt-3"
+                                                                 style={{maxHeight: "300px"}}>
+                                                                <table border="1" width="100%"
+                                                                       className="table table-sm align-middle">
+                                                                    <thead className="table-light sticky-top">
+                                                                    <tr>
+                                                                        <th>Step</th>
+                                                                        <th>Id</th>
+                                                                        <th>Error</th>
                                                                     </tr>
-                                                                ))}
-                                                                </tbody>
-                                                            </table>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                    {item.errors.map((error, i) => (
+                                                                        <tr key={i} className="border-top small">
+                                                                            <td>{error.stepType}</td>
+                                                                            <td>{error.stepId}</td>
+                                                                            <td>{error.explanation}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -169,7 +175,7 @@ class TestResult extends React.Component {
                                                         <td></td>
 
                                                         <td colSpan="4">
-                                                            <table style={{width: '100%'}} >
+                                                            <table style={{width: '100%'}}>
                                                                 <tr>
                                                                     <td>
                                                                         <h5>Test: {test.name}</h5>
@@ -194,7 +200,8 @@ class TestResult extends React.Component {
                                                             </table>
 
 
-                                                            <table border="1" width="100%" className="table table-sm align-middle table-striped">
+                                                            <table border="1" width="100%"
+                                                                   className="table table-sm align-middle table-striped">
                                                                 <thead className="table-light sticky-top ">
                                                                 <tr>
                                                                     <th></th>
@@ -205,7 +212,7 @@ class TestResult extends React.Component {
                                                                 </thead>
                                                                 <tbody>
                                                                 {(Array.isArray(test.detail) ? test.detail : []).map((d, i) => (
-                                                                    <tr key={i}  className="border-top small">
+                                                                    <tr key={i} className="border-top small">
                                                                         <td style={{paddingRight: "20px"}}>
                                                                             {d.typeVerification === "TASK" &&
                                                                                 <IbmKnowledgeCatalogStandard/>}

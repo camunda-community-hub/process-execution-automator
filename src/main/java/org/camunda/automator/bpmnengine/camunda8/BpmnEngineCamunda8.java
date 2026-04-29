@@ -32,7 +32,6 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     public static final String SAAS_AUTHENTICATE_URL = "https://login.cloud.camunda.io/oauth/token";
     private final Logger logger = LoggerFactory.getLogger(BpmnEngineCamunda8.class);
     private final ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition;
-    private final TaskListClient taskListClient;
     boolean hightFlowMode = false;
     /**
      * It is not possible to search user task for a specific processInstance. So, to realize this, a marker is created in each process instance. Retrieving the user task,
@@ -41,14 +40,14 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
     Map<String, Long> cacheProcessInstanceMarker = new HashMap<>();
     Random random = new Random(System.currentTimeMillis());
     private OperateClientInt operateClient;
+    private TaskListClientInt taskListClient;
     private ZeebeClient zeebeClient;
     private CamundaClient camundaClient;
 
 
     private BpmnEngineCamunda8(ConfigurationBpmnEngineList.BpmnServerDefinition serverDefinition, BenchmarkStartPiExceptionHandlingStrategy exceptionHandlingStrategy) {
         this.serverDefinition = serverDefinition;
-        this.taskListClient = new TaskListClient(this);
-        // Wait the connection to decide for Operate
+        // Wait the connection to decide for Operate / TaskList
     }
 
     /**
@@ -161,6 +160,8 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
 
             operateClient = isUpper88() ? new OperateClientV2(this) : new OperateClientV1(this);
             operateClient.connectOperate(analysis);
+
+            taskListClient = isUpper88() ? new TaskListClientV2(this) : new TaskListClientV1(this);
             taskListClient.connectTaskList(analysis);
             logger.info("Zeebe: OK, Operate: OK, TaskList:OK {}", analysis);
 
@@ -366,6 +367,21 @@ public class BpmnEngineCamunda8 implements BpmnEngine {
             zeebeClient.newCompleteCommand(Long.valueOf(serviceTaskId)).variables(variables).send().join();
         } catch (Exception e) {
             logger.error("executeServiceTask:Can't execute service task[{}] WorkerId[{}] : {}", serviceTaskId, workerId, e.getMessage(), e);
+            throw new AutomatorException("Can't execute service task " + e.getMessage());
+        }
+    }
+
+
+    public void sendMessage(String messageName, Object correlationKey, Duration timeToLive, Map<String, Object> variables) throws AutomatorException {
+        try {
+            camundaClient.newPublishMessageCommand()
+                    .messageName(messageName)
+                    .correlationKey(correlationKey.toString())
+                    .timeToLive(timeToLive)
+                    .variables(variables)
+                    .send().join();
+        } catch (Exception e) {
+            logger.error("sendMessage:Can't execute sendMessage messageName[{}] correlationKey[{}] : {}", messageName, correlationKey, e.getMessage(), e);
             throw new AutomatorException("Can't execute service task " + e.getMessage());
         }
     }

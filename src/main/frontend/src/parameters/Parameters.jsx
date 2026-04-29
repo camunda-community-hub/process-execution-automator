@@ -7,7 +7,7 @@
 // -----------------------------------------------------------
 
 import React from 'react';
-import {Button, InlineNotification, TextInput} from "carbon-components-react";
+import {Button} from "carbon-components-react";
 import {ArrowRepeat} from "react-bootstrap-icons";
 import RestCallService from "../services/RestCallService";
 
@@ -60,7 +60,6 @@ class Parameters extends React.Component {
                 <div className="row" style={{marginTop: "10px"}}>
 
                 </div>
-
 
 
             </div>

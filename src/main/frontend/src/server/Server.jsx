@@ -11,7 +11,7 @@ import {Button, Card} from "react-bootstrap";
 
 import RestCallService from "../services/RestCallService";
 import {InlineNotification, TableRow, Tag, TextInput} from "carbon-components-react";
-import {ArrowRepeat, BookmarkPlusFill,BookmarkPlus} from "react-bootstrap-icons";
+import {ArrowRepeat, BookmarkPlus, BookmarkPlusFill} from "react-bootstrap-icons";
 
 
 import {ChevronDown, ChevronRight} from '@carbon/icons-react';
@@ -407,6 +407,7 @@ class Server extends React.Component {
             this.refreshList();
         }
     }
+
     toggleDetail(id) {
         const openIds = new Set(this.state.openIds);
 

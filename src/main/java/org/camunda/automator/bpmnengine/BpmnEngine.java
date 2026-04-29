@@ -146,6 +146,20 @@ public interface BpmnEngine {
     void executeServiceTask(String serviceTaskId, String workerId, Map<String, Object> variables)
             throws AutomatorException;
 
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  Message tasks                                                       */
+    /*                                                                      */
+    /* ******************************************************************** */
+    void sendMessage(String messageName, Object correlationKey, Duration timeToLive, Map<String, Object> variables) throws AutomatorException;
+
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  search                                                              */
+    /*                                                                      */
+    /* ******************************************************************** */
+
     /**
      * Search task.
      *

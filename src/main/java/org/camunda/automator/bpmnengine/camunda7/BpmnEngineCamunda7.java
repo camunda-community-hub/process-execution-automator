@@ -369,7 +369,15 @@ public class BpmnEngineCamunda7 implements BpmnEngine {
         }
     }
 
+    /* ******************************************************************** */
+    /*                                                                      */
+    /*  message task                                                        */
+    /*                                                                      */
+    /* ******************************************************************** */
 
+    public void sendMessage(String messageName, Object correlationKey, Duration timeToLive, Map<String, Object> variables) throws AutomatorException {
+        throw new AutomatorException("Not supported in Process Execution Automator Camunda 7");
+    }
 
     /* ******************************************************************** */
     /*                                                                      */

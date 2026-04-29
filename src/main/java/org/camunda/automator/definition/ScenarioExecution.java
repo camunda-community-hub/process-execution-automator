@@ -1,5 +1,8 @@
 package org.camunda.automator.definition;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +12,7 @@ import java.util.Map;
  * A scenario execution pilot one execution of a scenarioHead
  */
 public class ScenarioExecution {
+    static Logger logger = LoggerFactory.getLogger(ScenarioExecution.class);
 
     private final List<ScenarioStep> steps = new ArrayList<>();
     private Scenario scnHead;
@@ -70,7 +74,13 @@ public class ScenarioExecution {
      */
     public void afterUnSerialize(Scenario scnHead) {
         this.scnHead = scnHead;
+        int count = 0;
         for (ScenarioStep scnStep : steps) {
+            count++;
+            if (scnStep == null) {
+                logger.error("One ScenarioStep {} is null, due to an incorrect JSON {}", count, steps.get((count - 1)));
+                continue;
+            }
             scnStep.afterUnSerialize(this);
         }
     }
@@ -172,7 +182,7 @@ public class ScenarioExecution {
 
     public Map<String, Object> getJson() {
 
-        HashMap jsonMap = new HashMap();
+        HashMap<String, Object> jsonMap = new HashMap();
         jsonMap.put("name", name);
         jsonMap.put("policy", getPolicy().toString());
         jsonMap.put("description", description);
@@ -182,34 +192,29 @@ public class ScenarioExecution {
 
 
         jsonMap.put("steps", steps.stream().map(
-                t -> {
-                    return Map.of("type", getSecureValue(t.getType()),
-                            "processId", getSecureValue(t.getProcessId()),
-                            "taskId", getSecureValue(t.getTaskId()),
-                            "jobType", getSecureValue(t.getJobType()),
-                            "numberOfExecutions", t.getNumberOfExecutions(),
-                            "nbThreads", t.getNbThreads(),
-                            "synthesis", t.getSynthesis());
-                }
+                t -> t == null ? new HashMap<>() : Map.of("type", getSecureValue(t.getType()),
+                        "processId", getSecureValue(t.getProcessId()),
+                        "taskId", getSecureValue(t.getTaskId()),
+                        "jobType", getSecureValue(t.getJobType()),
+                        "numberOfExecutions", t.getNumberOfExecutions(),
+                        "nbThreads", t.getNbThreads(),
+                        "synthesis", t.getSynthesis())
         ).toList());
 
         Map<String, Object> verificationMap = new HashMap();
         jsonMap.put("verifications", verificationMap);
         verificationMap.put("activities",
                 verifications.getActivities().stream().map(
-                        t -> {
-                            return Map.of("type", getSecureValue(t.getType()),
-                                    "taskId", getSecureValue(t.getTaskId()),
-                                    "synthesis", t.getSynthesis());
-                        }
+                        t -> Map.of("type", getSecureValue(t.getType()),
+                                "taskId", getSecureValue(t.getTaskId()),
+                                "synthesis", t.getSynthesis())
                 ).toList());
         verificationMap.put("variables",
                 verifications.getVariables().stream().map(
-                        t -> {
-                            return Map.of("name", getSecureValue(t.getName()),
-                                    "value", getSecureValue(t.getValue()),
-                                    "synthesis", t.getSynthesis());
-                        }
+                        t ->
+                                Map.of("name", getSecureValue(t.getName()),
+                                        "value", getSecureValue(t.getValue()),
+                                        "synthesis", t.getSynthesis())
                 ).toList());
         verificationMap.put("performances",
                 verifications.getPerformances().stream().map(

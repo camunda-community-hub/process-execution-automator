@@ -283,7 +283,7 @@ automator:
 
 
 
-app.version:  ${project.version}
+app.version: ${project.version}
 
 server.port: 8381
 scheduler.poolSize: 10

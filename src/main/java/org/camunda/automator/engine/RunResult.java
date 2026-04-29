@@ -84,8 +84,9 @@ public class RunResult {
 
     /**
      * Construct a RunResult. At the begining the runResult contains only the scenarioName and the executionId
+     *
      * @param scenarioName name of scenario to run
-     * @param executionId uniq ID
+     * @param executionId  uniq ID
      */
     public RunResult(String scenarioName, String executionId) {
         this.scenarioName = scenarioName;
@@ -406,6 +407,7 @@ public class RunResult {
 
     /**
      * Attach the runScenario for information
+     *
      * @param runScenario runScenario
      */
     public void setRunScenario(RunScenario runScenario) {

@@ -27,6 +27,7 @@ public class RunParameters {
     private boolean creation = true;
     private boolean servicetask = true;
     private boolean usertask = true;
+    private boolean messageEvent = true;
     /**
      * Verify the scenario (verification part) : check that tasks exist
      */
@@ -98,6 +99,15 @@ public class RunParameters {
 
     public RunParameters setServiceTask(boolean servicetask) {
         this.servicetask = servicetask;
+        return this;
+    }
+
+    public boolean isMessageEvent() {
+        return messageEvent;
+    }
+
+    public RunParameters setMessageEvent(boolean messageEvent) {
+        this.messageEvent = messageEvent;
         return this;
     }
 

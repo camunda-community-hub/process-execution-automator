@@ -142,6 +142,7 @@ public class AutomatorCLI implements CommandLineRunner {
                 .setCreation(configurationStartup.isPolicyExecutionCreation())
                 .setServiceTask(configurationStartup.isPolicyExecutionServiceTask())
                 .setUserTask(configurationStartup.isPolicyExecutionUserTask())
+                .setMessageEvent(configurationStartup.isPolicyExecutionMessageEvent())
                 .setWarmingUp(configurationStartup.isPolicyExecutionWarmingUp())
                 .setDeploymentProcess(configurationStartup.isPolicyDeployProcess())
                 .setDeepTracking(configurationStartup.deepTracking())

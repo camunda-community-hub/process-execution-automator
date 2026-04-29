@@ -16,52 +16,52 @@ import java.nio.file.Paths;
 
 public class TestSimpleUserTask {
 
-  AutomatorAPI automatorApi;
+    AutomatorAPI automatorApi;
 
-  @Test
-  public void SimpleUserTaskAPI() {
-    if (automatorApi==null) {
-      // SpringBoot didn't provide the object
-      assert(true);
-      return;
+    @Test
+    public void SimpleUserTaskAPI() {
+        if (automatorApi == null) {
+            // SpringBoot didn't provide the object
+            assert (true);
+            return;
+        }
+
+        Scenario scenario = automatorApi.createScenario().setProcessId("SimpleUserTask").setName("Simple User Task");
+
+        ScenarioExecution execution = ScenarioExecution.createExecution(scenario) //
+                .setName("dummy") // name
+                .setNumberProcessInstances(2); // number of process instance to generate
+
+        execution.addStep(ScenarioStep.createStepCreate(execution, "StartEvent_Review"));
+        RunParameters runParameters = new RunParameters();
+        runParameters.setLogLevel(RunParameters.LOGLEVEL.DEBUG);
+        try {
+
+            ConfigurationBpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
+            BpmnEngine bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration.getListServers().get(0), true);
+
+            RunResult scenarioExecutionResult = automatorApi.executeScenario(scenario, runParameters, bpmnEngine);
+            assert (scenarioExecutionResult.isSuccess());
+        } catch (Exception e) {
+
+            assert (false);
+        }
     }
 
-    Scenario scenario = automatorApi.createScenario().setProcessId("SimpleUserTask").setName("Simple User Task");
+    @Test
+    public void SimpleUserTaskScenario() {
+        try {
+            if (automatorApi == null) {
+                // SpringBoot didn't provide the object
+                assert (true);
+                return;
+            }
+            Path userTaskFile = Paths.get("./test/resources/simpleusertask/SimpleUserTask_Flow.json");
+            Scenario scenario = automatorApi.loadFromFile(userTaskFile);
+            assert (scenario != null);
+        } catch (Exception e) {
+            assert (false);
+        }
 
-    ScenarioExecution execution = ScenarioExecution.createExecution(scenario) //
-        .setName("dummy") // name
-        .setNumberProcessInstances(2); // number of process instance to generate
-
-    execution.addStep(ScenarioStep.createStepCreate(execution, "StartEvent_Review"));
-    RunParameters runParameters = new RunParameters();
-    runParameters.setLogLevel( RunParameters.LOGLEVEL.DEBUG);
-    try {
-
-      ConfigurationBpmnEngineList engineConfiguration = BpmnEngineConfigurationInstance.getDummy();
-      BpmnEngine bpmnEngine = automatorApi.getBpmnEngine(engineConfiguration.getListServers().get(0),true);
-
-      RunResult scenarioExecutionResult = automatorApi.executeScenario(scenario, runParameters, bpmnEngine);
-      assert (scenarioExecutionResult.isSuccess());
-    } catch (Exception e) {
-
-      assert (false);
     }
-  }
-
-  @Test
-  public void SimpleUserTaskScenario() {
-    try {
-      if (automatorApi==null) {
-        // SpringBoot didn't provide the object
-        assert(true);
-        return;
-      }
-      Path userTaskFile = Paths.get("./test/resources/simpleusertask/SimpleUserTask_Flow.json");
-      Scenario scenario = automatorApi.loadFromFile(userTaskFile);
-      assert(scenario!=null);
-    } catch (Exception e) {
-      assert (false);
-    }
-
-  }
 }
